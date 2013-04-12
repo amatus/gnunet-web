@@ -1,6 +1,6 @@
 (defproject gnunet-web "0.1.0-SNAPSHOT"
-  :description "FIXME: write this!"
-  :url "http://example.com/FIXME"
+  :description "A GNUnet web application."
+  :url "https://github.com/amatus/gnunet-web"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [ring "1.1.8"]]
   :plugins [[lein-cljsbuild "0.3.0"]]
