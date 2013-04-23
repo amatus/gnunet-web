@@ -1,2 +1,6 @@
 /target
 cljs.js
+*.swp
+.lein-repl-history
+out/
+repl/
