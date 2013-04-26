@@ -4,9 +4,30 @@
     <link rel="stylesheet" href="css/page.css" />
   </head>
   <body>
-    <button id="new">New Peer Connection</button>
     <div>
-      <textarea id="local-description"></textarea>
+      ICE State:<p id="ice-state"></p><br>
+      <button id="create-offer">Create Offer</button><br>
+      Local Description:<br>
+      <textarea id="local-description"></textarea><br>
+      <button id="set-local-offer">
+        Set Local Description as Offer
+      </button>
+      <button id="set-local-answer">
+        Set Local Description as Answer
+      </button><br>
+      Remote Description:<br>
+      <textarea id="remote-description"></textarea><br>
+      <button id="set-remote-offer">
+        Set Remote Description as Offer
+      </button>
+      <button id="set-remote-answer">
+        Set Remote Description as Answer
+      </button><br>
+      <button id="create-answer">Create Answer</button>
+    </div>
+    <div>
+      <textarea id="message"></textarea><br>
+      <button id="send">Send</button>
     </div>
     <script src="js/cljs.js"></script>
   </body>
