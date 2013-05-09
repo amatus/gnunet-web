@@ -64,7 +64,7 @@ emconfigure ./configure --prefix="$SYSROOT" \
   --with-gpg-error-prefix="$SYSROOT" \
   ac_cv_func_syslog=no ||
   die "Unable to emconfigure libgcrypt"
-emmake make ||
+emmake make install ||
   die "Unable to emmake libgcrypt"
 popd
 
