@@ -40,14 +40,24 @@ emmake make install ||
 popd
 
 # Build libgcrypt
+LIBGCRYPT_URL=git://git.gnupg.org/libgcrypt.git
+if ! [ -d "downloads/libgcrypt" ]; then
+  git clone "$LIBGCRYPT_URL" downloads/libgcrypt ||
+    die "Unable to clone libgcrypt git repository"
+fi
+
 pushd gnunet
-git clone git://git.gnupg.org/libgcrypt.git ||
+git clone ../downloads/libgcrypt libgcrypt ||
   die "Unable to clone libgcrypt git repository"
 cd libgcrypt
+patch -p1 < ../../patches/libgcrypt.patch
 ./autogen.sh ||
   die "Uanble to autogen libgcrypt"
 emconfigure ./configure --prefix="$SYSROOT" \
-  --with-gpg-error-prefix="$SYSROOT" ||
+  --disable-asm \
+  --disable-avx-support \
+  --with-gpg-error-prefix="$SYSROOT" \
+  ac_cv_func_syslog=no ||
   die "Unable to emconfigure libgcrypt"
 emmake make install ||
   die "Unable to emmake libgcrypt"
