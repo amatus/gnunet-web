@@ -1,0 +1,22 @@
+diff -ruN libgpg-error-1.11.orig/src/gpg-error.h.in libgpg-error-1.11/src/gpg-error.h.in
+--- libgpg-error-1.11.orig/src/gpg-error.h.in	2013-05-08 23:46:01.119655555 -0500
++++ libgpg-error-1.11/src/gpg-error.h.in	2013-05-08 23:48:06.748278446 -0500
+@@ -126,6 +126,10 @@
+ 
+ /* GCC feature test.  */
+ #undef _GPG_ERR_HAVE_CONSTRUCTOR
++/* This causes problems for emscripten */
++#if 1 /* ifdef EMSCRIPTEN */
++#define _GPG_ERR_CONSTRUCTOR
++#else
+ #if __GNUC__
+ #define _GPG_ERR_GCC_VERSION (__GNUC__ * 10000 \
+                             + __GNUC_MINOR__ * 100 \
+@@ -136,6 +140,7 @@
+ #define _GPG_ERR_HAVE_CONSTRUCTOR
+ #endif
+ #endif
++#endif
+ 
+ #ifndef _GPG_ERR_CONSTRUCTOR
+ #define _GPG_ERR_CONSTRUCTOR

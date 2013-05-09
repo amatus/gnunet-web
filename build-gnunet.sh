@@ -21,6 +21,7 @@ pushd gnunet
 tar -jxf "../downloads/$LIBGPG_ERROR_TBZ2" ||
   die "Unable to extract $LIBGPG_ERROR_TBZ2"
 cd "$LIBGPG_ERROR_SRCDIR"
+patch -p1 < ../../patches/libgpg-error-1.11.patch
 # Build libgpg-error first using build system tools to produce generated
 # header files.
 ./configure ||
@@ -35,8 +36,12 @@ touch src/mkerrcodes.h
 touch src/mkerrcodes
 touch src/code-from-errno.h
 touch src/gpg-error.def
-emmake make install ||
+emmake make ||
   die "Unable to emmake libgpg-error"
+EMMAKEN_JUST_CONFIGURE=true EMCONFIGURE_JS=true emmake make check ||
+  die "libgpg-error tests failed"
+emmake make install ||
+  die "Unable to install libgpg-error"
 popd
 
 # Build libgcrypt
@@ -59,8 +64,24 @@ emconfigure ./configure --prefix="$SYSROOT" \
   --with-gpg-error-prefix="$SYSROOT" \
   ac_cv_func_syslog=no ||
   die "Unable to emconfigure libgcrypt"
-emmake make install ||
+emmake make ||
   die "Unable to emmake libgcrypt"
+popd
+
+# Build GNUnet
+GNUNET_URL=https://gnunet.org/svn/gnunet
+if ! [ -d "downloads/gnunet" ]; then
+  svn co "$GNUNET_URL" downloads/gnunet ||
+    die "Unable to checkout GNUnet svn repository"
+fi
+
+pushd gnunet
+cp -r ../downloads/gnunet gnunet ||
+  die "Unable to copy GNUnet repository"
+cd gnunet
+./bootstrap
+EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
+  --with-libgcrypt-prefix="$SYSROOT"
 popd
 
 # vim: set expandtab ts=2 sw=2:
