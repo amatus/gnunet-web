@@ -55,17 +55,26 @@ pushd gnunet
 git clone ../downloads/libgcrypt libgcrypt ||
   die "Unable to clone libgcrypt git repository"
 cd libgcrypt
-patch -p1 < ../../patches/libgcrypt.patch
 ./autogen.sh ||
   die "Uanble to autogen libgcrypt"
-emconfigure ./configure --prefix="$SYSROOT" \
+emconfigure ./configure --enable-maintainer-mode \
+  --prefix="$SYSROOT" \
   --disable-asm \
   --disable-avx-support \
   --with-gpg-error-prefix="$SYSROOT" \
-  ac_cv_func_syslog=no ||
+  ac_cv_func_syslog=no \
+  ac_cv_func_mlock=no \
+  gnupg_cv_mlock_is_in_sys_mman=no ||
   die "Unable to emconfigure libgcrypt"
-emmake make install ||
+emmake make SUBDIRS="compat mpi cipher random src" \
+  LDFLAGS=-Wc,--ignore-dynamic-linking ||
   die "Unable to emmake libgcrypt"
+emmake make SUBDIRS="tests" ||
+  die "Unable to emmake tests"
+touch tests/*.o
+EMMAKEN_JUST_CONFIGURE=true EMCONFIGURE_JS=true emmake make check \
+  SUBDIRS="tests" ||
+  die "Unable to emmake check"
 popd
 
 # Build GNUnet
