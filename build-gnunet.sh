@@ -55,6 +55,7 @@ pushd gnunet
 git clone ../downloads/libgcrypt libgcrypt ||
   die "Unable to clone libgcrypt git repository"
 cd libgcrypt
+patch -p1 < ../../patches/libgcrypt.patch
 ./autogen.sh ||
   die "Uanble to autogen libgcrypt"
 emconfigure ./configure --enable-maintainer-mode \
@@ -73,7 +74,8 @@ emmake make SUBDIRS="tests" ||
   die "Unable to emmake tests"
 touch tests/*.o
 EMMAKEN_JUST_CONFIGURE=true EMCONFIGURE_JS=true emmake make check \
-  SUBDIRS="tests" ||
+  SUBDIRS="tests" \
+  LDFLAGS=-Wc,-s,TOTAL_MEMORY=33554432 ||
   die "Unable to emmake check"
 popd
 

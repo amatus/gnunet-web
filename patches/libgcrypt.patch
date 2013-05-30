@@ -1,0 +1,14 @@
+diff --git a/random/random-csprng.c b/random/random-csprng.c
+index 9921c4f..2a3d978 100644
+--- a/random/random-csprng.c
++++ b/random/random-csprng.c
+@@ -1142,7 +1142,9 @@ getfnc_gather_random (void))(void (*)(const void*, size_t,
+   return fnc;
+ #endif
+ 
++#if 0 /* EMSCRIPTEN */
+   log_fatal (_("no entropy gathering module detected\n"));
++#endif
+ 
+   return NULL; /*NOTREACHED*/
+ }
