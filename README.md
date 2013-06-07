@@ -30,7 +30,7 @@ What You Can Do Now
 8. Alice and Bob wait for the ICE State to be connected.
 9. Alice and Bob can send messages with the input box at the bottom of the page.
 
-### Build libgpg-error and libgcrypt with emscripten ###
+### Build libgpg-error, libgcrypt, and libunistring with emscripten ###
 0. Install [emscripten] and add it to your `PATH`.
 1. Execute `./build-gnunet.sh`
 
