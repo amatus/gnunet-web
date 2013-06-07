@@ -70,13 +70,40 @@ emconfigure ./configure --enable-maintainer-mode \
 emmake make SUBDIRS="compat mpi cipher random src" \
   LDFLAGS=-Wc,--ignore-dynamic-linking ||
   die "Unable to emmake libgcrypt"
-emmake make SUBDIRS="tests" ||
-  die "Unable to emmake tests"
-touch tests/*.o
-EMMAKEN_JUST_CONFIGURE=true EMCONFIGURE_JS=true emmake make check \
-  SUBDIRS="tests" \
-  LDFLAGS=-Wc,-s,TOTAL_MEMORY=33554432 ||
-  die "Unable to emmake check"
+#emmake make SUBDIRS="tests" ||
+#  die "Unable to emmake tests"
+#touch tests/*.o
+#EMMAKEN_JUST_CONFIGURE=true EMCONFIGURE_JS=true emmake make check \
+#  SUBDIRS="tests" \
+#  LDFLAGS=-Wc,-s,TOTAL_MEMORY=33554432 ||
+#  die "Unable to emmake check"
+emmake make install SUBDIRS="compat mpi cipher random src" ||
+  die "Unable to install libgcrypt"
+popd
+
+# Build libunistring
+LIBUNISTRING_TGZ=libunistring-0.9.3.tar.gz
+LIBUNISTRING_SRCDIR=libunistring-0.9.3
+LIBUNISTRING_URL=http://ftp.gnu.org/gnu/libunistring/$LIBUNISTRING_TGZ
+if ! [ -f "downloads/$LIBUNISTRING_TGZ" ]; then
+  wget -P downloads "$LIBUNISTRING_URL" ||
+    die "Unable to download $LIBUNISTRING_TGZ"
+fi
+
+pushd gnunet
+tar -zxf "../downloads/$LIBUNISTRING_TGZ" ||
+  die "Unable to extract $LIBUNISTRING_TGZ"
+cd "$LIBUNISTRING_SRCDIR"
+patch -p1 < ../../patches/libunistring.patch
+emconfigure ./configure --prefix="$SYSROOT" \
+  --disable-threads \
+  ac_cv_func_uselocale=no \
+  am_cv_func_iconv=no ||
+  die "Unable to emconfigure libunistring"
+emmake make ||
+  die "Unable to emmake libgpg-error"
+emmake make install ||
+  die "Unable to install libgpg-error"
 popd
 
 # Build GNUnet
@@ -92,7 +119,12 @@ cp -r ../downloads/gnunet gnunet ||
 cd gnunet
 ./bootstrap
 EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
-  --with-libgcrypt-prefix="$SYSROOT"
+  --with-libgcrypt-prefix="$SYSROOT" \
+  --with-libunistring-prefix="$SYSROOT" \
+  --without-libcurl \
+  --without-extractor \
+  --without-libidn ||
+  die "Unable to configure GNUnet"
 popd
 
 # vim: set expandtab ts=2 sw=2:

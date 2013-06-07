@@ -1,0 +1,11 @@
+diff -ruN libunistring-0.9.3.orig/lib/wchar.in.h libunistring-0.9.3/lib/wchar.in.h
+--- libunistring-0.9.3.orig/lib/wchar.in.h	2010-05-02 16:26:20.000000000 -0500
++++ libunistring-0.9.3/lib/wchar.in.h	2013-06-01 22:34:13.634654335 -0500
+@@ -60,7 +60,5 @@
+ #ifndef __GLIBC__
+ # include <stddef.h>
+-# include <stdio.h>
+-# include <time.h>
+ #endif
+ 
+ /* Include the original <wchar.h> if it exists.
