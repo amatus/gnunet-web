@@ -101,9 +101,30 @@ emconfigure ./configure --prefix="$SYSROOT" \
   am_cv_func_iconv=no ||
   die "Unable to emconfigure libunistring"
 emmake make ||
-  die "Unable to emmake libgpg-error"
+  die "Unable to emmake libunistring"
 emmake make install ||
-  die "Unable to install libgpg-error"
+  die "Unable to install libunistring"
+popd
+
+# Build zlib
+ZLIB_TGZ=zlib-1.2.8.tar.gz
+ZLIB_SRCDIR=zlib-1.2.8
+ZLIB_URL=http://zlib.net/$ZLIB_TGZ
+if ! [ -f "downloads/$ZLIB_TGZ" ]; then
+  wget -P downloads "$ZLIB_URL" ||
+    die "Unable to download $ZLIB_TGZ"
+fi
+
+pushd gnunet
+tar -zxf "../downloads/$ZLIB_TGZ" ||
+  die "Unable to extract $ZLIB_TGZ"
+cd "$ZLIB_SRCDIR"
+emconfigure ./configure --prefix="$SYSROOT" ||
+  die "Unable to emconfigure zlib"
+emmake make ||
+  die "Unable to emmake zlib"
+emmake make install ||
+  die "Unable to install zlib"
 popd
 
 # Build GNUnet
@@ -121,6 +142,7 @@ cd gnunet
 EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
   --with-libgcrypt-prefix="$SYSROOT" \
   --with-libunistring-prefix="$SYSROOT" \
+  --with-zlib="$SYSROOT" \
   --without-libcurl \
   --without-extractor \
   --without-libidn ||
