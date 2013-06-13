@@ -127,6 +127,13 @@ emmake make install ||
   die "Unable to install zlib"
 popd
 
+# Build fake libextractor
+pushd fake-extractor
+emmake make ||
+  die "Unable to make fake libextractor"
+emmake make install DESTDIR="$SYSROOT" ||
+  die "Unable to install fake libextractor"
+
 # Build GNUnet
 GNUNET_URL=https://gnunet.org/svn/gnunet
 if ! [ -d "downloads/gnunet" ]; then
@@ -138,13 +145,14 @@ pushd gnunet
 cp -r ../downloads/gnunet gnunet ||
   die "Unable to copy GNUnet repository"
 cd gnunet
-./bootstrap
+./bootstrap ||
+  die "Unable to bootstrap GNUnet"
 EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
   --with-libgcrypt-prefix="$SYSROOT" \
   --with-libunistring-prefix="$SYSROOT" \
   --with-zlib="$SYSROOT" \
+  --with-extractor="$SYSROOT" \
   --without-libcurl \
-  --without-extractor \
   --without-libidn ||
   die "Unable to configure GNUnet"
 popd
