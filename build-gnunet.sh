@@ -152,9 +152,12 @@ EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
   --with-libunistring-prefix="$SYSROOT" \
   --with-zlib="$SYSROOT" \
   --with-extractor="$SYSROOT" \
+  --with-included-ltdl \
   --without-libcurl \
   --without-libidn ||
   die "Unable to configure GNUnet"
+emmake make ||
+  die "Unable to make GNUnet"
 popd
 
 # vim: set expandtab ts=2 sw=2:
