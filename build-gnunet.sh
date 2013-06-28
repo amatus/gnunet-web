@@ -154,7 +154,8 @@ EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
   --with-extractor="$SYSROOT" \
   --with-included-ltdl \
   --without-libcurl \
-  --without-libidn ||
+  --without-libidn \
+  --disable-testing ||
   die "Unable to configure GNUnet"
 emmake make ||
   die "Unable to make GNUnet"
