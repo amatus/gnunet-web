@@ -1,0 +1,12 @@
+diff -ruN libidn-1.27.orig/lib/gl/stdint.in.h libidn-1.27/lib/gl/stdint.in.h
+--- libidn-1.27.orig/lib/gl/stdint.in.h	2013-07-10 22:43:17.318425868 -0500
++++ libidn-1.27/lib/gl/stdint.in.h	2013-07-10 22:44:27.014771427 -0500
+@@ -547,8 +547,5 @@
+ #if @HAVE_WCHAR_H@ && ! (defined WCHAR_MIN && defined WCHAR_MAX)
+   /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
+      included before <wchar.h>.  */
+-# include <stddef.h>
+-# include <stdio.h>
+-# include <time.h>
+ # define _GL_JUST_INCLUDE_SYSTEM_WCHAR_H
+ /*  We don't need WCHAR_* in libidn, so to avoid problems with

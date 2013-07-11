@@ -127,6 +127,28 @@ emmake make install ||
   die "Unable to install zlib"
 popd
 
+# Build libidn
+LIBIDN_TGZ=libidn-1.27.tar.gz
+LIBIDN_SRCDIR=libidn-1.27
+LIBIDN_URL=http://ftp.gnu.org/gnu/libidn/$LIBIDN_TGZ
+if ! [ -f "downloads/$LIBIDN_TGZ" ]; then
+  wget -P downloads "$LIBIDN_URL" ||
+    die "Unable to download $LIBIDN_TGZ"
+fi
+
+pushd gnunet
+tar -zxf "../downloads/$LIBIDN_TGZ" ||
+  die "Unable to extract $LIBIDN_TGZ"
+cd "$LIBIDN_SRCDIR"
+patch -p1 < ../../patches/libidn-1.27.patch
+emconfigure ./configure --prefix="$SYSROOT" ||
+  die "Unable to emconfigure libidn"
+emmake make ||
+  die "Unable to emmake libidn"
+emmake make install ||
+  die "Unable to install libidn"
+popd
+
 # Build fake libextractor
 pushd fake-extractor
 emmake make ||
@@ -153,9 +175,10 @@ EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
   --with-zlib="$SYSROOT" \
   --with-extractor="$SYSROOT" \
   --with-included-ltdl \
+  --with-libidn="$SYSROOT" \
   --without-libcurl \
-  --without-libidn \
-  --disable-testing ||
+  --disable-testing \
+  ac_cv_lib_idn_stringprep_check_version=yes ||
   die "Unable to configure GNUnet"
 emmake make ||
   die "Unable to make GNUnet"
