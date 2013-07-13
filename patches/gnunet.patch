@@ -1,0 +1,37 @@
+Index: Makefile.am
+===================================================================
+--- Makefile.am	(revision 27966)
++++ Makefile.am	(working copy)
+@@ -1,5 +1,5 @@
+ INCLUDES = -I$(top_srcdir)/src/include
+-SUBDIRS  = contrib doc m4 src po pkgconfig
++SUBDIRS  = libltdl contrib doc m4 src po pkgconfig
+ 
+ EXTRA_DIST = \
+  ABOUT-NLS \
+Index: src/Makefile.am
+===================================================================
+--- src/Makefile.am	(revision 27966)
++++ src/Makefile.am	(working copy)
+@@ -47,9 +47,7 @@
+   namestore \
+   template \
+   ats \
+-  nat \
+   fragmentation \
+-  transport \
+   ats-tool \
+   peerinfo-tool \
+   core \
+Index: src/dht/gnunet-service-dht_neighbours.c
+===================================================================
+--- src/dht/gnunet-service-dht_neighbours.c	(revision 27966)
++++ src/dht/gnunet-service-dht_neighbours.c	(working copy)
+@@ -46,7 +46,6 @@
+ #include "gnunet-service-dht_neighbours.h"
+ #include "gnunet-service-dht_nse.h"
+ #include "gnunet-service-dht_routing.h"
+-#include <fenv.h>
+ #include "dht.h"
+ 
+ #include "../regex/regex_block_lib.h"

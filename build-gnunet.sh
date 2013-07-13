@@ -167,6 +167,7 @@ pushd gnunet
 cp -r ../downloads/gnunet gnunet ||
   die "Unable to copy GNUnet repository"
 cd gnunet
+patch < ../../patches/gnunet.patch
 ./bootstrap ||
   die "Unable to bootstrap GNUnet"
 EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
@@ -180,7 +181,8 @@ EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
   --disable-testing \
   ac_cv_lib_idn_stringprep_check_version=yes ||
   die "Unable to configure GNUnet"
-emmake make ||
+emmake make \
+  LDFLAGS=-Wc,--ignore-dynamic-linking ||
   die "Unable to make GNUnet"
 popd
 
