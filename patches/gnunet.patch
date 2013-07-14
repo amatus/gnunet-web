@@ -23,6 +23,17 @@ Index: src/Makefile.am
    ats-tool \
    peerinfo-tool \
    core \
+@@ -62,9 +60,4 @@
+   mesh \
+   lockmanager \
+   stream \
+-  dns \
+-  fs \
+-  $(LINUX_DIR) \
+-  $(MINGW_DIR) \
+-  integration-tests \
+-  $(EXP_DIR) 
++  fs
 Index: src/dht/gnunet-service-dht_neighbours.c
 ===================================================================
 --- src/dht/gnunet-service-dht_neighbours.c	(revision 27966)
@@ -35,3 +46,27 @@ Index: src/dht/gnunet-service-dht_neighbours.c
  #include "dht.h"
  
  #include "../regex/regex_block_lib.h"
+Index: src/stream/stream_api.c
+===================================================================
+--- src/stream/stream_api.c	(revision 27966)
++++ src/stream/stream_api.c	(working copy)
+@@ -2983,8 +2983,7 @@
+     {
+     case GNUNET_STREAM_OPTION_INITIAL_RETRANSMIT_TIMEOUT:
+       /* Expect struct GNUNET_TIME_Relative */
+-      socket->retransmit_timeout = va_arg (vargs,
+-                                           struct GNUNET_TIME_Relative);
++      socket->retransmit_timeout.rel_value = va_arg (vargs, uint64_t);
+       break;
+     case GNUNET_STREAM_OPTION_TESTING_SET_WRITE_SEQUENCE_NUMBER:
+       socket->testing_active = GNUNET_YES;
+@@ -3264,8 +3263,7 @@
+     switch (option)
+     {
+     case GNUNET_STREAM_OPTION_INITIAL_RETRANSMIT_TIMEOUT:
+-      lsocket->retransmit_timeout = va_arg (vargs,
+-                                            struct GNUNET_TIME_Relative);
++      lsocket->retransmit_timeout.rel_value = va_arg (vargs, uint64_t);
+       break;
+     case GNUNET_STREAM_OPTION_TESTING_SET_WRITE_SEQUENCE_NUMBER:
+       lsocket->testing_active = GNUNET_YES;
