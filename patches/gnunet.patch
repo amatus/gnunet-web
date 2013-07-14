@@ -23,11 +23,10 @@ Index: src/Makefile.am
    ats-tool \
    peerinfo-tool \
    core \
-@@ -62,9 +60,4 @@
-   mesh \
+@@ -63,8 +61,4 @@
    lockmanager \
    stream \
--  dns \
+   dns \
 -  fs \
 -  $(LINUX_DIR) \
 -  $(MINGW_DIR) \
@@ -46,6 +45,25 @@ Index: src/dht/gnunet-service-dht_neighbours.c
  #include "dht.h"
  
  #include "../regex/regex_block_lib.h"
+Index: src/dns/Makefile.am
+===================================================================
+--- src/dns/Makefile.am	(revision 27966)
++++ src/dns/Makefile.am	(working copy)
+@@ -17,14 +17,6 @@
+ pkgcfg_DATA = \
+   dns.conf
+ 
+-if LINUX
+-HIJACKBIN = gnunet-helper-dns
+-install-exec-hook:
+-	$(top_srcdir)/src/dns/install-dns-helper.sh $(libexecdir) $(GNUNETDNS_GROUP) $(SUDO_BINARY) || true
+-else
+-install-exec-hook:
+-endif
+-
+ lib_LTLIBRARIES = \
+   libgnunetdnsparser.la \
+   libgnunetdnsstub.la \
 Index: src/stream/stream_api.c
 ===================================================================
 --- src/stream/stream_api.c	(revision 27966)
