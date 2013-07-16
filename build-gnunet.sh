@@ -184,6 +184,17 @@ EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
 emmake make \
   LDFLAGS=-Wc,--ignore-dynamic-linking ||
   die "Unable to make GNUnet"
+# Test-build an html file for gnunet-service-peerinfo
+./libtool --tag=CC --mode=link \
+  emcc -fno-strict-aliasing -Wall "-I$SYSROOT/include" "-L$SYSROOT/lib" \
+  -o src/peerinfo/gnunet-service-peerinfo.html \
+  src/peerinfo/gnunet-service-peerinfo.o \
+  src/hello/libgnunethello.la \
+  src/statistics/libgnunetstatistics.la \
+  src/util/libgnunetutil.la \
+  "$SYSROOT/lib/libgcrypt.la" \
+  "$SYSROOT/lib/libgpg-error.la" \
+  -lm -lsocket
 popd
 
 # vim: set expandtab ts=2 sw=2:

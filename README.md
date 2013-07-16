@@ -30,11 +30,22 @@ What You Can Do Now
 8. Alice and Bob wait for the ICE State to be connected.
 9. Alice and Bob can send messages with the input box at the bottom of the page.
 
-### Build libgpg-error, libgcrypt, and libunistring with emscripten ###
+### Compile GNUnet with emscripten ###
 0. Install [emscripten] and add it to your `PATH`.
 1. Execute `./build-gnunet.sh`
+2. Load src/peerinfo/.libs/gnunet-service-peerinfo.html in a browser.
+
+We're a long way from running GNUnet in the browser. Currently we have the
+peerinfo service linked into an HTML file which displays error messages in a
+text box.
+
+Eventually we will have each GNUnet service running in its own [Web Worker]
+thread. The services normally communicate through UNIX sockets which we will
+implement using [Web Messaging].
 
   [gnunet]: https://gnunet.org
   [webrtc]: http://www.webrtc.org
   [emscripten]: https://github.com/kripken/emscripten
   [rfc3264]: http://www.ietf.org/rfc/rfc3264.txt
+  [web worker]: http://www.w3.org/TR/workers/
+  [web messaging]: http://www.w3.org/TR/webmessaging/
