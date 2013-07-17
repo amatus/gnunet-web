@@ -185,6 +185,7 @@ emmake make \
   LDFLAGS=-Wc,--ignore-dynamic-linking ||
   die "Unable to make GNUnet"
 # Test-build an html file for gnunet-service-peerinfo
+ln -s ../../embedded-files/share share
 ./libtool --tag=CC --mode=link \
   emcc -fno-strict-aliasing -Wall "-I$SYSROOT/include" "-L$SYSROOT/lib" \
   -o src/peerinfo/gnunet-service-peerinfo.html \
@@ -194,7 +195,9 @@ emmake make \
   src/util/libgnunetutil.la \
   "$SYSROOT/lib/libgcrypt.la" \
   "$SYSROOT/lib/libgpg-error.la" \
-  -lm -lsocket
+  -lm -lsocket \
+  --pre-js ../../pre.js \
+  --embed-file share/gnunet/config.d/gnunet.conf
 popd
 
 # vim: set expandtab ts=2 sw=2:

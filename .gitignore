@@ -3,6 +3,6 @@ cljs.js
 *.swp
 .lein-repl-history
 downloads/
-gnunet/
+/gnunet
 out/
 repl/
