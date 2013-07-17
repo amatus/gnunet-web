@@ -1,3 +1,2 @@
-var Module = {
-	preRun: function() { ENV.GNUNET_PREFIX = "/." }
-};
+if (typeof(Module) === "undefined") Module = { preRun: [] };
+Module.preRun.push(function() { ENV.GNUNET_PREFIX = "/." });
