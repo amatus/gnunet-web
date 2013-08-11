@@ -56,6 +56,7 @@ git clone ../downloads/libgcrypt libgcrypt ||
   die "Unable to clone libgcrypt git repository"
 cd libgcrypt
 patch -p1 < ../../patches/libgcrypt.patch
+automake --add-missing
 ./autogen.sh ||
   die "Uanble to autogen libgcrypt"
 emconfigure ./configure --enable-maintainer-mode \
