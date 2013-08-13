@@ -171,7 +171,7 @@ pushd gnunet
 cp -r ../downloads/gnunet gnunet ||
   die "Unable to copy GNUnet repository"
 cd gnunet
-patch < ../../patches/gnunet.patch
+patch -p0 < ../../patches/gnunet.patch
 ./bootstrap ||
   die "Unable to bootstrap GNUnet"
 EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
