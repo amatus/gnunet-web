@@ -1,6 +1,6 @@
 Index: Makefile.am
 ===================================================================
---- Makefile.am	(revision 27966)
+--- Makefile.am	(revision 28508)
 +++ Makefile.am	(working copy)
 @@ -1,5 +1,5 @@
  INCLUDES = -I$(top_srcdir)/src/include
@@ -11,7 +11,7 @@ Index: Makefile.am
   ABOUT-NLS \
 Index: src/Makefile.am
 ===================================================================
---- src/Makefile.am	(revision 27966)
+--- src/Makefile.am	(revision 28508)
 +++ src/Makefile.am	(working copy)
 @@ -47,9 +47,7 @@
    namestore \
@@ -23,19 +23,19 @@ Index: src/Makefile.am
    ats-tool \
    peerinfo-tool \
    core \
-@@ -63,8 +61,4 @@
-   lockmanager \
-   stream \
-   dns \
--  fs \
+@@ -65,8 +63,4 @@
+   identity \
+   set \
+   fs \
 -  $(LINUX_DIR) \
 -  $(MINGW_DIR) \
+-  gns \
 -  integration-tests \
 -  $(EXP_DIR) 
-+  fs
++  gns
 Index: src/dht/gnunet-service-dht_neighbours.c
 ===================================================================
---- src/dht/gnunet-service-dht_neighbours.c	(revision 27966)
+--- src/dht/gnunet-service-dht_neighbours.c	(revision 28508)
 +++ src/dht/gnunet-service-dht_neighbours.c	(working copy)
 @@ -46,7 +46,6 @@
  #include "gnunet-service-dht_neighbours.h"
@@ -44,10 +44,10 @@ Index: src/dht/gnunet-service-dht_neighbours.c
 -#include <fenv.h>
  #include "dht.h"
  
- #include "../regex/regex_block_lib.h"
+ #define LOG_TRAFFIC(kind,...) GNUNET_log_from (kind, "dht-traffic",__VA_ARGS__)
 Index: src/dns/Makefile.am
 ===================================================================
---- src/dns/Makefile.am	(revision 27966)
+--- src/dns/Makefile.am	(revision 28508)
 +++ src/dns/Makefile.am	(working copy)
 @@ -17,14 +17,6 @@
  pkgcfg_DATA = \
@@ -64,27 +64,3 @@ Index: src/dns/Makefile.am
  lib_LTLIBRARIES = \
    libgnunetdnsparser.la \
    libgnunetdnsstub.la \
-Index: src/stream/stream_api.c
-===================================================================
---- src/stream/stream_api.c	(revision 27966)
-+++ src/stream/stream_api.c	(working copy)
-@@ -2983,8 +2983,7 @@
-     {
-     case GNUNET_STREAM_OPTION_INITIAL_RETRANSMIT_TIMEOUT:
-       /* Expect struct GNUNET_TIME_Relative */
--      socket->retransmit_timeout = va_arg (vargs,
--                                           struct GNUNET_TIME_Relative);
-+      socket->retransmit_timeout.rel_value = va_arg (vargs, uint64_t);
-       break;
-     case GNUNET_STREAM_OPTION_TESTING_SET_WRITE_SEQUENCE_NUMBER:
-       socket->testing_active = GNUNET_YES;
-@@ -3264,8 +3263,7 @@
-     switch (option)
-     {
-     case GNUNET_STREAM_OPTION_INITIAL_RETRANSMIT_TIMEOUT:
--      lsocket->retransmit_timeout = va_arg (vargs,
--                                            struct GNUNET_TIME_Relative);
-+      lsocket->retransmit_timeout.rel_value = va_arg (vargs, uint64_t);
-       break;
-     case GNUNET_STREAM_OPTION_TESTING_SET_WRITE_SEQUENCE_NUMBER:
-       lsocket->testing_active = GNUNET_YES;
