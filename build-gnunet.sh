@@ -158,6 +158,7 @@ emmake make ||
   die "Unable to make fake libextractor"
 emmake make install DESTDIR="$SYSROOT" ||
   die "Unable to install fake libextractor"
+popd
 
 # Build GNUnet
 GNUNET_URL=https://gnunet.org/svn/gnunet
