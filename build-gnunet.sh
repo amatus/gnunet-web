@@ -64,6 +64,7 @@ emconfigure ./configure --enable-maintainer-mode \
   --disable-asm \
   --disable-avx-support \
   --disable-avx2-support \
+  --disable-threads \
   --with-gpg-error-prefix="$SYSROOT" \
   ac_cv_func_syslog=no \
   ac_cv_func_mlock=no \
