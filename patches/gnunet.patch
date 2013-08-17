@@ -1,6 +1,6 @@
 Index: Makefile.am
 ===================================================================
---- Makefile.am	(revision 28508)
+--- Makefile.am	(revision 28689)
 +++ Makefile.am	(working copy)
 @@ -1,5 +1,5 @@
  INCLUDES = -I$(top_srcdir)/src/include
@@ -9,12 +9,26 @@ Index: Makefile.am
  
  EXTRA_DIST = \
   ABOUT-NLS \
+Index: configure.ac
+===================================================================
+--- configure.ac	(revision 28689)
++++ configure.ac	(working copy)
+@@ -506,9 +506,6 @@
+ AC_CHECK_HEADERS([fcntl.h math.h errno.h ctype.h limits.h stdio.h stdlib.h string.h unistd.h stdarg.h signal.h locale.h sys/stat.h sys/types.h],,AC_MSG_ERROR([Compiling GNUnet requires standard UNIX headers files]))
+ 
+ 
+-# Check for libltdl header (#2999)
+-AC_CHECK_HEADERS([ltdl.h],,AC_MSG_ERROR([Compiling GNUnet requires libltdl headers (try installing libltdl-dev)]))
+-
+ # Checks for headers that are only required on some systems or opional (and where we do NOT abort if they are not there)
+ AC_CHECK_HEADERS([malloc.h malloc/malloc.h langinfo.h sys/param.h sys/mount.h sys/statvfs.h sys/select.h sockLib.h sys/mman.h sys/msg.h sys/vfs.h arpa/inet.h fcntl.h libintl.h netdb.h netinet/in.h netinet/in_systm.h netinet/ip.h sys/ioctl.h sys/socket.h sys/time.h unistd.h kstat.h sys/sysinfo.h kvm.h sys/file.h sys/resource.h ifaddrs.h mach/mach.h stddef.h sys/timeb.h terminos.h argz.h ucred.h endian.h sys/endian.h execinfo.h])
+ 
 Index: src/Makefile.am
 ===================================================================
---- src/Makefile.am	(revision 28508)
+--- src/Makefile.am	(revision 28689)
 +++ src/Makefile.am	(working copy)
-@@ -47,9 +47,7 @@
-   namestore \
+@@ -38,9 +38,7 @@
+   datastore \
    template \
    ats \
 -  nat \
@@ -23,19 +37,19 @@ Index: src/Makefile.am
    ats-tool \
    peerinfo-tool \
    core \
-@@ -65,8 +63,4 @@
-   identity \
-   set \
+@@ -60,8 +58,6 @@
+   gns \
    fs \
--  $(LINUX_DIR) \
--  $(MINGW_DIR) \
--  gns \
+   exit \
+-  pt \
 -  integration-tests \
 -  $(EXP_DIR) 
-+  gns
++  pt
+ 
+ # note: namestore, gns are not listed right now as they are being reworked to use the new crypto
 Index: src/dht/gnunet-service-dht_neighbours.c
 ===================================================================
---- src/dht/gnunet-service-dht_neighbours.c	(revision 28508)
+--- src/dht/gnunet-service-dht_neighbours.c	(revision 28689)
 +++ src/dht/gnunet-service-dht_neighbours.c	(working copy)
 @@ -46,7 +46,6 @@
  #include "gnunet-service-dht_neighbours.h"
@@ -47,7 +61,7 @@ Index: src/dht/gnunet-service-dht_neighbours.c
  #define LOG_TRAFFIC(kind,...) GNUNET_log_from (kind, "dht-traffic",__VA_ARGS__)
 Index: src/dns/Makefile.am
 ===================================================================
---- src/dns/Makefile.am	(revision 28508)
+--- src/dns/Makefile.am	(revision 28689)
 +++ src/dns/Makefile.am	(working copy)
 @@ -17,14 +17,6 @@
  pkgcfg_DATA = \
