@@ -27,24 +27,20 @@ Index: src/Makefile.am
 ===================================================================
 --- src/Makefile.am	(revision 28689)
 +++ src/Makefile.am	(working copy)
-@@ -38,9 +38,7 @@
-   datastore \
-   template \
-   ats \
--  nat \
-   fragmentation \
--  transport \
-   ats-tool \
-   peerinfo-tool \
-   core \
-@@ -60,8 +58,6 @@
+@@ -54,14 +54,10 @@
+   lockmanager \
+   dns \
+   identity \
+-  set \
+   namestore \
+-  vpn \
    gns \
    fs \
-   exit \
--  pt \
+-  exit \
+   pt \
 -  integration-tests \
 -  $(EXP_DIR) 
-+  pt
++  $(EXP_DIR)
  
  # note: namestore, gns are not listed right now as they are being reworked to use the new crypto
 Index: src/dht/gnunet-service-dht_neighbours.c
@@ -78,3 +74,64 @@ Index: src/dns/Makefile.am
  lib_LTLIBRARIES = \
    libgnunetdnsparser.la \
    libgnunetdnsstub.la \
+Index: src/nat/Makefile.am
+===================================================================
+--- src/nat/Makefile.am	(revision 28689)
++++ src/nat/Makefile.am	(working copy)
+@@ -14,16 +14,6 @@
+ dist_pkgcfg_DATA = \
+   nat.conf
+ 
+-if LINUX
+-  NATBIN = gnunet-helper-nat-server gnunet-helper-nat-client
+-  NATSERVER = gnunet-helper-nat-server.c
+-  NATCLIENT = gnunet-helper-nat-client.c
+-install-exec-hook:
+-	$(top_srcdir)/src/nat/install-nat-helper.sh $(libexecdir) $(SUDO_BINARY) || true
+-else
+-install-exec-hook:
+-endif
+-
+ bin_PROGRAMS = \
+  gnunet-nat-server 
+ 
+@@ -97,4 +87,4 @@
+ 
+ EXTRA_DIST = \
+  test_nat_data.conf \
+- test_nat_test_data.conf 
+\ No newline at end of file
++ test_nat_test_data.conf 
+Index: src/transport/Makefile.am
+===================================================================
+--- src/transport/Makefile.am	(revision 28689)
++++ src/transport/Makefile.am	(working copy)
+@@ -46,20 +46,6 @@
+ endif
+ 
+ if LINUX
+- WLAN_BIN = gnunet-helper-transport-wlan
+- WLAN_BIN_DUMMY = gnunet-helper-transport-wlan-dummy
+- WLAN_BIN_SENDER = gnunet-transport-wlan-sender
+- WLAN_BIN_RECEIVER = gnunet-transport-wlan-receiver
+- WLAN_PLUGIN_LA = libgnunet_plugin_transport_wlan.la
+- WLAN_PLUGIN_TEST = test_plugin_wlan
+- WLAN_API_TEST = test_transport_api_wlan
+- WLAN_REL_TEST = test_transport_api_reliability_wlan
+- WLAN_UREL_TEST = test_transport_api_unreliability_wlan
+- WLAN_QUOTA_TEST = test_quota_compliance_wlan \
+-		test_quota_compliance_wlan_asymmetric
+-endif
+-
+-if LINUX
+ install-exec-hook:
+ 	$(top_srcdir)/src/transport/install-wlan-helper.sh $(libexecdir) $(SUDO_BINARY) || true
+ else
+@@ -210,7 +196,6 @@
+ 
+ plugin_LTLIBRARIES = \
+   libgnunet_plugin_transport_tcp.la \
+-  libgnunet_plugin_transport_udp.la \
+   $(UNIX_PLUGIN_LA) \
+   $(HTTP_CLIENT_PLUGIN_LA) \
+   $(HTTPS_CLIENT_PLUGIN_LA) \
