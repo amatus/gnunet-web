@@ -135,3 +135,20 @@ Index: src/transport/Makefile.am
    $(UNIX_PLUGIN_LA) \
    $(HTTP_CLIENT_PLUGIN_LA) \
    $(HTTPS_CLIENT_PLUGIN_LA) \
+Index: src/util/Makefile.am
+===================================================================
+--- src/util/Makefile.am	(revision 28689)
++++ src/util/Makefile.am	(working copy)
+@@ -97,12 +97,10 @@
+   plugin.c \
+   program.c \
+   resolver_api.c resolver.h \
+-  scheduler.c \
+   server.c \
+   server_mst.c \
+   server_nc.c \
+   server_tc.c \
+-  service.c \
+   signal.c \
+   strings.c \
+   time.c \
