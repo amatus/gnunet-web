@@ -139,7 +139,15 @@ Index: src/util/Makefile.am
 ===================================================================
 --- src/util/Makefile.am	(revision 28689)
 +++ src/util/Makefile.am	(working copy)
-@@ -97,12 +97,10 @@
+@@ -67,7 +67,6 @@
+   common_allocation.c \
+   common_endian.c \
+   common_logging.c \
+-  configuration.c \
+   connection.c \
+   container_bloomfilter.c \
+   container_heap.c \
+@@ -97,12 +96,10 @@
    plugin.c \
    program.c \
    resolver_api.c resolver.h \

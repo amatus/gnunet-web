@@ -200,8 +200,9 @@ ln -s ../../embedded-files/share share
   "$SYSROOT/lib/libgcrypt.la" \
   "$SYSROOT/lib/libgpg-error.la" \
   -lm -lsocket \
-  --js-library ../../service.js \
+  --js-library ../../configuration.js \
   --js-library ../../scheduler.js \
+  --js-library ../../service.js \
   --pre-js ../../pre.js \
   --embed-file share/gnunet/config.d/gnunet.conf
 popd
