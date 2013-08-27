@@ -1,5 +1,9 @@
 mergeInto(LibraryManager.library, {
-  $CONFIG: {},
+  $CONFIG: {
+    'peerinfo': {
+      'HOSTS': '/hosts',
+    },
+  },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_get_value: function(section, option) {
     var section = Pointer_stringify(section);
@@ -25,7 +29,7 @@ mergeInto(LibraryManager.library, {
       return -1;
     var tmp = ccall('GNUNET_xstrdup_', 'number', ['string', 'string', 'number'],
                     [tmp, 'configuration.js', 0]);
-    setValue(value, 'i32', tmp);
+    setValue(value, tmp, 'i32');
     return 1;
   },
   GNUNET_CONFIGURATION_get_value_filename__deps:

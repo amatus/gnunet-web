@@ -147,12 +147,12 @@ Index: src/util/Makefile.am
    connection.c \
    container_bloomfilter.c \
    container_heap.c \
-@@ -97,12 +96,10 @@
+@@ -97,12 +96,9 @@
    plugin.c \
    program.c \
    resolver_api.c resolver.h \
 -  scheduler.c \
-   server.c \
+-  server.c \
    server_mst.c \
    server_nc.c \
    server_tc.c \
