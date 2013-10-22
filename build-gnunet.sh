@@ -5,7 +5,8 @@ die() {
   exit 1
 }
 
-SYSROOT=$(pwd)/gnunet/sysroot
+BUILDROOT="$(pwd)"
+SYSROOT="$BUILDROOT/gnunet/sysroot"
 mkdir -p "$SYSROOT"
 
 # Build libgpg-error
@@ -17,7 +18,7 @@ if ! [ -f "downloads/$LIBGPG_ERROR_TBZ2" ]; then
     die "Unable to download $LIBGPG_ERROR_TBZ2"
 fi
 
-pushd gnunet
+cd gnunet
 tar -jxf "../downloads/$LIBGPG_ERROR_TBZ2" ||
   die "Unable to extract $LIBGPG_ERROR_TBZ2"
 cd "$LIBGPG_ERROR_SRCDIR"
@@ -42,7 +43,7 @@ EMMAKEN_JUST_CONFIGURE=true EMCONFIGURE_JS=true emmake make check ||
   die "libgpg-error tests failed"
 emmake make install ||
   die "Unable to install libgpg-error"
-popd
+cd "$BUILDROOT"
 
 # Build libgcrypt
 LIBGCRYPT_URL=git://git.gnupg.org/libgcrypt.git
@@ -51,7 +52,7 @@ if ! [ -d "downloads/libgcrypt" ]; then
     die "Unable to clone libgcrypt git repository"
 fi
 
-pushd gnunet
+cd gnunet
 git clone ../downloads/libgcrypt libgcrypt ||
   die "Unable to clone libgcrypt git repository"
 cd libgcrypt
@@ -82,7 +83,7 @@ emmake make SUBDIRS="compat mpi cipher random src" \
 #  die "Unable to emmake check"
 emmake make install SUBDIRS="compat mpi cipher random src" ||
   die "Unable to install libgcrypt"
-popd
+cd "$BUILDROOT"
 
 # Build libunistring
 LIBUNISTRING_TGZ=libunistring-0.9.3.tar.gz
@@ -93,7 +94,7 @@ if ! [ -f "downloads/$LIBUNISTRING_TGZ" ]; then
     die "Unable to download $LIBUNISTRING_TGZ"
 fi
 
-pushd gnunet
+cd gnunet
 tar -zxf "../downloads/$LIBUNISTRING_TGZ" ||
   die "Unable to extract $LIBUNISTRING_TGZ"
 cd "$LIBUNISTRING_SRCDIR"
@@ -107,7 +108,7 @@ emmake make ||
   die "Unable to emmake libunistring"
 emmake make install ||
   die "Unable to install libunistring"
-popd
+cd "$BUILDROOT"
 
 # Build zlib
 ZLIB_TGZ=zlib-1.2.8.tar.gz
@@ -118,7 +119,7 @@ if ! [ -f "downloads/$ZLIB_TGZ" ]; then
     die "Unable to download $ZLIB_TGZ"
 fi
 
-pushd gnunet
+cd gnunet
 tar -zxf "../downloads/$ZLIB_TGZ" ||
   die "Unable to extract $ZLIB_TGZ"
 cd "$ZLIB_SRCDIR"
@@ -128,7 +129,7 @@ emmake make ||
   die "Unable to emmake zlib"
 emmake make install ||
   die "Unable to install zlib"
-popd
+cd "$BUILDROOT"
 
 # Build libidn
 LIBIDN_TGZ=libidn-1.27.tar.gz
@@ -139,7 +140,7 @@ if ! [ -f "downloads/$LIBIDN_TGZ" ]; then
     die "Unable to download $LIBIDN_TGZ"
 fi
 
-pushd gnunet
+cd gnunet
 tar -zxf "../downloads/$LIBIDN_TGZ" ||
   die "Unable to extract $LIBIDN_TGZ"
 cd "$LIBIDN_SRCDIR"
@@ -150,15 +151,15 @@ emmake make ||
   die "Unable to emmake libidn"
 emmake make install ||
   die "Unable to install libidn"
-popd
+cd "$BUILDROOT"
 
 # Build fake libextractor
-pushd fake-extractor
+cd fake-extractor
 emmake make ||
   die "Unable to make fake libextractor"
 emmake make install DESTDIR="$SYSROOT" ||
   die "Unable to install fake libextractor"
-popd
+cd "$BUILDROOT"
 
 # Build GNUnet
 GNUNET_URL=https://gnunet.org/svn/gnunet
@@ -167,7 +168,7 @@ if ! [ -d "downloads/gnunet" ]; then
     die "Unable to checkout GNUnet svn repository"
 fi
 
-pushd gnunet
+cd gnunet
 cp -r ../downloads/gnunet gnunet ||
   die "Unable to copy GNUnet repository"
 cd gnunet
@@ -204,6 +205,6 @@ emmake make \
   --js-library ../../server.js \
   --js-library ../../service.js \
   --pre-js ../../pre.js
-popd
+cd "$BUILDROOT"
 
 # vim: set expandtab ts=2 sw=2:
