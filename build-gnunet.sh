@@ -22,16 +22,16 @@ cd gnunet
 tar -jxf "../downloads/$LIBGPG_ERROR_TBZ2" ||
   die "Unable to extract $LIBGPG_ERROR_TBZ2"
 cd "$LIBGPG_ERROR_SRCDIR"
-patch -p1 < ../../patches/libgpg-error-1.11.patch
 # Build libgpg-error first using build system tools to produce generated
 # header files.
-./configure ||
+./configure --disable-nls ||
   die "Unable to configure libgpg-error"
 make ||
   die "Unable to make libgpg-error"
 # Build again with emscripten, keeping generated files fresh so make won't
 # rebuild them.
-emconfigure ./configure --prefix="$SYSROOT" ||
+emconfigure ./configure --prefix="$SYSROOT" \
+  --disable-nls ||
   die "Unable to emconfigure libgpg-error"
 touch src/mkerrcodes.h
 touch src/mkerrcodes
