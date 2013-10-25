@@ -1,3 +1,52 @@
+diff --git a/configure.ac b/configure.ac
+index 5b7ba0d..f06c7b7 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1420,7 +1420,7 @@ if test "$found" = "1" ; then
+    case "${host}" in
+       x86_64-*-*)
+          # Build with the assembly implementation
+-         GCRYPT_CIPHERS="$GCRYPT_CIPHERS blowfish-amd64.lo"
++         #GCRYPT_CIPHERS="$GCRYPT_CIPHERS blowfish-amd64.lo"
+       ;;
+       arm*-*-*)
+          # Build with the assembly implementation
+@@ -1437,7 +1437,7 @@ if test "$found" = "1" ; then
+    case "${host}" in
+       x86_64-*-*)
+          # Build with the assembly implementation
+-         GCRYPT_CIPHERS="$GCRYPT_CIPHERS cast5-amd64.lo"
++         #GCRYPT_CIPHERS="$GCRYPT_CIPHERS cast5-amd64.lo"
+       ;;
+       arm*-*-*)
+          # Build with the assembly implementation
+@@ -1460,7 +1460,7 @@ if test "$found" = "1" ; then
+    case "${host}" in
+       x86_64-*-*)
+          # Build with the assembly implementation
+-         GCRYPT_CIPHERS="$GCRYPT_CIPHERS rijndael-amd64.lo"
++         #GCRYPT_CIPHERS="$GCRYPT_CIPHERS rijndael-amd64.lo"
+       ;;
+       arm*-*-*)
+          # Build with the assembly implementation
+@@ -1477,7 +1477,7 @@ if test "$found" = "1" ; then
+    case "${host}" in
+       x86_64-*-*)
+          # Build with the assembly implementation
+-         GCRYPT_CIPHERS="$GCRYPT_CIPHERS twofish-amd64.lo"
++         #GCRYPT_CIPHERS="$GCRYPT_CIPHERS twofish-amd64.lo"
+       ;;
+       arm*-*-*)
+          # Build with the assembly implementation
+@@ -1494,7 +1494,7 @@ if test "$found" = "1" ; then
+    case "${host}" in
+       x86_64-*-*)
+          # Build with the SSE2 implementation
+-         GCRYPT_CIPHERS="$GCRYPT_CIPHERS serpent-sse2-amd64.lo"
++         #GCRYPT_CIPHERS="$GCRYPT_CIPHERS serpent-sse2-amd64.lo"
+       ;;
+    esac
+ 
 diff --git a/random/random-csprng.c b/random/random-csprng.c
 index 9921c4f..2a3d978 100644
 --- a/random/random-csprng.c
