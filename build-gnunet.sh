@@ -97,7 +97,7 @@ cd gnunet
 tar -zxf "../downloads/$LIBUNISTRING_TGZ" ||
   die "Unable to extract $LIBUNISTRING_TGZ"
 cd "$LIBUNISTRING_SRCDIR"
-patch -p1 < ../../patches/libunistring.patch
+patch -p1 < ../../patches/libunistring-0.9.3.patch
 emconfigure ./configure --prefix="$SYSROOT" \
   --disable-threads \
   ac_cv_func_uselocale=no \

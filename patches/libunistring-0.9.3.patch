@@ -1,0 +1,23 @@
+diff -ruN libunistring-0.9.3.orig/lib/wchar.in.h libunistring-0.9.3/lib/wchar.in.h
+--- libunistring-0.9.3.orig/lib/wchar.in.h	2010-05-02 16:26:20.000000000 -0500
++++ libunistring-0.9.3/lib/wchar.in.h	2013-06-01 22:34:13.634654335 -0500
+@@ -60,7 +60,5 @@
+ #ifndef __GLIBC__
+ # include <stddef.h>
+-# include <stdio.h>
+-# include <time.h>
+ #endif
+ 
+ /* Include the original <wchar.h> if it exists.
+diff -ruN libunistring-0.9.3.orig/lib/fseterr.c libunistring-0.9.3/lib/fseterr.c
+--- libunistring-0.9.3.orig/lib/fseterr.c	2013-10-24 19:40:46.594295821 -0500
++++ libunistring-0.9.3/lib/fseterr.c	2013-10-24 19:42:11.806296376 -0500
+@@ -43,7 +43,7 @@
+   fp->_Mode |= 0x200 /* _MERR */;
+ #elif defined __MINT__              /* Atari FreeMiNT */
+   fp->__error = 1;
+-#elif 0                             /* unknown  */
++#elif 1                             /* unknown  */
+   /* Portable fallback, based on an idea by Rich Felker.
+      Wow! 6 system calls for something that is just a bit operation!
+      Not activated on any system, because there is no way to repair FP when
