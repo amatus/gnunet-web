@@ -1,0 +1,12 @@
+diff -ruN libtool-2.4.2.orig/libltdl/libltdl/lt__glibc.h libtool-2.4.2/libltdl/libltdl/lt__glibc.h
+--- libtool-2.4.2.orig/libltdl/libltdl/lt__glibc.h	2013-10-24 21:26:17.266337039 -0500
++++ libtool-2.4.2/libltdl/libltdl/lt__glibc.h	2013-10-24 21:26:36.530337164 -0500
+@@ -58,7 +58,7 @@
+ extern "C" {
+ #endif
+ 
+-#include <argz.h>
++//#include <argz.h>
+ 
+ #ifdef __cplusplus
+ }

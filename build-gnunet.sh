@@ -152,6 +152,32 @@ emmake make install ||
   die "Unable to install libidn"
 cd "$BUILDROOT"
 
+# Build libltdl
+LIBTOOL_TGZ=libtool-1.5.26.tar.gz
+LIBTOOL_SRCDIR=libtool-1.5.26
+LIBTOOL_URL=http://ftpmirror.gnu.org/libtool/$LIBTOOL_TGZ
+if ! [ -f "downloads/$" ]; then
+  wget -P downloads "$LIBTOOL_URL" ||
+    die "Unable to download $LIBTOOL_TGZ"
+fi
+
+cd gnunet
+tar -zxf "../downloads/$LIBTOOL_TGZ" ||
+  die "Unable to extract $LIBTOOL_TGZ"
+cd "$LIBTOOL_SRCDIR"
+emconfigure ./configure --prefix="$SYSROOT" \
+  ac_cv_func_argz_append=no \
+  ac_cv_func_argz_create_sep=no \
+  ac_cv_func_argz_insert=no \
+  ac_cv_func_argz_next=no \
+  ac_cv_func_argz_stringify=no ||
+  die "Unable to emconfigure libltdl"
+emmake make ||
+  die "Unable to emmake libltdl"
+emmake make install ||
+  die "Unable to install libltdl"
+cd "$BUILDROOT"
+
 # Build fake libextractor
 cd fake-extractor
 emmake make ||
@@ -179,7 +205,7 @@ EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
   --with-libunistring-prefix="$SYSROOT" \
   --with-zlib="$SYSROOT" \
   --with-extractor="$SYSROOT" \
-  --with-included-ltdl \
+  --with-ltdl="$SYSROOT" \
   --with-libidn="$SYSROOT" \
   --without-libcurl \
   --disable-testing \
