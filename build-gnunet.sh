@@ -214,10 +214,10 @@ EMCONFIGURE_JS=1 emconfigure ./configure --prefix="$SYSROOT" \
 emmake make \
   LDFLAGS=-Wc,--ignore-dynamic-linking ||
   die "Unable to make GNUnet"
-# Test-build an html file for gnunet-service-peerinfo
+# Link gnunet services and install them into resources/public/js
 ./libtool --tag=CC --mode=link \
   emcc -fno-strict-aliasing -Wall "-I$SYSROOT/include" "-L$SYSROOT/lib" \
-  -o src/peerinfo/gnunet-service-peerinfo.html \
+  -o src/peerinfo/gnunet-service-peerinfo.js \
   src/peerinfo/gnunet-service-peerinfo.o \
   src/hello/libgnunethello.la \
   src/statistics/libgnunetstatistics.la \
@@ -225,11 +225,13 @@ emmake make \
   "$SYSROOT/lib/libgcrypt.la" \
   "$SYSROOT/lib/libgpg-error.la" \
   -lm -lsocket \
-  --js-library ../../configuration.js \
-  --js-library ../../scheduler.js \
-  --js-library ../../server.js \
-  --js-library ../../service.js \
-  --pre-js ../../pre.js
+  --js-library "$BUILDROOT/configuration.js" \
+  --js-library "$BUILDROOT/scheduler.js" \
+  --js-library "$BUILDROOT/server.js" \
+  --js-library "$BUILDROOT/service.js" \
+  --pre-js "$BUILDROOT/pre.js"
+cp src/peerinfo/.libs/gnunet-service-peerinfo.js \
+  "$BUILDROOT/resources/public/js/"
 cd "$BUILDROOT"
 
 # vim: set expandtab ts=2 sw=2:
