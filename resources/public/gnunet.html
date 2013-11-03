@@ -6,9 +6,14 @@
   </head>
   <body>
     <div>
-      <textarea id="message">This textarea intentionally left blank.</textarea>
+      <textarea id="output">Loading...</textarea>
     </div>
-    <script src="js/gnunet-service-peerinfo.js"></script>
+    <script>
+      var peerinfo = new Worker("js/gnunet-service-peerinfo.js");
+      peerinfo.onmessage = function(event) {
+        document.getElementById("output").textContent += "\n" + event.data;
+      };
+    </script>
   </body>
 </html>
 <!-- vim: set expandtab ts=2 sw=2: -->
