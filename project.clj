@@ -1,9 +1,10 @@
 (defproject gnunet-web "0.1.0-SNAPSHOT"
   :description "A GNUnet web application."
   :url "https://github.com/amatus/gnunet-web"
-  :dependencies [[org.clojure/clojure "1.4.0"]
+  :dependencies [[org.clojure/clojure "1.5.1"]
+                 [org.clojure/clojurescript "0.0-1978"]
                  [ring "1.1.8"]]
-  :plugins [[lein-cljsbuild "0.3.0"]]
+  :plugins [[lein-cljsbuild "0.3.4"]]
   :hooks [leiningen.cljsbuild]
   :source-paths ["src/clj"]
   :cljsbuild { 
