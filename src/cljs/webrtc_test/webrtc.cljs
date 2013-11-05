@@ -1,4 +1,4 @@
-(ns gnunet-web.webrtc)
+(ns webrtc-test.webrtc)
 
 (defn new-peer-connection
   [& {:keys [servers options]

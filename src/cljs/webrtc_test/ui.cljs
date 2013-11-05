@@ -1,5 +1,5 @@
-(ns gnunet-web.ui
-  (:require [gnunet-web.webrtc :as webrtc]))
+(ns webrtc-test.ui
+  (:require [webrtc-test.webrtc :as webrtc]))
 
 (defn by-id
   [id]

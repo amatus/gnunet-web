@@ -7,12 +7,17 @@
   :hooks [leiningen.cljsbuild]
   :source-paths ["src/clj"]
   :cljsbuild { 
-    :builds {
-      :main {
-        :source-paths ["src/cljs"]
-        :compiler {:output-to "resources/public/js/cljs.js"
-                   :optimizations :simple
-                   :pretty-print true}
-        :jar true}}}
+    :builds [{
+      :source-paths ["src/cljs/webrtc_test"]
+      :compiler {:output-to "resources/public/js/webrtc-test.js"
+                 :optimizations :simple
+                 :pretty-print true}
+      :jar true}
+     {
+      :source-paths ["src/cljs/gnunet_web"]
+      :compiler {:output-to "resources/public/js/gnunet-web.js"
+                 :optimizations :simple
+                 :pretty-print true}
+      :jar true}]}
   :main gnunet-web.server)
 
