@@ -8,12 +8,7 @@
     <div>
       <textarea id="output">Loading...</textarea>
     </div>
-    <script>
-      var peerinfo = new Worker("js/gnunet-service-peerinfo.js");
-      peerinfo.onmessage = function(event) {
-        document.getElementById("output").textContent += "\n" + event.data;
-      };
-    </script>
+    <script src="js/gnunet-web.js"></script>
   </body>
 </html>
 <!-- vim: set expandtab ts=2 sw=2: -->
