@@ -21,4 +21,22 @@ mergeInto(LibraryManager.library, {
   }
 });
 
+var clients = {};
+var next_client = 1;
+onconnect = function(event) {
+  debug_port = event.ports[0];
+  event.ports[0].onmessage = get_message;
+  event.ports[0]._name = next_client;
+  clients[next_client] = event.port;
+  next_client++;
+};
+
+function get_message(event) {
+  if ('stdout' == event.data.type) {
+    var channel = new MessageChannel();
+    Module['print'] = function(x) { channel.port1.postMessage(x); };
+    event.target.postMessage({type:'stdout', port:channel.port2},
+                             [channel.port2]);
+  }
+}
 // vim: set expandtab ts=2 sw=2:
