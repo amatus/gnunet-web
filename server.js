@@ -37,6 +37,25 @@ function get_message(event) {
     Module['print'] = function(x) { channel.port1.postMessage(x); };
     event.target.postMessage({type:'stdout', port:channel.port2},
                              [channel.port2]);
+  } else if ('message' == event.data.type) {
+    var stack = Runtime.stackSave();
+    var message = allocate(event.data.array, 'i8', ALLOC_STACK);
+    var size = getValue(message, 'i16');
+    var type = getValue(message + 2, 'i16');
+    var handler = SERVERS.handlers[type];
+    Module.print("Got message of type " + type + " size " + size + " from "
+        + event.target._name);
+    if (typeof handler === 'undefined') {
+      Module.print("But I don't know what to do with it");
+    } else {
+      if (handler.expected_size == 0 || handler.expected_size == size) {
+        Runtime.dynCall('viii', handler.callback,
+            [handler.callback_cls, event.target._name, message]);
+      } else {
+        Module.print("But I was expecting size " + handler.expected_size);
+      }
+    }
+    Runtime.stackRestore(stack);
   }
 }
 // vim: set expandtab ts=2 sw=2:

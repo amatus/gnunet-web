@@ -23,8 +23,17 @@
         (let [data (.-data event)]
           (if (= "stdout" (.-type data))
             (set! (.-onmessage (.-port data))
-                  (fn [event] (output (.-data event))))
+                  (fn [event] (output (str "peerinfo:" (.-data event)))))
             (output (.-data event))))))
 
 (.start (.-port peerinfo))
 (.postMessage (.-port peerinfo) (clj->js {:type "stdout"}))
+
+(.addEventListener
+  (by-id :send)
+  "click"
+  (fn [event]
+    (let [message (js/Object.)]
+      (set! (.-type message) "message")
+      (set! (.-array message) (JSON/parse (.-value (by-id :message))))
+      (.postMessage (.-port peerinfo) message))))
