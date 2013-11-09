@@ -27,7 +27,7 @@ onconnect = function(event) {
   debug_port = event.ports[0];
   event.ports[0].onmessage = get_message;
   event.ports[0]._name = next_client;
-  clients[next_client] = event.port;
+  clients[next_client] = event.ports[0];
   next_client++;
 };
 
@@ -35,6 +35,7 @@ function get_message(event) {
   if ('stdout' == event.data.type) {
     var channel = new MessageChannel();
     Module['print'] = function(x) { channel.port1.postMessage(x); };
+    flush_worker_message_queue(Module.print);
     event.target.postMessage({type:'stdout', port:channel.port2},
                              [channel.port2]);
   } else if ('message' == event.data.type) {
