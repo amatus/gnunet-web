@@ -37,8 +37,13 @@ What You Can Do Now
 3. Open http://localhost:3000/gnunet.html
 
 We're a long way from running GNUnet in the browser. Currently we have the
-peerinfo service linked into a javascript file which will load but has no
-way of receiving commands.
+peerinfo service linked into a javascript file which is loaded into a
+shared worker and can pass arrays of bytes back and forth. Try sending
+`[40, 0, 74, 1]`.
+
+To debug a shared worker in chrome open chrome://inspect and click the
+"inspect" link next to the http://localhost:3000/js/gnunet-service-peerinfo.js
+shared worker.
 
 Eventually we will have each GNUnet service running in its own [Web Worker]
 thread. The APIs used by the services to schedule tasks and communicate with
