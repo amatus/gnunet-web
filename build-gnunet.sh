@@ -62,6 +62,7 @@ automake --add-missing
   die "Uanble to autogen libgcrypt"
 emconfigure ./configure --enable-maintainer-mode \
   --prefix="$SYSROOT" \
+  --disable-threads \
   --disable-asm \
   --disable-avx-support \
   --disable-avx2-support \

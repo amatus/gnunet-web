@@ -1,30 +1,23 @@
 Index: src/Makefile.am
 ===================================================================
---- src/Makefile.am	(revision 30406)
+--- src/Makefile.am	(revision 30661)
 +++ src/Makefile.am	(working copy)
-@@ -65,19 +65,15 @@
-   mesh \
-   dns \
-   identity \
--  set \
-   dv \
-   revocation \
-   gnsrecord \
+@@ -74,12 +74,7 @@
    namecache \
    namestore \
    scalarproduct \
 -  vpn \
-   gns \
+-  gns \
    $(CONVERSATION_DIR) \
    psycstore \
    fs \
 -  exit \
-   pt \
+-  pt \
 -  integration-tests \
    $(EXP_DIR)
 Index: src/arm/gnunet-service-arm.c
 ===================================================================
---- src/arm/gnunet-service-arm.c	(revision 30406)
+--- src/arm/gnunet-service-arm.c	(revision 30661)
 +++ src/arm/gnunet-service-arm.c	(working copy)
 @@ -1525,19 +1525,5 @@
  }
@@ -48,7 +41,7 @@ Index: src/arm/gnunet-service-arm.c
  /* end of gnunet-service-arm.c */
 Index: src/dht/gnunet-service-dht_neighbours.c
 ===================================================================
---- src/dht/gnunet-service-dht_neighbours.c	(revision 30406)
+--- src/dht/gnunet-service-dht_neighbours.c	(revision 30661)
 +++ src/dht/gnunet-service-dht_neighbours.c	(working copy)
 @@ -46,7 +46,6 @@
  #include "gnunet-service-dht_neighbours.h"
@@ -60,7 +53,7 @@ Index: src/dht/gnunet-service-dht_neighbours.c
  #define LOG_TRAFFIC(kind,...) GNUNET_log_from (kind, "dht-traffic",__VA_ARGS__)
 Index: src/dns/Makefile.am
 ===================================================================
---- src/dns/Makefile.am	(revision 30406)
+--- src/dns/Makefile.am	(revision 30661)
 +++ src/dns/Makefile.am	(working copy)
 @@ -17,14 +17,6 @@
  pkgcfg_DATA = \
@@ -79,7 +72,7 @@ Index: src/dns/Makefile.am
    libgnunetdnsstub.la \
 Index: src/nat/Makefile.am
 ===================================================================
---- src/nat/Makefile.am	(revision 30406)
+--- src/nat/Makefile.am	(revision 30661)
 +++ src/nat/Makefile.am	(working copy)
 @@ -14,16 +14,6 @@
  dist_pkgcfg_DATA = \
@@ -107,7 +100,7 @@ Index: src/nat/Makefile.am
 + test_nat_test_data.conf 
 Index: src/nse/gnunet-service-nse.c
 ===================================================================
---- src/nse/gnunet-service-nse.c	(revision 30406)
+--- src/nse/gnunet-service-nse.c	(revision 30661)
 +++ src/nse/gnunet-service-nse.c	(working copy)
 @@ -1539,21 +1539,7 @@
  }
@@ -133,7 +126,7 @@ Index: src/nse/gnunet-service-nse.c
  /* end of gnunet-service-nse.c */
 Index: src/regex/gnunet-daemon-regexprofiler.c
 ===================================================================
---- src/regex/gnunet-daemon-regexprofiler.c	(revision 30406)
+--- src/regex/gnunet-daemon-regexprofiler.c	(revision 30661)
 +++ src/regex/gnunet-daemon-regexprofiler.c	(working copy)
 @@ -382,19 +382,6 @@
  }
@@ -157,7 +150,7 @@ Index: src/regex/gnunet-daemon-regexprofiler.c
  /* end of gnunet-daemon-regexprofiler.c */
 Index: src/revocation/gnunet-service-revocation.c
 ===================================================================
---- src/revocation/gnunet-service-revocation.c	(revision 30406)
+--- src/revocation/gnunet-service-revocation.c	(revision 30661)
 +++ src/revocation/gnunet-service-revocation.c	(working copy)
 @@ -673,21 +673,7 @@
  }
@@ -181,9 +174,38 @@ Index: src/revocation/gnunet-service-revocation.c
  
 -
  /* end of gnunet-service-revocation.c */
+Index: src/set/Makefile.am
+===================================================================
+--- src/set/Makefile.am	(revision 30661)
++++ src/set/Makefile.am	(working copy)
+@@ -24,24 +24,6 @@
+ lib_LTLIBRARIES = \
+   libgnunetset.la
+ 
+-gnunet_set_profiler_SOURCES = \
+- gnunet-set-profiler.c
+-gnunet_set_profiler_LDADD = \
+-  $(top_builddir)/src/util/libgnunetutil.la \
+-  $(top_builddir)/src/set/libgnunetset.la \
+-  $(top_builddir)/src/testing/libgnunettesting.la \
+-  $(GN_LIBINTL)
+-gnunet_set_profiler_DEPENDENCIES = \
+-  libgnunetset.la
+-
+-
+-gnunet_set_ibf_profiler_SOURCES = \
+- gnunet-set-ibf-profiler.c \
+- ibf.c
+-gnunet_set_ibf_profiler_LDADD = \
+-  $(top_builddir)/src/util/libgnunetutil.la \
+-  $(GN_LIBINTL)
+-
+ gnunet_service_set_SOURCES = \
+  gnunet-service-set.c \
+  gnunet-service-set_union.c \
 Index: src/statistics/gnunet-service-statistics.c
 ===================================================================
---- src/statistics/gnunet-service-statistics.c	(revision 30406)
+--- src/statistics/gnunet-service-statistics.c	(revision 30661)
 +++ src/statistics/gnunet-service-statistics.c	(working copy)
 @@ -861,19 +861,6 @@
                                GNUNET_SERVICE_OPTION_SOFT_SHUTDOWN, &run, NULL)) ? 0 : 1;
@@ -207,7 +229,7 @@ Index: src/statistics/gnunet-service-statistics.c
  /* end of gnunet-service-statistics.c */
 Index: src/topology/gnunet-daemon-topology.c
 ===================================================================
---- src/topology/gnunet-daemon-topology.c	(revision 30406)
+--- src/topology/gnunet-daemon-topology.c	(revision 30661)
 +++ src/topology/gnunet-daemon-topology.c	(working copy)
 @@ -1293,18 +1293,5 @@
  }
@@ -230,7 +252,7 @@ Index: src/topology/gnunet-daemon-topology.c
  /* end of gnunet-daemon-topology.c */
 Index: src/transport/Makefile.am
 ===================================================================
---- src/transport/Makefile.am	(revision 30406)
+--- src/transport/Makefile.am	(revision 30661)
 +++ src/transport/Makefile.am	(working copy)
 @@ -46,20 +46,6 @@
  endif
@@ -263,17 +285,18 @@ Index: src/transport/Makefile.am
    $(HTTPS_CLIENT_PLUGIN_LA) \
 Index: src/util/Makefile.am
 ===================================================================
---- src/util/Makefile.am	(revision 30406)
+--- src/util/Makefile.am	(revision 30661)
 +++ src/util/Makefile.am	(working copy)
-@@ -67,7 +67,6 @@
+@@ -67,8 +67,6 @@
    common_allocation.c \
    common_endian.c \
    common_logging.c \
 -  configuration.c \
-   connection.c \
+-  connection.c \
    container_bloomfilter.c \
    container_heap.c \
-@@ -98,12 +97,9 @@
+   container_meta_data.c \
+@@ -98,12 +96,9 @@
    plugin.c \
    program.c \
    resolver_api.c resolver.h \
@@ -288,7 +311,7 @@ Index: src/util/Makefile.am
    time.c \
 Index: src/util/gnunet-service-resolver.c
 ===================================================================
---- src/util/gnunet-service-resolver.c	(revision 30406)
+--- src/util/gnunet-service-resolver.c	(revision 30661)
 +++ src/util/gnunet-service-resolver.c	(working copy)
 @@ -577,19 +577,6 @@
    return ret;
