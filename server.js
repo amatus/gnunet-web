@@ -27,6 +27,16 @@ mergeInto(LibraryManager.library, {
   },
   GNUNET_SERVER_notify_transmit_ready: function(client, size, timeout, callback,
                                            callback_cls) {
+    setTimeout(function() {
+      Module.print('I want to send ' + size + ' bytes to client ' + client);
+      var stack = Runtime.stackSave();
+      var buffer = allocate(size, 'i8', ALLOC_STACK);
+      var ret = Runtime.dynCall('iiii', callback, [callback_cls, size, buffer]);
+      var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
+      clients[client].postMessage({type:'message', message:view});
+      Runtime.stackRestore(stack);
+    }, 0);
+    return 1; // opaque GNUNET_SERVER_TransmitHandle*
   },
 });
 

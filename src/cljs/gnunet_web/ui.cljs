@@ -24,7 +24,7 @@
           (if (= "stdout" (.-type data))
             (set! (.-onmessage (.-port data))
                   (fn [event] (output (str "peerinfo:" (.-data event)))))
-            (output (.-data event))))))
+            (output (str "peerinfo:" (JSON/stringify (.-message data))))))))
 
 (.start (.-port peerinfo))
 (.postMessage (.-port peerinfo) (clj->js {:type "stdout"}))
