@@ -1,5 +1,6 @@
 (defproject gnunet-web "0.1.0-SNAPSHOT"
   :description "A GNUnet web application."
+  :license "GNU General Public License v3"
   :url "https://github.com/amatus/gnunet-web"
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/clojurescript "0.0-1978"]
