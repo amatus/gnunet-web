@@ -231,6 +231,7 @@ emmake make \
   --js-library "$BUILDROOT/server.js" \
   --js-library "$BUILDROOT/service.js" \
   --pre-js "$BUILDROOT/pre.js"
+mkdir -p "$BUILDROOT/resources/public/js/"
 cp src/peerinfo/.libs/gnunet-service-peerinfo.js \
   "$BUILDROOT/resources/public/js/"
 cd "$BUILDROOT"
