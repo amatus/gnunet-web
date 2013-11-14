@@ -35,8 +35,8 @@ function get_message(event) {
   } else if ('message' == event.data.type) {
     var stack = Runtime.stackSave();
     var message = allocate(event.data.array, 'i8', ALLOC_STACK);
-    var size = getValue(message, 'i16');
-    var type = getValue(message + 2, 'i16');
+    var size = getValue(message, 'i8') << 8 | getValue(message + 1, 'i8');
+    var type = getValue(message + 2, 'i8') << 8 | getValue(message + 3, 'i8');
     var handler = SERVERS.handlers[type];
     Module.print("Got message of type " + type + " size " + size + " from "
         + event.target._name);
