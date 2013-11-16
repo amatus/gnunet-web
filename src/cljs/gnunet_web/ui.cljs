@@ -14,7 +14,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(ns gnunet-web.ui)
+(ns gnunet-web.ui
+  (:require [gnunet-web.hostlist :as hostlist]))
 
 (defn by-id
   [id]
@@ -53,3 +54,9 @@
       (set! (.-type message) "message")
       (set! (.-array message) (JSON/parse (.-value (by-id :message))))
       (.postMessage (.-port peerinfo) message))))
+
+(.addEventListener
+  (by-id :hostlist)
+  "click"
+  (fn [event]
+    (hostlist/fetch-and-process! peerinfo)))

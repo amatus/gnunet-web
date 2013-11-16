@@ -234,6 +234,8 @@ emmake make \
 mkdir -p "$BUILDROOT/resources/public/js/"
 cp src/peerinfo/.libs/gnunet-service-peerinfo.js \
   "$BUILDROOT/resources/public/js/"
+# Copy HELLOs for dev webserver
+cat contrib/hellos/* > "$BUILDROOT/resources/public/hostlist"
 cd "$BUILDROOT"
 
 # vim: set expandtab ts=2 sw=2:
