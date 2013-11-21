@@ -5,6 +5,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/clojurescript "0.0-1978"]
                  [org.clojure/core.async "0.1.242.0-44b1e3-alpha"]
+                 [net.clojure/monads "1.0.2"]
                  [ring "1.1.8"]]
   :plugins [[lein-cljsbuild "0.3.4"]]
   :hooks [leiningen.cljsbuild]

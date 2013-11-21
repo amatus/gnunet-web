@@ -15,11 +15,22 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.hostlist
-  (:require [gnunet-web.http :as http])
-  (:require-macros [cljs.core.async.macros :refer [go]]))
+  (:use [gnunet-web.http :only (GET)]
+        [gnunet-web.parser :only (none-or-more parser)]
+        [gnunet-web.hello :only (parse-hello)]
+        [gnunet-web.message :only (parse-message-types)])
+  (:require-macros [cljs.core.async.macros :refer [go]]
+                   [monads.macros :as monadic]))
+
+(def parse-hostlist
+  (monadic/do parser
+              [hellos (none-or-more (parse-message-types {17 parse-hello}))]
+              hellos))
 
 (defn fetch-and-process!
   [peerinfo]
   (go
-    (let [hostlist (<! (http/GET "hostlist"))]
-      (.log js/console (str "Got hostlist: " hostlist)))))
+    (let [buf (<! (GET "hostlist"))
+          hostlist (js/Uint8Array. buf)
+          hellos (parse-hostlist hostlist)]
+      (js/console.log (str "Got hostlist: " (.-v hellos))))))
