@@ -22,9 +22,10 @@ flush_worker_message_queue = function(f) {
 gnunet_prerun = function() {
   ENV.GNUNET_PREFIX = "/.";
   if (ENVIRONMENT_IS_WORKER) {
-    Module["print"] = function(x) {
+    Module['print'] = function(x) {
       WorkerMessageQueue.push(x);
     };
+    Module['printErr'] = Module['print'];
   }
 }
 if (typeof(Module) === "undefined") Module = { preRun: [] };
