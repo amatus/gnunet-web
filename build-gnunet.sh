@@ -218,9 +218,11 @@ emmake make \
 # Link gnunet services and install them into resources/public/js
 ./libtool --tag=CC --mode=link \
   emcc -fno-strict-aliasing -Wall "-I$SYSROOT/include" "-L$SYSROOT/lib" \
-  -o src/peerinfo/gnunet-service-peerinfo.js \
-  src/peerinfo/gnunet-service-peerinfo.o \
+  -o src/transport/gnunet-service-transport.js \
+  src/transport/gnunet_service_transport-gnunet-service-transport*.o \
+  src/ats/libgnunetats.la \
   src/hello/libgnunethello.la \
+  src/peerinfo/libgnunetpeerinfo.la \
   src/statistics/libgnunetstatistics.la \
   src/util/libgnunetutil.la \
   "$SYSROOT/lib/libgcrypt.la" \
@@ -232,7 +234,7 @@ emmake make \
   --js-library "$BUILDROOT/src/js/service.js" \
   --pre-js "$BUILDROOT/src/js/pre.js"
 mkdir -p "$BUILDROOT/resources/public/js/"
-cp src/peerinfo/.libs/gnunet-service-peerinfo.js \
+cp src/transport/.libs/gnunet-service-transport.js \
   "$BUILDROOT/resources/public/js/"
 # Copy HELLOs for dev webserver
 cat contrib/hellos/* > "$BUILDROOT/resources/public/hostlist"

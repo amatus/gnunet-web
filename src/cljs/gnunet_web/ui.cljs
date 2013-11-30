@@ -27,24 +27,24 @@
     (set! (.-textContent output)
           (str (.-textContent output) "\n" string))))
 
-(def peerinfo (js/SharedWorker. "js/gnunet-service-peerinfo.js"))
+(def transport (js/SharedWorker. "js/gnunet-service-transport.js"))
 
-(set! (.-onerror peerinfo)
+(set! (.-onerror transport)
       (fn [event]
-        (output (str "peerinfo:"
+        (output (str "transport:"
                      (.-filename event) ":" (.-lineno event) " "
                      (.-message event)))))
 
-(set! (.-onmessage (.-port peerinfo))
+(set! (.-onmessage (.-port transport))
       (fn [event]
         (let [data (.-data event)]
           (if (= "stdout" (.-type data))
             (set! (.-onmessage (.-port data))
-                  (fn [event] (output (str "peerinfo:" (.-data event)))))
-            (output (str "peerinfo:" (JSON/stringify (.-message data))))))))
+                  (fn [event] (output (str "transport:" (.-data event)))))
+            (output (str "transport:" (js/JSON.stringify (.-message data))))))))
 
-(.start (.-port peerinfo))
-(.postMessage (.-port peerinfo) (clj->js {:type "stdout"}))
+(.start (.-port transport))
+(.postMessage (.-port transport) (clj->js {:type "stdout"}))
 
 (.addEventListener
   (by-id :send)
@@ -52,11 +52,11 @@
   (fn [event]
     (let [message (js/Object.)]
       (set! (.-type message) "message")
-      (set! (.-array message) (JSON/parse (.-value (by-id :message))))
-      (.postMessage (.-port peerinfo) message))))
+      (set! (.-array message) (js/JSON.parse (.-value (by-id :message))))
+      (.postMessage (.-port transport) message))))
 
 (.addEventListener
   (by-id :hostlist)
   "click"
   (fn [event]
-    (hostlist/fetch-and-process! peerinfo)))
+    (hostlist/fetch-and-process!)))

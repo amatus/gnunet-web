@@ -7,9 +7,12 @@ communication.
 Roadmap
 -------
 * Compile GNUnet using [emscripten].
-* Implement [RFC3264] over GNUnet.
-* Implement WebRTC transport.
-* Write a kick-ass browser UI in clojurescript.
+* Write an HTTP(S) transport plugin using [CORS].
+* Write a minimal UI that allows publishing, searching, and downloading via the
+  file-sharing service.
+* Release alpha.
+* Write a WebRTC transport plugin.
+    * Implement [RFC3264] over GNUnet.
 
 What You Can Do Now
 -------------------
@@ -37,12 +40,11 @@ What You Can Do Now
 3. Open http://localhost:3000/gnunet.html
 
 We're a long way from running GNUnet in the browser. Currently we have the
-peerinfo service linked into a javascript file which is loaded into a
-shared worker and can pass arrays of bytes back and forth. Try sending
-`[40, 0, 74, 1]`.
+transport service linked into a javascript file which is loaded into a
+shared worker.
 
 To debug a shared worker in chrome open chrome://inspect and click the
-"inspect" link next to the http://localhost:3000/js/gnunet-service-peerinfo.js
+"inspect" link next to the http://localhost:3000/js/gnunet-service-transport.js
 shared worker.
 
 Eventually we will have each GNUnet service running in its own [Web Worker]
@@ -54,3 +56,4 @@ each other is being implemented in javascript.
   [emscripten]: https://github.com/kripken/emscripten
   [rfc3264]: http://www.ietf.org/rfc/rfc3264.txt
   [web worker]: http://www.w3.org/TR/workers/
+  [cors]: http://www.w3.org/TR/access-control/

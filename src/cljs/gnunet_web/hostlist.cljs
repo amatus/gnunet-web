@@ -28,7 +28,7 @@
               hellos))
 
 (defn fetch-and-process!
-  [peerinfo]
+  []
   (go
     (let [buf (<! (GET "hostlist"))
           hostlist (js/Uint8Array. buf)
