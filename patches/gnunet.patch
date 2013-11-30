@@ -2,7 +2,15 @@ Index: src/Makefile.am
 ===================================================================
 --- src/Makefile.am	(revision 30661)
 +++ src/Makefile.am	(working copy)
-@@ -74,12 +74,7 @@
+@@ -44,7 +44,6 @@
+   statistics \
+   arm \
+   $(TESTING) \
+-  peerinfo \
+   $(MYSQL_DIR) \
+   $(POSTGRES_DIR) \
+   datacache \
+@@ -74,12 +73,7 @@
    namecache \
    namestore \
    scalarproduct \

@@ -16,15 +16,15 @@
 
 mergeInto(LibraryManager.library, {
   $CONFIG: {
-    'peerinfo': {
-      'HOSTS': '/hosts',
+    'PEER': {
+      'PRIVATE_KEY' : '/private_key',
     },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_get_value: function(section, option) {
     var section = Pointer_stringify(section);
     var option = Pointer_stringify(option);
-    Module.print('GNUNET_CONFIGURATION_get_value_yesno(' + section + ',' + option + ')');
+    Module.print('GNUNET_CONFIGURATION_get_value(' + section + ',' + option + ')');
     if (!(section in CONFIG)) {
       Module.print(section + ' not in CONFIG');
       return undefined;
@@ -61,7 +61,16 @@ mergeInto(LibraryManager.library, {
     if (undefined === tmp)
       return -1;
     return tmp;
-  }
+  },
+  GNUNET_CONFIGURATION_get_value_time__deps:
+    ['GNUNET_CONFIGURATION_get_value'],
+  GNUNET_CONFIGURATION_get_value_time: function(cfg, section, option, time) {
+    var tmp = _GNUNET_CONFIGURATION_get_value(section, option);
+    if (undefined === tmp)
+      return -1;
+    return ccall('GNUNET_STRINGS_fancy_time_to_relative', 'number',
+        ['string', 'number'], [tmp, time]);
+  },
 });
 
 // vim: set expandtab ts=2 sw=2:

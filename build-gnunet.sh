@@ -222,7 +222,6 @@ emmake make \
   src/transport/gnunet_service_transport-gnunet-service-transport*.o \
   src/ats/libgnunetats.la \
   src/hello/libgnunethello.la \
-  src/peerinfo/libgnunetpeerinfo.la \
   src/statistics/libgnunetstatistics.la \
   src/util/libgnunetutil.la \
   "$SYSROOT/lib/libgcrypt.la" \
@@ -232,6 +231,7 @@ emmake make \
   --js-library "$BUILDROOT/src/js/scheduler.js" \
   --js-library "$BUILDROOT/src/js/server.js" \
   --js-library "$BUILDROOT/src/js/service.js" \
+  --js-library "$BUILDROOT/src/js/peerinfo.js" \
   --pre-js "$BUILDROOT/src/js/pre.js"
 mkdir -p "$BUILDROOT/resources/public/js/"
 cp src/transport/.libs/gnunet-service-transport.js \
