@@ -67,6 +67,10 @@ emconfigure ./configure --enable-maintainer-mode \
   --disable-avx-support \
   --disable-avx2-support \
   --with-gpg-error-prefix="$SYSROOT" \
+  ac_cv_sizeof_unsigned_short=2 \
+  ac_cv_sizeof_unsigned_int=4 \
+  ac_cv_sizeof_unsigned_long=4 \
+  ac_cv_sizeof_unsigned_long_long=8 \
   ac_cv_func_syslog=no \
   ac_cv_func_mlock=no \
   gnupg_cv_mlock_is_in_sys_mman=no ||
