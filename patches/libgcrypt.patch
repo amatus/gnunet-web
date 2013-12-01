@@ -1,8 +1,8 @@
 diff --git a/configure.ac b/configure.ac
-index c4f8776..8c2cbff 100644
+index 6d40343..909dc65 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1420,7 +1420,7 @@ if test "$found" = "1" ; then
+@@ -1454,7 +1454,7 @@ if test "$found" = "1" ; then
     case "${host}" in
        x86_64-*-*)
           # Build with the assembly implementation
@@ -11,7 +11,7 @@ index c4f8776..8c2cbff 100644
        ;;
        arm*-*-*)
           # Build with the assembly implementation
-@@ -1437,7 +1437,7 @@ if test "$found" = "1" ; then
+@@ -1471,7 +1471,7 @@ if test "$found" = "1" ; then
     case "${host}" in
        x86_64-*-*)
           # Build with the assembly implementation
@@ -20,7 +20,7 @@ index c4f8776..8c2cbff 100644
        ;;
        arm*-*-*)
           # Build with the assembly implementation
-@@ -1460,7 +1460,7 @@ if test "$found" = "1" ; then
+@@ -1494,7 +1494,7 @@ if test "$found" = "1" ; then
     case "${host}" in
        x86_64-*-*)
           # Build with the assembly implementation
@@ -29,7 +29,7 @@ index c4f8776..8c2cbff 100644
        ;;
        arm*-*-*)
           # Build with the assembly implementation
-@@ -1477,7 +1477,7 @@ if test "$found" = "1" ; then
+@@ -1511,7 +1511,7 @@ if test "$found" = "1" ; then
     case "${host}" in
        x86_64-*-*)
           # Build with the assembly implementation
@@ -38,7 +38,7 @@ index c4f8776..8c2cbff 100644
        ;;
        arm*-*-*)
           # Build with the assembly implementation
-@@ -1494,7 +1494,7 @@ if test "$found" = "1" ; then
+@@ -1528,7 +1528,7 @@ if test "$found" = "1" ; then
     case "${host}" in
        x86_64-*-*)
           # Build with the SSE2 implementation
@@ -47,7 +47,7 @@ index c4f8776..8c2cbff 100644
        ;;
     esac
  
-@@ -1562,7 +1562,7 @@ if test "$found" = "1" ; then
+@@ -1596,7 +1596,7 @@ if test "$found" = "1" ; then
     case "${host}" in
        x86_64-*-*)
           # Build with the assembly implementation
