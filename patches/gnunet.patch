@@ -10,7 +10,21 @@ Index: src/Makefile.am
    $(MYSQL_DIR) \
    $(POSTGRES_DIR) \
    datacache \
-@@ -74,12 +73,7 @@
+@@ -55,13 +54,11 @@
+   fragmentation \
+   transport \
+   ats-tool \
+-  peerinfo-tool \
+   core \
+   $(TESTBED) \
+   ats-tests \
+   nse \
+   dht \
+-  hostlist \
+   topology \
+   regex \
+   mesh \
+@@ -74,12 +71,7 @@
    namecache \
    namestore \
    scalarproduct \
@@ -47,6 +61,18 @@ Index: src/arm/gnunet-service-arm.c
 -
 -
  /* end of gnunet-service-arm.c */
+Index: src/dht/Makefile.am
+===================================================================
+--- src/dht/Makefile.am	(revision 30661)
++++ src/dht/Makefile.am	(working copy)
+@@ -70,7 +70,6 @@
+   $(top_builddir)/src/nse/libgnunetnse.la \
+   $(top_builddir)/src/ats/libgnunetats.la \
+   $(top_builddir)/src/transport/libgnunettransport.la \
+-  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
+   $(top_builddir)/src/hello/libgnunethello.la \
+   $(top_builddir)/src/block/libgnunetblock.la \
+   $(top_builddir)/src/datacache/libgnunetdatacache.la \
 Index: src/dht/gnunet-service-dht_neighbours.c
 ===================================================================
 --- src/dht/gnunet-service-dht_neighbours.c	(revision 30661)
@@ -235,6 +261,18 @@ Index: src/statistics/gnunet-service-statistics.c
  
 -
  /* end of gnunet-service-statistics.c */
+Index: src/topology/Makefile.am
+===================================================================
+--- src/topology/Makefile.am	(revision 30661)
++++ src/topology/Makefile.am	(working copy)
+@@ -32,7 +32,6 @@
+ gnunet_daemon_topology_LDADD = \
+   libgnunetfriends.la \
+   $(top_builddir)/src/core/libgnunetcore.la \
+-  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
+   $(top_builddir)/src/statistics/libgnunetstatistics.la \
+   $(top_builddir)/src/transport/libgnunettransport.la \
+   $(top_builddir)/src/hello/libgnunethello.la \
 Index: src/topology/gnunet-daemon-topology.c
 ===================================================================
 --- src/topology/gnunet-daemon-topology.c	(revision 30661)
@@ -283,14 +321,33 @@ Index: src/transport/Makefile.am
  install-exec-hook:
  	$(top_srcdir)/src/transport/install-wlan-helper.sh $(libexecdir) $(SUDO_BINARY) || true
  else
-@@ -221,7 +207,6 @@
+@@ -210,7 +196,6 @@
+ gnunet_service_transport_LDADD = \
+   $(top_builddir)/src/ats/libgnunetats.la \
+   $(top_builddir)/src/hello/libgnunethello.la \
+-  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
+   $(top_builddir)/src/statistics/libgnunetstatistics.la \
+   $(top_builddir)/src/util/libgnunetutil.la \
+   $(GN_GLPK) \
+@@ -219,18 +204,6 @@
+   $(CFLAGS)
+ # -DANALYZE
  
- plugin_LTLIBRARIES = \
-   libgnunet_plugin_transport_tcp.la \
+-plugin_LTLIBRARIES = \
+-  libgnunet_plugin_transport_tcp.la \
 -  libgnunet_plugin_transport_udp.la \
-   $(UNIX_PLUGIN_LA) \
-   $(HTTP_CLIENT_PLUGIN_LA) \
-   $(HTTPS_CLIENT_PLUGIN_LA) \
+-  $(UNIX_PLUGIN_LA) \
+-  $(HTTP_CLIENT_PLUGIN_LA) \
+-  $(HTTPS_CLIENT_PLUGIN_LA) \
+-  $(HTTP_SERVER_PLUGIN_LA) \
+-  $(HTTPS_SERVER_PLUGIN_LA) \
+-  $(WLAN_PLUGIN_LA) \
+-  $(BT_PLUGIN_LA) \
+-  libgnunet_plugin_transport_template.la
+-
+ libgnunet_plugin_transport_tcp_la_SOURCES = \
+   plugin_transport_tcp.c
+ libgnunet_plugin_transport_tcp_la_LIBADD = \
 Index: src/util/Makefile.am
 ===================================================================
 --- src/util/Makefile.am	(revision 30661)
