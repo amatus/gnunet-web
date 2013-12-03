@@ -231,11 +231,12 @@ emmake make \
   "$SYSROOT/lib/libgcrypt.la" \
   "$SYSROOT/lib/libgpg-error.la" \
   -lm -lsocket \
+  --js-library "$BUILDROOT/src/js/client.js" \
   --js-library "$BUILDROOT/src/js/configuration.js" \
+  --js-library "$BUILDROOT/src/js/peerinfo.js" \
   --js-library "$BUILDROOT/src/js/scheduler.js" \
   --js-library "$BUILDROOT/src/js/server.js" \
   --js-library "$BUILDROOT/src/js/service.js" \
-  --js-library "$BUILDROOT/src/js/peerinfo.js" \
   --pre-js "$BUILDROOT/src/js/pre.js"
 mkdir -p "$BUILDROOT/resources/public/js/"
 cp src/transport/.libs/gnunet-service-transport.js \

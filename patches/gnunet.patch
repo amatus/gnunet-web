@@ -352,7 +352,11 @@ Index: src/util/Makefile.am
 ===================================================================
 --- src/util/Makefile.am	(revision 30661)
 +++ src/util/Makefile.am	(working copy)
-@@ -67,8 +67,6 @@
+@@ -63,12 +63,9 @@
+ libgnunetutil_la_SOURCES = \
+   bandwidth.c \
+   bio.c \
+-  client.c \
    common_allocation.c \
    common_endian.c \
    common_logging.c \
@@ -361,7 +365,7 @@ Index: src/util/Makefile.am
    container_bloomfilter.c \
    container_heap.c \
    container_meta_data.c \
-@@ -98,12 +96,9 @@
+@@ -98,12 +95,9 @@
    plugin.c \
    program.c \
    resolver_api.c resolver.h \

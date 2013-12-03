@@ -69,4 +69,16 @@ function get_message(event) {
     Runtime.stackRestore(stack);
   }
 }
+
+// Since webkit does not have nested workers yet, we need to ask a window to
+// start a worker for us
+function client_connect(service_name, message_port) {
+  for (var client in clients) {
+    client.postMessage({'type': 'client_connect',
+      'service_name': service_name,
+      'message_port': message_port}, [message_port]);
+    break;
+  }
+}
+
 // vim: set expandtab ts=2 sw=2:
