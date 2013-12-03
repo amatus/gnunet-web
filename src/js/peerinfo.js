@@ -19,6 +19,10 @@ mergeInto(LibraryManager.library, {
     Module.print('GNUNET_PEERINFO_connect');
     return 1; // Opaque non-null pointer
   },
+  GNUNET_PEERINFO_add_peer: function(h, hello, cont, cont_cls) {
+    Module.print('GNUNET_PEERINFO_add_peer');
+    return 1; // Opaque non-null pointer
+  },
 });
 
 // vim: set expandtab ts=2 sw=2:

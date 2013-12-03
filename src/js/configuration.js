@@ -17,7 +17,10 @@
 mergeInto(LibraryManager.library, {
   $CONFIG: {
     'PEER': {
-      'PRIVATE_KEY' : '/private_key',
+      'PRIVATE_KEY': '/private_key',
+    },
+    'statistics': {
+      'DISABLE': true,
     },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],

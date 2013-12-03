@@ -20,6 +20,11 @@ mergeInto(LibraryManager.library, {
     if (delay) {
       delay = getValue(delay, 'i64');
     }
+    //Module.print('GNUNET_SCHEDULER_add_delayed_with_priority(delay='+delay+',pirority='+priority+',task='+task+',task_cls='+task_cls+')');
+    if (-1 == delay) {
+      // This is the shutdown task, ignore for now
+      return 0;
+    }
     return setTimeout(function() {
       Runtime.dynCall('vii', task, [task_cls, 0]);
     }, delay / 1000);
