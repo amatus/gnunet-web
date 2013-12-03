@@ -37,6 +37,11 @@ mergeInto(LibraryManager.library, {
     Module.print('found: ' + section[option]);
     return section[option];
   },
+  GNUNET_CONFIGURATION_have_value__deps:
+    ['GNUNET_CONFIGURATION_get_value'],
+  GNUNET_CONFIGURATION_have_value: function(cfg, section, option) {
+    return undefined === _GNUNET_CONFIGURATION_get_value(cfg, section, option);
+  },
   GNUNET_CONFIGURATION_get_value_string__deps:
     ['GNUNET_CONFIGURATION_get_value'],
   GNUNET_CONFIGURATION_get_value_string: function(cfg, section, option, value) {
@@ -70,6 +75,31 @@ mergeInto(LibraryManager.library, {
       return -1;
     return ccall('GNUNET_STRINGS_fancy_time_to_relative', 'number',
         ['string', 'number'], [tmp, time]);
+  },
+  GNUNET_CONFIGURATION_get_value_number__deps:
+    ['GNUNET_CONFIGURATION_get_value'],
+  GNUNET_CONFIGURATION_get_value_number: function(cfg, section, option, num) {
+    var tmp = _GNUNET_CONFIGURATION_get_value(section, option);
+    if (undefined === tmp)
+      return -1;
+    setValue(num, tmp, 'i64');
+  },
+  GNUNET_CONFIGURATION_iterate_section_values__deps: ['$CONFIG'],
+  GNUNET_CONFIGURATION_iterate_section_values:
+  function(cfg, section, iter, iter_cls) {
+    var section_name = Pointer_stringify(section);
+    Module.print('GNUNET_CONFIGURATION_iterate_section_values(' + section_name + ')');
+    if (!(section_name in CONFIG)) {
+      Module.print(section_name + ' not in CONFIG');
+      return;
+    }
+    section = CONFIG[section_name];
+    for (var option in section) {
+      var value = section[option];
+      ccallFunc(Runtime.getFuncWrapper(iter, 'viiii'), 'void',
+        ['i32', 'string', 'string', 'string'],
+        [iter_cls, section_name, option, value]);
+    }
   },
 });
 

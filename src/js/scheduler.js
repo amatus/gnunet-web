@@ -15,12 +15,25 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 mergeInto(LibraryManager.library, {
-  GNUNET_SCHEDULER_add_delayed: function(delay, priority, task, task_cls) {
-    Module.print('scheduler add delayed');
+  GNUNET_SCHEDULER_add_delayed_with_priority:
+  function(delay, priority, task, task_cls) {
+    if (delay) {
+      delay = getValue(delay, 'i64');
+    }
+    return setTimeout(function() {
+      Runtime.dynCall('vii', task, [task_cls, 0]);
+    }, delay / 1000);
   },
-  GNUNET_SCHEDULER_add_with_priority: function(priority, task, task_cls) {
-    Module.print('scheduler add with prio');
-  }
+  GNUNET_SCHEDULER_add_delayed__deps:
+  ['GNUNET_SCHEDULER_add_delayed_with_priority'],
+  GNUNET_SCHEDULER_add_delayed: function(delay, task, task_cls) {
+    return _GNUNET_SCHEDULER_add_delayed_with_priority(delay, 0, task,
+      task_cls);
+  },
+  GNUNET_SCHEDULER_add_now__deps: ['GNUNET_SCHEDULER_add_delayed'],
+  GNUNET_SCHEDULER_add_now: function(task, task_cls) {
+    return _GNUNET_SCHEDULER_add_delayed(0, task, task_cls);
+  },
 });
 
 // vim: set expandtab ts=2 sw=2:
