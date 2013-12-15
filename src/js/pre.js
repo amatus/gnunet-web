@@ -15,7 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var WorkerMessageQueue = [];
-flush_worker_message_queue = function(f) {
+function flush_worker_message_queue(f) {
   WorkerMessageQueue.forEach(f);
   WorkerMessageQueue = [];
 }
@@ -31,37 +31,54 @@ gnunet_prerun = function() {
 if (typeof(Module) === "undefined") Module = { preRun: [] };
 Module.preRun.push(gnunet_prerun);
 
-var clients = {};
-var next_client = 1;
-onconnect = function(event) {
-  debug_port = event.ports[0];
-  event.ports[0].onmessage = get_message;
-  event.ports[0]._name = next_client;
-  clients[next_client] = event.ports[0];
-  next_client++;
+// list of functions to call when a window is connected
+var deferred_for_window = [];
+// a map of window index to port
+var windows = {};
+// next available index
+var next_window = 1;
+onconnect = function(ev) {
+  ev.ports[0].onmessage = get_message;
+  ev.ports[0]._name = next_window;
+  windows[next_window] = ev.ports[0];
+  next_window++;
+  deferred_for_window.forEach(function(fn) {
+    fn(ev.ports[0]);
+  });
+  deferred_for_window = [];
 };
 
-function get_message(event) {
-  if ('stdout' == event.data.type) {
+// do to window now or defer for later
+function do_to_window(fn) {
+  for (var w in windows) {
+    fn(w);
+    return;
+  }
+  deferred_for_window.push(fn);
+}
+
+function get_message(ev) {
+  if ('stdout' == ev.data.type) {
     var channel = new MessageChannel();
     Module['print'] = function(x) { channel.port1.postMessage(x); };
     flush_worker_message_queue(Module.print);
-    event.target.postMessage({type:'stdout', port:channel.port2},
-                             [channel.port2]);
-  } else if ('message' == event.data.type) {
+    ev.target.postMessage({type: 'stdout', port: channel.port2},
+                          [channel.port2]);
+  } else if ('connect' == ev.data.type) {
+  } else if ('message' == ev.data.type) {
     var stack = Runtime.stackSave();
-    var message = allocate(event.data.array, 'i8', ALLOC_STACK);
+    var message = allocate(ev.data.array, 'i8', ALLOC_STACK);
     var size = getValue(message, 'i8') << 8 | getValue(message + 1, 'i8');
     var type = getValue(message + 2, 'i8') << 8 | getValue(message + 3, 'i8');
     var handler = SERVERS.handlers[type];
     Module.print("Got message of type " + type + " size " + size + " from "
-        + event.target._name);
+        + ev.target._name);
     if (typeof handler === 'undefined') {
       Module.print("But I don't know what to do with it");
     } else {
       if (handler.expected_size == 0 || handler.expected_size == size) {
         Runtime.dynCall('viii', handler.callback,
-            [handler.callback_cls, event.target._name, message]);
+            [handler.callback_cls, ev.target._name, message]);
       } else {
         Module.print("But I was expecting size " + handler.expected_size);
       }
@@ -70,15 +87,13 @@ function get_message(event) {
   }
 }
 
-// Since webkit does not have nested workers yet, we need to ask a window to
-// start a worker for us
+// Ask a window to connect us to a service
 function client_connect(service_name, message_port) {
-  for (var client in clients) {
-    client.postMessage({'type': 'client_connect',
+  do_to_window(function(w) {
+    w.postMessage({'type': 'client_connect',
       'service_name': service_name,
       'message_port': message_port}, [message_port]);
-    break;
-  }
+  });
 }
 
 // vim: set expandtab ts=2 sw=2:

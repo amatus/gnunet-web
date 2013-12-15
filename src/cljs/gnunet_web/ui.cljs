@@ -29,6 +29,10 @@
 
 (def transport (js/SharedWorker. "js/gnunet-service-transport.js"))
 
+(defn client-connect
+  [service-name message-port]
+  (output (str "Seems we need to connect to " service-name)))
+
 (set! (.-onerror transport)
       (fn [event]
         (output (str "transport:"
@@ -38,10 +42,13 @@
 (set! (.-onmessage (.-port transport))
       (fn [event]
         (let [data (.-data event)]
-          (if (= "stdout" (.-type data))
-            (set! (.-onmessage (.-port data))
-                  (fn [event] (output (str "transport:" (.-data event)))))
-            (output (str "transport:" (js/JSON.stringify (.-message data))))))))
+          (condp = (.-type data)
+            "stdout" (set! (.-onmessage (.-port data))
+                           (fn [event]
+                             (output (str "transport:" (.-data event)))))
+            "client_connect" (client-connect (.-service_name data)
+                                             (.-message_port data))
+            (output (str "transport:" (js/JSON.stringify data)))))))
 
 (.start (.-port transport))
 (.postMessage (.-port transport) (clj->js {:type "stdout"}))
