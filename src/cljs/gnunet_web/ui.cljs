@@ -15,7 +15,8 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.ui
-  (:require [gnunet-web.hostlist :as hostlist]))
+  (:use [gnunet-web.service :only (client-connect)]
+        [gnunet-web.hostlist :only (fetch-and-process!)]))
 
 (defn by-id
   [id]
@@ -27,31 +28,9 @@
     (set! (.-textContent output)
           (str (.-textContent output) "\n" string))))
 
-(def transport (js/SharedWorker. "js/gnunet-service-transport.js"))
-
-(defn client-connect
-  [service-name message-port]
-  (output (str "Seems we need to connect to " service-name)))
-
-(set! (.-onerror transport)
-      (fn [event]
-        (output (str "transport:"
-                     (.-filename event) ":" (.-lineno event) " "
-                     (.-message event)))))
-
-(set! (.-onmessage (.-port transport))
-      (fn [event]
-        (let [data (.-data event)]
-          (condp = (.-type data)
-            "stdout" (set! (.-onmessage (.-port data))
-                           (fn [event]
-                             (output (str "transport:" (.-data event)))))
-            "client_connect" (client-connect (.-service_name data)
-                                             (.-message_port data))
-            (output (str "transport:" (js/JSON.stringify data)))))))
-
-(.start (.-port transport))
-(.postMessage (.-port transport) (clj->js {:type "stdout"}))
+(def transport-message-channel (js/MessageChannel.))
+(def transport-port (.-port1 transport-message-channel))
+(client-connect "transport" (.-port2 transport-message-channel) output)
 
 (.addEventListener
   (by-id :send)
@@ -60,10 +39,10 @@
     (let [message (js/Object.)]
       (set! (.-type message) "message")
       (set! (.-array message) (js/JSON.parse (.-value (by-id :message))))
-      (.postMessage (.-port transport) message))))
+      (.postMessage transport-port message))))
 
 (.addEventListener
   (by-id :hostlist)
   "click"
   (fn [event]
-    (hostlist/fetch-and-process!)))
+    (fetch-and-process!)))
