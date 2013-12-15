@@ -1,22 +1,8 @@
 Index: src/Makefile.am
 ===================================================================
---- src/Makefile.am	(revision 30661)
+--- src/Makefile.am	(revision 31393)
 +++ src/Makefile.am	(working copy)
-@@ -44,7 +44,6 @@
-   statistics \
-   arm \
-   $(TESTING) \
--  peerinfo \
-   $(MYSQL_DIR) \
-   $(POSTGRES_DIR) \
-   datacache \
-@@ -55,13 +54,11 @@
-   fragmentation \
-   transport \
-   ats-tool \
--  peerinfo-tool \
-   core \
-   $(TESTBED) \
+@@ -62,7 +62,6 @@
    ats-tests \
    nse \
    dht \
@@ -24,10 +10,10 @@ Index: src/Makefile.am
    topology \
    regex \
    mesh \
-@@ -74,12 +71,7 @@
+@@ -74,12 +73,7 @@
+   gnsrecord \
    namecache \
    namestore \
-   scalarproduct \
 -  vpn \
 -  gns \
    $(CONVERSATION_DIR) \
@@ -39,9 +25,9 @@ Index: src/Makefile.am
    $(EXP_DIR)
 Index: src/arm/gnunet-service-arm.c
 ===================================================================
---- src/arm/gnunet-service-arm.c	(revision 30661)
+--- src/arm/gnunet-service-arm.c	(revision 31393)
 +++ src/arm/gnunet-service-arm.c	(working copy)
-@@ -1525,19 +1525,5 @@
+@@ -1546,19 +1546,5 @@
  }
  
  
@@ -61,21 +47,9 @@ Index: src/arm/gnunet-service-arm.c
 -
 -
  /* end of gnunet-service-arm.c */
-Index: src/dht/Makefile.am
-===================================================================
---- src/dht/Makefile.am	(revision 30661)
-+++ src/dht/Makefile.am	(working copy)
-@@ -70,7 +70,6 @@
-   $(top_builddir)/src/nse/libgnunetnse.la \
-   $(top_builddir)/src/ats/libgnunetats.la \
-   $(top_builddir)/src/transport/libgnunettransport.la \
--  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
-   $(top_builddir)/src/hello/libgnunethello.la \
-   $(top_builddir)/src/block/libgnunetblock.la \
-   $(top_builddir)/src/datacache/libgnunetdatacache.la \
 Index: src/dht/gnunet-service-dht_neighbours.c
 ===================================================================
---- src/dht/gnunet-service-dht_neighbours.c	(revision 30661)
+--- src/dht/gnunet-service-dht_neighbours.c	(revision 31393)
 +++ src/dht/gnunet-service-dht_neighbours.c	(working copy)
 @@ -46,7 +46,6 @@
  #include "gnunet-service-dht_neighbours.h"
@@ -87,7 +61,7 @@ Index: src/dht/gnunet-service-dht_neighbours.c
  #define LOG_TRAFFIC(kind,...) GNUNET_log_from (kind, "dht-traffic",__VA_ARGS__)
 Index: src/dns/Makefile.am
 ===================================================================
---- src/dns/Makefile.am	(revision 30661)
+--- src/dns/Makefile.am	(revision 31393)
 +++ src/dns/Makefile.am	(working copy)
 @@ -17,14 +17,6 @@
  pkgcfg_DATA = \
@@ -106,9 +80,9 @@ Index: src/dns/Makefile.am
    libgnunetdnsstub.la \
 Index: src/nat/Makefile.am
 ===================================================================
---- src/nat/Makefile.am	(revision 30661)
+--- src/nat/Makefile.am	(revision 31393)
 +++ src/nat/Makefile.am	(working copy)
-@@ -14,16 +14,6 @@
+@@ -14,24 +14,6 @@
  dist_pkgcfg_DATA = \
    nat.conf
  
@@ -119,24 +93,25 @@ Index: src/nat/Makefile.am
 -install-exec-hook:
 -	$(top_srcdir)/src/nat/install-nat-helper.sh $(libexecdir) $(SUDO_BINARY) || true
 -else
+-if XFREEBSD
+-  NATBIN = gnunet-helper-nat-server gnunet-helper-nat-client
+-  NATSERVER = gnunet-helper-nat-server.c
+-  NATCLIENT = gnunet-helper-nat-client.c
+-install-exec-hook:
+-	$(top_srcdir)/src/nat/install-nat-helper.sh $(libexecdir) $(SUDO_BINARY) || true
+-endif
+-else
 -install-exec-hook:
 -endif
 -
  bin_PROGRAMS = \
   gnunet-nat-server 
  
-@@ -97,4 +87,4 @@
- 
- EXTRA_DIST = \
-  test_nat_data.conf \
-- test_nat_test_data.conf 
-\ No newline at end of file
-+ test_nat_test_data.conf 
 Index: src/nse/gnunet-service-nse.c
 ===================================================================
---- src/nse/gnunet-service-nse.c	(revision 30661)
+--- src/nse/gnunet-service-nse.c	(revision 31393)
 +++ src/nse/gnunet-service-nse.c	(working copy)
-@@ -1539,21 +1539,7 @@
+@@ -1540,21 +1540,7 @@
  }
  
  
@@ -160,7 +135,7 @@ Index: src/nse/gnunet-service-nse.c
  /* end of gnunet-service-nse.c */
 Index: src/regex/gnunet-daemon-regexprofiler.c
 ===================================================================
---- src/regex/gnunet-daemon-regexprofiler.c	(revision 30661)
+--- src/regex/gnunet-daemon-regexprofiler.c	(revision 31393)
 +++ src/regex/gnunet-daemon-regexprofiler.c	(working copy)
 @@ -382,19 +382,6 @@
  }
@@ -184,9 +159,9 @@ Index: src/regex/gnunet-daemon-regexprofiler.c
  /* end of gnunet-daemon-regexprofiler.c */
 Index: src/revocation/gnunet-service-revocation.c
 ===================================================================
---- src/revocation/gnunet-service-revocation.c	(revision 30661)
+--- src/revocation/gnunet-service-revocation.c	(revision 31393)
 +++ src/revocation/gnunet-service-revocation.c	(working copy)
-@@ -673,21 +673,7 @@
+@@ -889,21 +889,7 @@
  }
  
  
@@ -210,7 +185,7 @@ Index: src/revocation/gnunet-service-revocation.c
  /* end of gnunet-service-revocation.c */
 Index: src/set/Makefile.am
 ===================================================================
---- src/set/Makefile.am	(revision 30661)
+--- src/set/Makefile.am	(revision 31393)
 +++ src/set/Makefile.am	(working copy)
 @@ -24,24 +24,6 @@
  lib_LTLIBRARIES = \
@@ -239,7 +214,7 @@ Index: src/set/Makefile.am
   gnunet-service-set_union.c \
 Index: src/statistics/gnunet-service-statistics.c
 ===================================================================
---- src/statistics/gnunet-service-statistics.c	(revision 30661)
+--- src/statistics/gnunet-service-statistics.c	(revision 31393)
 +++ src/statistics/gnunet-service-statistics.c	(working copy)
 @@ -861,19 +861,6 @@
                                GNUNET_SERVICE_OPTION_SOFT_SHUTDOWN, &run, NULL)) ? 0 : 1;
@@ -261,21 +236,9 @@ Index: src/statistics/gnunet-service-statistics.c
  
 -
  /* end of gnunet-service-statistics.c */
-Index: src/topology/Makefile.am
-===================================================================
---- src/topology/Makefile.am	(revision 30661)
-+++ src/topology/Makefile.am	(working copy)
-@@ -32,7 +32,6 @@
- gnunet_daemon_topology_LDADD = \
-   libgnunetfriends.la \
-   $(top_builddir)/src/core/libgnunetcore.la \
--  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
-   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-   $(top_builddir)/src/transport/libgnunettransport.la \
-   $(top_builddir)/src/hello/libgnunethello.la \
 Index: src/topology/gnunet-daemon-topology.c
 ===================================================================
---- src/topology/gnunet-daemon-topology.c	(revision 30661)
+--- src/topology/gnunet-daemon-topology.c	(revision 31393)
 +++ src/topology/gnunet-daemon-topology.c	(working copy)
 @@ -1293,18 +1293,5 @@
  }
@@ -298,7 +261,7 @@ Index: src/topology/gnunet-daemon-topology.c
  /* end of gnunet-daemon-topology.c */
 Index: src/transport/Makefile.am
 ===================================================================
---- src/transport/Makefile.am	(revision 30661)
+--- src/transport/Makefile.am	(revision 31393)
 +++ src/transport/Makefile.am	(working copy)
 @@ -46,20 +46,6 @@
  endif
@@ -321,15 +284,7 @@ Index: src/transport/Makefile.am
  install-exec-hook:
  	$(top_srcdir)/src/transport/install-wlan-helper.sh $(libexecdir) $(SUDO_BINARY) || true
  else
-@@ -210,7 +196,6 @@
- gnunet_service_transport_LDADD = \
-   $(top_builddir)/src/ats/libgnunetats.la \
-   $(top_builddir)/src/hello/libgnunethello.la \
--  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
-   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-   $(top_builddir)/src/util/libgnunetutil.la \
-   $(GN_GLPK) \
-@@ -219,18 +204,6 @@
+@@ -219,18 +205,6 @@
    $(CFLAGS)
  # -DANALYZE
  
@@ -350,7 +305,7 @@ Index: src/transport/Makefile.am
  libgnunet_plugin_transport_tcp_la_LIBADD = \
 Index: src/util/Makefile.am
 ===================================================================
---- src/util/Makefile.am	(revision 30661)
+--- src/util/Makefile.am	(revision 31393)
 +++ src/util/Makefile.am	(working copy)
 @@ -63,12 +63,9 @@
  libgnunetutil_la_SOURCES = \
@@ -380,9 +335,9 @@ Index: src/util/Makefile.am
    time.c \
 Index: src/util/gnunet-service-resolver.c
 ===================================================================
---- src/util/gnunet-service-resolver.c	(revision 30661)
+--- src/util/gnunet-service-resolver.c	(revision 31393)
 +++ src/util/gnunet-service-resolver.c	(working copy)
-@@ -577,19 +577,6 @@
+@@ -569,19 +569,6 @@
    return ret;
  }
  

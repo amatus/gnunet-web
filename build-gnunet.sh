@@ -10,8 +10,8 @@ SYSROOT="$BUILDROOT/gnunet/sysroot"
 mkdir -p "$SYSROOT"
 
 # Build libgpg-error
-LIBGPG_ERROR_TBZ2=libgpg-error-1.11.tar.bz2
-LIBGPG_ERROR_SRCDIR=libgpg-error-1.11
+LIBGPG_ERROR_TBZ2=libgpg-error-1.12.tar.bz2
+LIBGPG_ERROR_SRCDIR=libgpg-error-1.12
 LIBGPG_ERROR_URL=ftp://ftp.gnupg.org/gcrypt/libgpg-error/$LIBGPG_ERROR_TBZ2
 if ! [ -f "downloads/$LIBGPG_ERROR_TBZ2" ]; then
   wget -P downloads "$LIBGPG_ERROR_URL" ||
@@ -66,6 +66,7 @@ emconfigure ./configure --enable-maintainer-mode \
   --disable-asm \
   --disable-avx-support \
   --disable-avx2-support \
+  --disable-amd64-as-feature-detection \
   --with-gpg-error-prefix="$SYSROOT" \
   ac_cv_sizeof_unsigned_short=2 \
   ac_cv_sizeof_unsigned_int=4 \
@@ -136,8 +137,8 @@ emmake make install ||
 cd "$BUILDROOT"
 
 # Build libidn
-LIBIDN_TGZ=libidn-1.27.tar.gz
-LIBIDN_SRCDIR=libidn-1.27
+LIBIDN_TGZ=libidn-1.28.tar.gz
+LIBIDN_SRCDIR=libidn-1.28
 LIBIDN_URL=http://ftp.gnu.org/gnu/libidn/$LIBIDN_TGZ
 if ! [ -f "downloads/$LIBIDN_TGZ" ]; then
   wget -P downloads "$LIBIDN_URL" ||
@@ -226,6 +227,7 @@ emmake make \
   src/transport/gnunet_service_transport-gnunet-service-transport*.o \
   src/ats/libgnunetats.la \
   src/hello/libgnunethello.la \
+  src/peerinfo/libgnunetpeerinfo.la \
   src/statistics/libgnunetstatistics.la \
   src/util/libgnunetutil.la \
   "$SYSROOT/lib/libgcrypt.la" \
@@ -233,7 +235,6 @@ emmake make \
   -lm -lsocket \
   --js-library "$BUILDROOT/src/js/client.js" \
   --js-library "$BUILDROOT/src/js/configuration.js" \
-  --js-library "$BUILDROOT/src/js/peerinfo.js" \
   --js-library "$BUILDROOT/src/js/scheduler.js" \
   --js-library "$BUILDROOT/src/js/server.js" \
   --js-library "$BUILDROOT/src/js/service.js" \
