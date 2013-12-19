@@ -49,7 +49,7 @@ mergeInto(LibraryManager.library, {
       var buffer = allocate(size, 'i8', ALLOC_STACK);
       var ret = Runtime.dynCall('iiii', callback, [callback_cls, size, buffer]);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
-      clients[client].postMessage({type: 'message', message: view});
+      clients[client].postMessage(view);
       Runtime.stackRestore(stack);
     }, 0);
     return 1; // opaque GNUNET_SERVER_TransmitHandle*

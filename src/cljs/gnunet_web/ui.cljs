@@ -30,6 +30,9 @@
 
 (def transport-message-channel (js/MessageChannel.))
 (def transport-port (.-port1 transport-message-channel))
+(set! (.-onmessage transport-port)
+      (fn [event]
+        (output (str "transport-msg:" (js/JSON.stringify (.-data event))))))
 (client-connect "transport" (.-port2 transport-message-channel) output)
 
 (.addEventListener

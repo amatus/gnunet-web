@@ -57,6 +57,11 @@ function do_to_window(fn) {
   deferred_for_window.push(fn);
 }
 
+// a map of client index to port
+var clients = {};
+// next available index
+var next_client = 1;
+
 function get_message(ev) {
   if ('stdout' == ev.data.type) {
     var channel = new MessageChannel();
@@ -65,26 +70,32 @@ function get_message(ev) {
     ev.target.postMessage({type: 'stdout', port: channel.port2},
                           [channel.port2]);
   } else if ('connect' == ev.data.type) {
-  } else if ('message' == ev.data.type) {
-    var stack = Runtime.stackSave();
-    var message = allocate(ev.data.array, 'i8', ALLOC_STACK);
-    var size = getValue(message, 'i8') << 8 | getValue(message + 1, 'i8');
-    var type = getValue(message + 2, 'i8') << 8 | getValue(message + 3, 'i8');
-    var handler = SERVERS.handlers[type];
-    Module.print("Got message of type " + type + " size " + size + " from "
-        + ev.target._name);
-    if (typeof handler === 'undefined') {
-      Module.print("But I don't know what to do with it");
-    } else {
-      if (handler.expected_size == 0 || handler.expected_size == size) {
-        Runtime.dynCall('viii', handler.callback,
-            [handler.callback_cls, ev.target._name, message]);
-      } else {
-        Module.print("But I was expecting size " + handler.expected_size);
-      }
-    }
-    Runtime.stackRestore(stack);
+    ev.data.port.onmessage = client_get_message;
+    ev.data.port._name = next_client;
+    clients[next_client] = ev.data.port;
+    next_client++;
   }
+}
+
+function client_get_message(ev) {
+  var stack = Runtime.stackSave();
+  var message = allocate(ev.data, 'i8', ALLOC_STACK);
+  var size = getValue(message, 'i8') << 8 | getValue(message + 1, 'i8');
+  var type = getValue(message + 2, 'i8') << 8 | getValue(message + 3, 'i8');
+  var handler = SERVERS.handlers[type];
+  Module.print("Got message of type " + type + " size " + size + " from "
+      + ev.target._name);
+  if (typeof handler === 'undefined') {
+    Module.print("But I don't know what to do with it");
+  } else {
+    if (handler.expected_size == 0 || handler.expected_size == size) {
+      Runtime.dynCall('viii', handler.callback,
+          [handler.callback_cls, ev.target._name, message]);
+    } else {
+      Module.print("But I was expecting size " + handler.expected_size);
+    }
+  }
+  Runtime.stackRestore(stack);
 }
 
 // Ask a window to connect us to a service
