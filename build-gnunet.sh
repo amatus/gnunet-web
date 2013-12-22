@@ -46,16 +46,18 @@ emmake make install ||
 cd "$BUILDROOT"
 
 # Build libgcrypt
-LIBGCRYPT_URL=git://git.gnupg.org/libgcrypt.git
-if ! [ -d "downloads/libgcrypt" ]; then
-  git clone "$LIBGCRYPT_URL" downloads/libgcrypt ||
-    die "Unable to clone libgcrypt git repository"
+LIBGCRYPT_TBZ2=libgcrypt-1.6.0.tar.bz2
+LIBGCRYPT_SRCDIR=libgcrypt-1.6.0
+LIBGCRYPT_URL=ftp://ftp.gnupg.org/gcrypt/libgcrypt/$LIBGCRYPT_TBZ2
+if ! [ -f "downloads/$LIBGCRYPT_TBZ2" ]; then
+  wget -P downloads "$LIBGCRYPT_URL" ||
+    die "Unable to download $LIBGCRYPT_TBZ2"
 fi
 
 cd gnunet
-git clone ../downloads/libgcrypt libgcrypt ||
-  die "Unable to clone libgcrypt git repository"
-cd libgcrypt
+tar -jxf "../downloads/$LIBGCRYPT_TBZ2" ||
+  die "Unable to extract $LIBGCRYPT_TBZ2"
+cd "$LIBGCRYPT_SRCDIR"
 patch -p1 < ../../patches/libgcrypt.patch
 automake --add-missing
 ./autogen.sh ||
