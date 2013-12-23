@@ -39,10 +39,7 @@
   (by-id :send)
   "click"
   (fn [event]
-    (let [message (js/Object.)]
-      (set! (.-type message) "message")
-      (set! (.-array message) (js/JSON.parse (.-value (by-id :message))))
-      (.postMessage transport-port message))))
+    (.postMessage transport-port (js/JSON.parse (.-value (by-id :message))))))
 
 (.addEventListener
   (by-id :hostlist)
