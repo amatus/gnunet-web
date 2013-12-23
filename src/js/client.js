@@ -27,6 +27,20 @@ mergeInto(LibraryManager.library, {
     client_connect(service_name, channel.port2);
     return port;
   },
+  GNUNET_CLIENT_receive__deps: ['$CLIENT_PORTS'],
+  GNUNET_CLIENT_receive: function(client, handler, handler_cls, timeout) {
+    CLIENT_PORTS[client].onmessage = function(ev) {
+      var stack = Runtime.stackSave();
+      var message = allocate(ev.data, 'i8', ALLOC_STACK);
+      Runtime.dynCall('vii', handler, [handler_cls, message]);
+      Runtime.stackRestore(stack);
+    };
+    var delay = getValue(timeout, 'i64');
+    setTimeout(function() {
+      CLIENT_PORTS[client].onmessage = null;
+      Runtime.dynCall('vii', handler, [handler_cls, 0]);
+    }, delay / 1000);
+  },
 });
 
 // vim: set expandtab ts=2 sw=2:
