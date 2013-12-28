@@ -41,6 +41,22 @@ mergeInto(LibraryManager.library, {
       Runtime.dynCall('vii', handler, [handler_cls, 0]);
     }, delay / 1000);
   },
+  GNUNET_CLIENT_notify_transmit_ready__deps: ['$CLIENT_PORTS'],
+  GNUNET_CLIENT_notify_transmit_ready: function(client, size, timeout,
+                                           auto_retry, notify, notify_cls) {
+    // Supposedly we can call notify right now, but the current code never
+    // does so let's emulate that.
+    setTimeout(function() {
+      Module.print('I want to send ' + size + ' bytes to service ' + client);
+      var stack = Runtime.stackSave();
+      var buffer = allocate(size, 'i8', ALLOC_STACK);
+      var ret = Runtime.dynCall('iiii', notify, [notify_cls, size, buffer]);
+      var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
+      CLIENT_PORTS[client].postMessage(view);
+      Runtime.stackRestore(stack);
+    }, 0);
+    return 1; // opaque GNUNET_CLIENT_TransmitHandle*
+  },
 });
 
 // vim: set expandtab ts=2 sw=2:
