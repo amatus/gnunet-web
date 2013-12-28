@@ -16,6 +16,7 @@
 
 (ns gnunet-web.ui
   (:use [gnunet-web.service :only (client-connect)]
+        [gnunet-web.peerinfo :only (start-peerinfo)]
         [gnunet-web.hostlist :only (fetch-and-process!)]))
 
 (defn by-id
@@ -28,6 +29,7 @@
     (set! (.-textContent output)
           (str (.-textContent output) "\n" string))))
 
+(start-peerinfo output)
 (def transport-message-channel (js/MessageChannel.))
 (def transport-port (.-port1 transport-message-channel))
 (set! (.-onmessage transport-port)

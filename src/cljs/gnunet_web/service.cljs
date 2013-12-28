@@ -18,6 +18,10 @@
 
 (def services (atom {}))
 
+(defn add-service
+  [service-name port]
+  (swap! services assoc service-name port))
+
 (defn worker-for-service
   [service-name]
   (js/SharedWorker. (str "js/gnunet-service-" service-name ".js")))
@@ -28,7 +32,7 @@
     (if (nil? service)
       (let [worker (worker-for-service service-name)
             port (.-port worker)]
-        (swap! services assoc service-name port)
+        (add-service service-name port)
         (set! (.-onerror worker)
               (fn [event]
                 (output (str service-name ":"
