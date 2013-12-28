@@ -223,6 +223,7 @@ emmake make \
   LDFLAGS=-Wc,--ignore-dynamic-linking ||
   die "Unable to make GNUnet"
 # Link gnunet services and install them into resources/public/js
+mkdir -p "$BUILDROOT/resources/public/js"
 ./libtool --tag=CC --mode=link \
   emcc -fno-strict-aliasing -Wall "-I$SYSROOT/include" "-L$SYSROOT/lib" \
   -o src/transport/gnunet-service-transport.js \
@@ -241,8 +242,25 @@ emmake make \
   --js-library "$BUILDROOT/src/js/server.js" \
   --js-library "$BUILDROOT/src/js/service.js" \
   --pre-js "$BUILDROOT/src/js/pre.js"
-mkdir -p "$BUILDROOT/resources/public/js/"
 cp src/transport/.libs/gnunet-service-transport.js \
+  "$BUILDROOT/resources/public/js/"
+./libtool --tag=CC --mode=link \
+  emcc -fno-strict-aliasing -Wall "-I$SYSROOT/include" "-L$SYSROOT/lib" \
+  -o src/ats/gnunet-service-ats.js \
+  src/ats/gnunet-service-ats*.o \
+  src/ats/libgnunetats.la \
+  src/statistics/libgnunetstatistics.la \
+  src/util/libgnunetutil.la \
+  "$SYSROOT/lib/libgcrypt.la" \
+  "$SYSROOT/lib/libgpg-error.la" \
+  -lm -lsocket \
+  --js-library "$BUILDROOT/src/js/client.js" \
+  --js-library "$BUILDROOT/src/js/configuration.js" \
+  --js-library "$BUILDROOT/src/js/scheduler.js" \
+  --js-library "$BUILDROOT/src/js/server.js" \
+  --js-library "$BUILDROOT/src/js/service.js" \
+  --pre-js "$BUILDROOT/src/js/pre.js"
+cp src/ats/.libs/gnunet-service-ats.js \
   "$BUILDROOT/resources/public/js/"
 # Copy HELLOs for dev webserver
 cat contrib/hellos/* > "$BUILDROOT/resources/public/hostlist"
