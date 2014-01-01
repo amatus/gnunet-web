@@ -36,10 +36,12 @@ mergeInto(LibraryManager.library, {
       Runtime.stackRestore(stack);
     };
     var delay = getValue(timeout, 'i64');
-    setTimeout(function() {
-      CLIENT_PORTS[client].onmessage = null;
-      Runtime.dynCall('vii', handler, [handler_cls, 0]);
-    }, delay / 1000);
+    if (-1 != delay) {
+      setTimeout(function() {
+        CLIENT_PORTS[client].onmessage = null;
+        Runtime.dynCall('vii', handler, [handler_cls, 0]);
+      }, delay / 1000);
+    }
   },
   GNUNET_CLIENT_notify_transmit_ready__deps: ['$CLIENT_PORTS'],
   GNUNET_CLIENT_notify_transmit_ready: function(client, size, timeout,

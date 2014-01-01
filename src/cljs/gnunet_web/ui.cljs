@@ -1,5 +1,5 @@
 ;; ui.cljs - UI routines for gnunet-web website
-;; Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -15,9 +15,10 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.ui
-  (:use [gnunet-web.service :only (client-connect)]
+  (:use [gnunet-web.ats :only (start-ats)]
+        [gnunet-web.hostlist :only (fetch-and-process!)]
         [gnunet-web.peerinfo :only (start-peerinfo)]
-        [gnunet-web.hostlist :only (fetch-and-process!)]))
+        [gnunet-web.service :only (client-connect)]))
 
 (defn by-id
   [id]
@@ -30,6 +31,7 @@
           (str (.-textContent output) "\n" string))))
 
 (start-peerinfo output)
+(start-ats output)
 (def transport-message-channel (js/MessageChannel.))
 (def transport-port (.-port1 transport-message-channel))
 (set! (.-onmessage transport-port)
