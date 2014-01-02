@@ -1,5 +1,5 @@
 ;; hostlist.cljs - hostlist routines for gnunet-web website
-;; Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 
 (def parse-hostlist
   (monadic/do parser
-              [hellos (none-or-more (parse-message-types {17 parse-hello}))]
+              [hellos (none-or-more (parse-message-types #{parse-hello}))]
               hellos))
 
 (defn fetch-and-process!

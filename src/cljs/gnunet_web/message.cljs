@@ -1,5 +1,5 @@
 ;; message.cljs - message parser for gnunet-web website
-;; Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,11 +27,14 @@
                :message-type message-type}))
 
 (defn parse-message-types
-  "Produces a parser for the specific message types given in the parser-map.
+  "Produces a parser for the specific set of message parsers given.
    The parser does not fail if the message-type specific parser does not
    consume the entire input."
-  [parser-map]
+  [parser-set]
   (monadic/do parser
               [{message-type :message-type} parse-header
-               message (parser-map message-type)]
+               :let [p (first (filter #(= message-type (:message-type (meta %)))
+                                      parser-set))]
+               :when p
+               message p]
               {:message-type message-type :message message}))

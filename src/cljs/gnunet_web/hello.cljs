@@ -1,5 +1,5 @@
 ;; hello.cljs - HELLO parser for gnunet-web website
-;; Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,10 +30,12 @@
                :encoded-address encoded-address}))
 
 (def parse-hello
-  (monadic/do parser
-              [friend-only parse-uint32
-               public-key (items 32)
-               addresses (none-or-more parse-transport-address)]
-              {:friend-only friend-only
-               :public-key public-key
-               :transport-addresses addresses}))
+  (with-meta
+    (monadic/do parser
+                [friend-only parse-uint32
+                 public-key (items 32)
+                 addresses (none-or-more parse-transport-address)]
+                {:friend-only friend-only
+                 :public-key public-key
+                 :transport-addresses addresses})
+    {:message-type 17}))

@@ -1,5 +1,5 @@
 ;; parser.cljs - parser monad for gnunet-web website
-;; Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,6 +20,15 @@
   (:require-macros [monads.macros :as monadic]))
 
 (def parser (m/state-t m/maybe))
+
+(extend-type monads.core/state-transformer
+  IMeta
+  (-meta [x] (.-meta x))
+  IWithMeta
+  (-with-meta [x meta]
+    ;; XXX: return a new state-transformer, don't mutate this one
+    (set! (.-meta x) meta)
+    x))
 
 (defn optional
   "Makes a parser optional."

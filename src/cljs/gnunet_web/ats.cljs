@@ -15,14 +15,38 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.ats
-  (:use [gnunet-web.service :only (add-service)]))
+  (:use [gnunet-web.message :only (parse-message-types)]
+        [gnunet-web.parser :only (parser parse-uint32)]
+        [gnunet-web.service :only (add-service)])
+  (:require-macros [monads.macros :as monadic]))
+
+(def message-type-ats-start 340)
+(def start-flag-scheduling 0)
+(def start-flag-performance-with-pic 1)
+(def start-flag-performance-no-pic 2)
+(def parse-client-start
+  (with-meta
+    (monadic/do parser
+                [start-flag parse-uint32]
+                {:start-flag start-flag})
+    {:message-type message-type-ats-start}))
+
+;; scheduling client
+(def my-client (atom nil))
 
 (def ats-message-channel (js/MessageChannel.))
 (def clients (atom #{}))
 
 (defn client-get-message
   [output event]
-  (output (str "ats-msg:" (js/JSON.stringify (.-data event)))))
+  (let [message (first (.-v ((parse-message-types #{parse-client-start})
+                               (.-data event))))]
+    (output (str "ats-msg:" (js/JSON.stringify (clj->js message))))
+    (condp = (:message-type message)
+      message-type-ats-start
+      (condp = (:start-flag (:message message))
+        start-flag-scheduling
+        (swap! my-client #(if (nil? %) (.-target event) %))))))
 
 (defn start-ats
   [output]
