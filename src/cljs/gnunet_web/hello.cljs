@@ -19,6 +19,8 @@
                                         parse-uint16 parse-uint32 parse-utf8)])
   (:require-macros [monads.macros :as monadic]))
 
+(def message-type-hello 17)
+
 (def parse-transport-address
   (monadic/do parser
               [transport parse-utf8
@@ -38,4 +40,4 @@
                 {:friend-only friend-only
                  :public-key public-key
                  :transport-addresses addresses})
-    {:message-type 17}))
+    {:message-type message-type-hello}))
