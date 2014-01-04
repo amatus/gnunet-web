@@ -24,20 +24,20 @@
   [id]
   (.getElementById js/document (name id)))
 
-(defn output
-  [string]
-  (let [output (by-id :output)]
-    (set! (.-textContent output)
-          (str (.-textContent output) "\n" string))))
+(set! *print-fn* (fn [string]
+                   (let [output (by-id :output)]
+                     (set! (.-textContent output)
+                           (str (.-textContent output) string)))))
+;;(set! *print-fn* #(.log js/console %))
 
-(start-peerinfo output)
-(start-ats output)
+(start-peerinfo)
+(start-ats)
 (def transport-message-channel (js/MessageChannel.))
 (def transport-port (.-port1 transport-message-channel))
 (set! (.-onmessage transport-port)
       (fn [event]
-        (output (str "transport-msg:" (js/JSON.stringify (.-data event))))))
-(client-connect "transport" (.-port2 transport-message-channel) output)
+        (println "transport-msg:" (js/JSON.stringify (.-data event)))))
+(client-connect "transport" (.-port2 transport-message-channel))
 
 (.addEventListener
   (by-id :send)

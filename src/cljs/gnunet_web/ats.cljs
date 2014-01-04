@@ -38,10 +38,10 @@
 (def clients (atom #{}))
 
 (defn client-get-message
-  [output event]
+  [event]
   (let [message (first (.-v ((parse-message-types #{parse-client-start})
                                (.-data event))))]
-    (output (str "ats-msg:" (js/JSON.stringify (clj->js message))))
+    (println "ats-msg:" (js/JSON.stringify (clj->js message)))
     (condp = (:message-type message)
       message-type-ats-start
       (condp = (:start-flag (:message message))
@@ -49,12 +49,12 @@
         (swap! my-client #(if (nil? %) (.-target event) %))))))
 
 (defn start-ats
-  [output]
+  []
   (set! (.-onmessage (.-port1 ats-message-channel))
         (fn [event]
           ;; This must be a connect message
           (let [port (.-port (.-data event))]
             (swap! clients conj port)
-            (set! (.-onmessage port) (partial client-get-message output)))))
+            (set! (.-onmessage port) client-get-message))))
   (add-service "ats" (.-port2 ats-message-channel)))
 

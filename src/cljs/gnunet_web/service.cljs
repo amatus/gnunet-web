@@ -27,7 +27,7 @@
   (js/SharedWorker. (str "js/gnunet-service-" service-name ".js")))
 
 (defn client-connect
-  [service-name message-port output]
+  [service-name message-port]
   (let [service (get @services service-name)]
     (if (nil? service)
       (let [worker (worker-for-service service-name)
@@ -35,24 +35,23 @@
         (add-service service-name port)
         (set! (.-onerror worker)
               (fn [event]
-                (output (str service-name ":"
+                (println service-name ":"
                              (.-filename event) ":" (.-lineno event) " "
-                             (.-message event)))))
+                             (.-message event))))
         (set! (.-onmessage port)
               (fn [event]
                 (let [data (.-data event)]
                   (condp = (.-type data)
                     "stdout" (set! (.-onmessage (.-port data))
                                    (fn [event]
-                                     (output (str service-name ":"
-                                                  (.-data event)))))
+                                     (println service-name ":"
+                                                  (.-data event))))
                     "client_connect" (client-connect (.-service_name data)
-                                                     (.-message_port data)
-                                                     output)
-                    (output (str service-name ":" (js/JSON.stringify data)))))))
+                                                     (.-message_port data))
+                    (println service-name ":" (js/JSON.stringify data))))))
         (.start port)
         (.postMessage port (clj->js {:type "stdout"}))
-        (recur service-name message-port output))
+        (recur service-name message-port))
       (.postMessage service (clj->js {:type "connect"
                                       :port message-port})
                     (array message-port)))))

@@ -46,11 +46,11 @@
 (def clients (atom #{}))
 
 (defn client-get-message
-  [output event]
+  [event]
   (let [message (first (.-v ((parse-message-types #{parse-hello
                                                     parse-peerinfo-notify})
                                (.-data event))))]
-    (output (str "peerinfo-msg:" (js/JSON.stringify (clj->js message))))
+    (println "peerinfo-msg:" (js/JSON.stringify (clj->js message)))
     (condp = (:message-type message)
       message-type-hello
       (do
@@ -60,12 +60,12 @@
       nil)))
 
 (defn start-peerinfo
-  [output]
+  []
   (set! (.-onmessage (.-port1 peerinfo-message-channel))
         (fn [event]
           ;; This must be a connect message
           (let [port (.-port (.-data event))]
             (swap! clients conj port)
-            (set! (.-onmessage port) (partial client-get-message output)))))
+            (set! (.-onmessage port) client-get-message))))
   (add-service "peerinfo" (.-port2 peerinfo-message-channel)))
 
