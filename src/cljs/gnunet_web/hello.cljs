@@ -38,6 +38,18 @@
                  public-key (items 32)
                  addresses (none-or-more parse-transport-address)]
                 {:friend-only friend-only
-                 :public-key public-key
+                 :public-key (.apply js/Array nil public-key)
                  :transport-addresses addresses})
     {:message-type message-type-hello}))
+
+(defn merge-hello
+  [a b]
+  )
+
+(defn equals-hello
+  [a b expiration]
+  )
+
+(defn update-friend-hello
+  [a b]
+  )

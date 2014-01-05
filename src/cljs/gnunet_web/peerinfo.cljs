@@ -15,7 +15,8 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.peerinfo
-  (:use [gnunet-web.hello :only (message-type-hello parse-hello)]
+  (:use [gnunet-web.hello :only (equals-hello merge-hello message-type-hello
+                                 parse-hello update-friend-hello)]
         [gnunet-web.message :only (parse-message-types)]
         [gnunet-web.parser :only (parser parse-uint32)]
         [gnunet-web.service :only (add-service)])
@@ -34,13 +35,39 @@
                 {:include-friend-only include-friend-only})
     {:message-type message-type-peerinfo-notify}))
 
+(def hostmap (atom nil))
+
+(defn notify-all
+  [entry]
+  )
+
 (defn add-host-to-known-hosts
   [public-key]
-  )
+  (let [host {:identity public-key}]
+    (swap! hostmap
+           (fn [hostmap]
+             (if (contains? hostmap public-key)
+               hostmap
+               (assoc hostmap public-key host))))
+    ;; TODO load host
+    (notify-all host)))
 
 (defn update-hello
   [hello]
-  )
+  (let [peer (:public-key hello)
+        host (get @hostmap peer)
+        dest (if (= 0 (:friend-only hello))
+               :hello
+               :friend-only-hello)
+        merged (merge-hello hello (dest host))
+        delta (equals-hello merged (dest host) (js/Date.))]
+    (when-not (= -1 (:abs_value_us delta))
+      (swap! hostmap assoc-in [peer dest] merged))
+    (if (< 0 (:friend-only hello))
+      (swap! hostmap assoc-in [peer :friend-only]
+             (update-friend-hello merged (:friend-only host))))
+    ;; TODO save host
+    (notify-all host)))
 
 (def peerinfo-message-channel (js/MessageChannel.))
 (def clients (atom #{}))
@@ -55,7 +82,7 @@
       message-type-hello
       (do
         (add-host-to-known-hosts (:public-key (:message message)))
-        (update-hello message))
+        (update-hello (:message message)))
       message-type-peerinfo-notify
       nil)))
 
