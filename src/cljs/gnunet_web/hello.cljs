@@ -29,7 +29,7 @@
                encoded-address (items address-length)]
               {:transport transport
                :expiration expiration
-               :encoded-address encoded-address}))
+               :encoded-address (.apply js/Array nil encoded-address)}))
 
 (def parse-hello
   (with-meta
@@ -39,7 +39,13 @@
                  addresses (none-or-more parse-transport-address)]
                 {:friend-only friend-only
                  :public-key (.apply js/Array nil public-key)
-                 :transport-addresses addresses})
+                 :transport-addresses
+                 (reduce (fn [map address]
+                           (assoc-in map [(:transport address)
+                                          (:encoded-address address)]
+                                     (:expiration address)))
+                         nil
+                         addresses)})
     {:message-type message-type-hello}))
 
 (defn merge-hello
