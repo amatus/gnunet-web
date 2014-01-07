@@ -15,7 +15,8 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.hello
-  (:use [gnunet-web.parser :only (items none-or-more parser parse-date
+  (:use [amatus.datastructures :only (nested-group-by)]
+        [gnunet-web.parser :only (items none-or-more parser parse-date
                                         parse-uint16 parse-uint32 parse-utf8)])
   (:require-macros [monads.macros :as monadic]))
 
@@ -40,12 +41,8 @@
                 {:friend-only friend-only
                  :public-key (.apply js/Array nil public-key)
                  :transport-addresses
-                 (reduce (fn [map address]
-                           (assoc-in map [(:transport address)
-                                          (:encoded-address address)]
-                                     (:expiration address)))
-                         nil
-                         addresses)})
+                 (nested-group-by [:transport :encoded-address] addresses
+                                  (partial map :expiration))})
     {:message-type message-type-hello}))
 
 (defn merge-hello

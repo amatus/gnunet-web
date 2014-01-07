@@ -18,7 +18,8 @@
                  :pretty-print true}
       :jar true}
      {
-      :source-paths ["src/cljs/gnunet_web"]
+      :source-paths ["src/cljs/amatus"
+                     "src/cljs/gnunet_web"]
       :compiler {:output-to "resources/public/js/gnunet-web.js"
                  :optimizations :simple
                  :pretty-print true}
