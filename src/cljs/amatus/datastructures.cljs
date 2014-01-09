@@ -17,12 +17,24 @@
 (ns amatus.datastructures)
 
 (defn nested-group-by
-  ([fs coll] (nested-group-by fs coll identity))
-  ([fs coll inner-fn]
+  ([fs coll] (nested-group-by fs identity coll))
+  ([fs inner-fn coll]
    (if (empty? fs)
      (inner-fn coll)
      (persistent!
        (reduce
          (fn [ret [k v]]
-           (assoc! ret k (nested-group-by (rest fs) v inner-fn)))
+           (assoc! ret k (nested-group-by (rest fs) inner-fn v)))
          (transient {}) (group-by (first fs) coll))))))
+
+(defn flatten-nested-maps
+  ([nested-maps level-keys] (flatten-nested-maps nested-maps level-keys {}))
+  ([nested-maps [level-key & level-keys] level-accumulator]
+   (if (empty? level-keys)
+     (for [v nested-maps]
+       (assoc level-accumulator level-key v))
+     (mapcat #(flatten-nested-maps
+                (val %)
+                level-keys
+                (assoc level-accumulator level-key (key %)))
+      nested-maps))))

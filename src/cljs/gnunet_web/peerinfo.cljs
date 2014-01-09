@@ -56,14 +56,14 @@
   [hello]
   (let [peer (:public-key hello)
         host (get @hostmap peer)
-        dest (if (= 0 (:friend-only hello))
-               :hello
-               :friend-only-hello)
+        dest (if (:friend-only hello)
+               :friend-only-hello
+               :hello)
         merged (merge-hello hello (dest host))
         delta (equals-hello merged (dest host) (js/Date.))]
     (when-not (= -1 (:abs_value_us delta))
       (swap! hostmap assoc-in [peer dest] merged))
-    (if (< 0 (:friend-only hello))
+    (if (:friend-only hello)
       (swap! hostmap assoc-in [peer :friend-only]
              (update-friend-hello merged (:friend-only host))))
     ;; TODO save host

@@ -15,7 +15,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.hello
-  (:use [amatus.datastructures :only (nested-group-by)]
+  (:use [amatus.datastructures :only (flatten-nested-maps nested-group-by)]
         [gnunet-web.parser :only (items none-or-more parser parse-date
                                         parse-uint16 parse-uint32 parse-utf8)])
   (:require-macros [monads.macros :as monadic]))
@@ -32,22 +32,41 @@
                :expiration expiration
                :encoded-address (.apply js/Array nil encoded-address)}))
 
+(defn latest-expiration
+  [transport-addresses]
+  (first (reverse (sort (map :expiration transport-addresses)))))
+
+(defn transport-addresses-map
+  [transport-addresses-list]
+  (nested-group-by [:transport :encoded-address]
+                   latest-expiration
+                   transport-addresses-list))
+
+(defn flatten-transport-addresses
+  [transport-addresses-nested-map]
+  (flatten-nested-maps transport-addresses-nested-map
+                       [:transport :encoded-address :expiration]))
+
 (def parse-hello
   (with-meta
     (monadic/do parser
                 [friend-only parse-uint32
                  public-key (items 32)
                  addresses (none-or-more parse-transport-address)]
-                {:friend-only friend-only
+                {:friend-only (not (zero? friend-only))
                  :public-key (.apply js/Array nil public-key)
-                 :transport-addresses
-                 (nested-group-by [:transport :encoded-address] addresses
-                                  (partial map :expiration))})
+                 :transport-addresses (transport-addresses-map addresses)})
     {:message-type message-type-hello}))
 
 (defn merge-hello
   [a b]
-  )
+  {:public-key (:public-key a)
+   :friend-only (or (:friend-only a) (:friend-only b))
+   :transport-addresses
+   (transport-addresses-map
+     (concat
+       (flatten-transport-addresses (:transport-addresses a))
+       (flatten-transport-addresses (:transport-addresses b))))})
 
 (defn equals-hello
   [a b expiration]
