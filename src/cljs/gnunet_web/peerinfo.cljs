@@ -61,7 +61,7 @@
                :hello)
         merged (merge-hello hello (dest host))
         delta (equals-hello merged (dest host) (js/Date.))]
-    (when-not (= -1 (:abs_value_us delta))
+    (when-not (= :equal delta)
       (swap! hostmap assoc-in [peer dest] merged))
     (if (:friend-only hello)
       (swap! hostmap assoc-in [peer :friend-only]

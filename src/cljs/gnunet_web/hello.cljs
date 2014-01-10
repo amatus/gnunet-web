@@ -16,6 +16,7 @@
 
 (ns gnunet-web.hello
   (:use [amatus.datastructures :only (flatten-nested-maps nested-group-by)]
+        [clojure.set :only (difference union)]
         [gnunet-web.parser :only (items none-or-more parser parse-date
                                         parse-uint16 parse-uint32 parse-utf8)])
   (:require-macros [monads.macros :as monadic]))
@@ -70,7 +71,19 @@
 
 (defn equals-hello
   [a b expiration]
-  )
+  (when (= (:public-key a) (:public-key b))
+    (let [as (set (filter
+                    #(>= (:expiration %) expiration)
+                    (flatten-transport-addresses (:transport-addresses a))))
+          bs (set (filter
+                    #(>= (:expiration %) expiration)
+                    (flatten-transport-addresses (:transport-addresses b))))]
+      (if (empty? (union (difference as bs) (difference bs as)))
+        :equal
+        (let [eas (set (map #(dissoc % :expiration) as))
+              ebs (set (map #(dissoc % :expiration) bs))]
+          (when (empty? (union (difference eas ebs) (difference ebs eas)))
+            (:expiration (first (sort-by :expiration (union as bs))))))))))
 
 (defn update-friend-hello
   [a b]
