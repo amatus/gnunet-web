@@ -16,7 +16,7 @@
 
 (ns gnunet-web.peerinfo
   (:use [gnunet-web.hello :only (equals-hello merge-hello message-type-hello
-                                 parse-hello update-friend-hello)]
+                                 parse-hello)]
         [gnunet-web.message :only (parse-message-types)]
         [gnunet-web.parser :only (parser parse-uint32)]
         [gnunet-web.service :only (add-service)])
@@ -51,6 +51,11 @@
                (assoc hostmap public-key host))))
     ;; TODO load host
     (notify-all host)))
+
+(defn update-friend-hello
+  [hello friend-hello]
+  (merge-hello hello (or friend-hello {:public-key (:public-key hello)
+                                       :friend-only true})))
 
 (defn update-hello
   [hello]

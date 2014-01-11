@@ -84,7 +84,3 @@
               ebs (set (map #(dissoc % :expiration) bs))]
           (when (empty? (union (difference eas ebs) (difference ebs eas)))
             (:expiration (first (sort-by :expiration (union as bs))))))))))
-
-(defn update-friend-hello
-  [a b]
-  )
