@@ -17,8 +17,10 @@
 (ns gnunet-web.hello
   (:use [amatus.datastructures :only (flatten-nested-maps nested-group-by)]
         [clojure.set :only (difference union)]
+        [gnunet-web.encoder :only (encode-date encode-uint16 encode-uint32
+                                   encode-utf8)]
         [gnunet-web.parser :only (items none-or-more parser parse-date
-                                        parse-uint16 parse-uint32 parse-utf8)])
+                                  parse-uint16 parse-uint32 parse-utf8)])
   (:require-macros [monads.macros :as monadic]))
 
 (def message-type-hello 17)
@@ -32,6 +34,16 @@
               {:transport transport
                :expiration expiration
                :encoded-address (.apply js/Array nil encoded-address)}))
+
+(defn encode-transport-address
+  [{:transport transport
+    :expiration expiration
+    :encoded-address encoded-address}]
+  (concat
+    (encode-utf8 transport)
+    (encode-uint16 (count encoded-address))
+    (encode-date expiration)
+    encoded-address))
 
 (defn latest-expiration
   [transport-addresses]
@@ -58,6 +70,16 @@
                  :public-key (.apply js/Array nil public-key)
                  :transport-addresses (transport-addresses-map addresses)})
     {:message-type message-type-hello}))
+
+(defn encode-hello
+  [{:friend-only friend-only
+    :public-key public-key
+    :transport-addresses transport-addresses}]
+  (concat
+    (encode-uint32 (if friend-only 1 0))
+    public-key
+    (mapcat encode-transport-address
+            (flatten-transport-addresses transport-addresses))))
 
 (defn merge-hello
   [a b]

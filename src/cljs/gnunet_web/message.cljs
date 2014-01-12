@@ -15,7 +15,8 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.message
-  (:use [gnunet-web.parser :only (items parser parse-uint16)])
+  (:use [gnunet-web.encoder :only (encode-uint16)]
+        [gnunet-web.parser :only (items parser parse-uint16)])
   (:require [monads.core :as m])
   (:require-macros [monads.macros :as monadic]))
 
@@ -38,3 +39,10 @@
                :when p
                message p]
               {:message-type message-type :message message}))
+
+(defn encode-message
+  [{:message-type message-type :message message}]
+  (concat
+    (encode-uint16 (+ 4 (count message)))
+    (encode-uint16 message-type)
+    message))

@@ -15,8 +15,9 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.peerinfo
-  (:use [gnunet-web.hello :only (equals-hello merge-hello message-type-hello
-                                 parse-hello)]
+  (:use [gnunet-web.encoder :only (encode-uint32)]
+        [gnunet-web.hello :only (encode-hello equals-hello merge-hello
+                                 message-type-hello parse-hello)]
         [gnunet-web.message :only (parse-message-types)]
         [gnunet-web.parser :only (parser parse-uint32)]
         [gnunet-web.service :only (add-service)])
@@ -35,11 +36,30 @@
                 {:include-friend-only include-friend-only})
     {:message-type message-type-peerinfo-notify}))
 
+(defn encode-info-message
+  [peer hello]
+  (encode-message
+    {:message-type message-type-peerinfo-info
+     :message
+     (concat
+       (encode-uint32 0) ;; reserved
+       peer
+       (when hello (encode-hello hello)))}))
+
 (def hostmap (atom nil))
+(def notify-clients (atom #{}))
+(def notify-clients-friend-only (atom #{}))
 
 (defn notify-all
   [entry]
-  )
+  (let [msg-pub (encode-info-message (:identity entry)
+                                     (:hello entry))
+        msg-friend (encode-info-message (:identity entry)
+                                        (:friend-only-hello entry))]
+    (doseq [nc notify-clients]
+      (.postMessage nc msg-pub))
+    (doseq [nc notify-clients-friend-only]
+      (.postMessage nc msg-friend))))
 
 (defn add-host-to-known-hosts
   [public-key]
@@ -89,7 +109,11 @@
         (add-host-to-known-hosts (:public-key (:message message)))
         (update-hello (:message message)))
       message-type-peerinfo-notify
-      nil)))
+      (swap!
+        (if (:include-friend-only (:message message))
+          notify-clients-friend-only
+          notify-clients)
+        conj (.-target event)))))
 
 (defn start-peerinfo
   []
