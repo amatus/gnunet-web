@@ -36,9 +36,9 @@
                :encoded-address (.apply js/Array nil encoded-address)}))
 
 (defn encode-transport-address
-  [{:transport transport
-    :expiration expiration
-    :encoded-address encoded-address}]
+  [{transport :transport
+    expiration :expiration
+    encoded-address :encoded-address}]
   (concat
     (encode-utf8 transport)
     (encode-uint16 (count encoded-address))
@@ -72,9 +72,9 @@
     {:message-type message-type-hello}))
 
 (defn encode-hello
-  [{:friend-only friend-only
-    :public-key public-key
-    :transport-addresses transport-addresses}]
+  [{friend-only :friend-only
+    public-key :public-key
+    transport-addresses :transport-addresses}]
   (concat
     (encode-uint32 (if friend-only 1 0))
     public-key

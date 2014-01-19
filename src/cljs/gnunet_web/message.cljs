@@ -41,7 +41,7 @@
               {:message-type message-type :message message}))
 
 (defn encode-message
-  [{:message-type message-type :message message}]
+  [{message-type :message-type message :message}]
   (concat
     (encode-uint16 (+ 4 (count message)))
     (encode-uint16 message-type)
