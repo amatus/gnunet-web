@@ -89,8 +89,8 @@
     (when-not (= :equal delta)
       (swap! hostmap assoc-in [peer dest] merged))
     (if (:friend-only hello)
-      (swap! hostmap assoc-in [peer :friend-only]
-             (update-friend-hello merged (:friend-only host))))
+      (swap! hostmap assoc-in [peer :friend-only-hello]
+             (update-friend-hello merged (:friend-only-hello host))))
     ;; TODO save host
     (notify-all host)))
 
