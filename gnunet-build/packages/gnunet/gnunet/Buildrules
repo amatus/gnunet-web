@@ -1,0 +1,54 @@
+REVISION="31763"
+VERSION="svn-${REVISION}"
+DESCRIPTION="GNUnet is a framework for secure peer-to-peer networking that does not use any centralized or otherwise trusted services."
+SOURCE_URI="svn://gnunet.org/svn/gnunet@${REVISION}?proto=https&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
+PATCHES="all"
+BDEPENDS="${BDEPENDS}
+	libs/fake-extractor
+	libs/libgcrypt
+	libs/libidn
+	libs/libtool
+	libs/libunistring
+	libs/zlib
+"
+
+pkg_compile() {
+	BUILDROOT="${BUILDER_TOPDIR}/.."
+        export TEMP_DIR="${T}"
+	./bootstrap
+        EMCONFIGURE_JS=1 emconfigure ./configure \
+		--prefix=/usr \
+                --sysconfdir=/etc \
+		--with-libgcrypt-prefix="${SYSROOT}/usr" \
+		--without-libcurl \
+		--disable-testing \
+		ac_cv_lib_idn_stringprep_check_version=yes \
+                CPPFLAGS="-I${SYSROOT}/usr/include" \
+                LDFLAGS="-L${SYSROOT}/usr/lib"
+        emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
+	mkdir -p "${D}/var/lib/gnunet/js"
+	"${SYSROOT}/usr/bin/libtool" --tag=CC --mode=link \
+		emcc -v -fno-strict-aliasing -Wall \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/transport/gnunet-service-transport.js" \
+		"${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
+		"${S}/src/ats/libgnunetats.la" \
+		"${S}/src/hello/libgnunethello.la" \
+		"${S}/src/peerinfo/libgnunetpeerinfo.la" \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		-lm -lsocket \
+		--js-library "${BUILDROOT}/src/js/client.js" \
+		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/scheduler.js" \
+		--js-library "${BUILDROOT}/src/js/server.js" \
+		--js-library "${BUILDROOT}/src/js/service.js" \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp src/transport/.libs/gnunet-service-transport.js \
+		"${D}/var/lib/gnunet/js/"
+	cat contrib/hellos/* > "${D}/var/lib/gnunet/hostlist"
+}
+
+# vim: syntax=sh

@@ -1,0 +1,12 @@
+VERSION="1.2.8"
+DESCRIPTION="A Massively Spiffy Yet Delicately Unobtrusive Compression Library."
+SOURCE_URI="http://zlib.net/${NAME}-${VERSION}.tar.gz"
+
+pkg_compile() {
+        export TEMP_DIR="${T}"
+        emconfigure ./configure --prefix=/usr
+        emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
+        emmake make DESTDIR="${D}" install
+}
+
+# vim: syntax=sh

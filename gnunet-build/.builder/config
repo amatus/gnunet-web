@@ -1,0 +1,12 @@
+PROJECT="gnunet"
+
+TOOLDIR="toolchain"
+export TOOLDIR
+
+PATH="${SYSROOT}/${TOOLDIR}/bin:${SYSROOT}/${TOOLDIR}/opt/emscripten:${PATH}"
+export PATH
+
+EM_CONFIG="${SYSROOT}/${TOOLDIR}/etc/emscripten"
+export EM_CONFIG
+
+# vim: filetype=sh

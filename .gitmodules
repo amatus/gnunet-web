@@ -1,0 +1,3 @@
+[submodule "builder"]
+	path = gnunet-build/scripts
+	url = TBA

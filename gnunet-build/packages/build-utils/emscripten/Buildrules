@@ -1,0 +1,24 @@
+VERSION="1.8.2"
+DESCRIPTION="Emscripten is an LLVM-to-JavaScript compiler."
+SOURCE_URI="https://github.com/kripken/${NAME}/archive/${VERSION}.tar.gz"
+# XXX: these are actually RDEPENDS but that's broken
+BDEPENDS="build-utils/llvm build-utils/node"
+
+pkg_compile() {
+	INSTALLDIR="${D}/${TOOLDIR}/opt/emscripten"
+	mkdir -p "$(dirname "${INSTALLDIR}")"
+	cp -a "${S}" "${INSTALLDIR}"
+	mkdir -p "${D}/${TOOLDIR}/etc"
+	cat > "${D}/${TOOLDIR}/etc/emscripten" << EOF
+import os
+EMSCRIPTEN_ROOT = '${SYSROOT}/${TOOLDIR}/opt/emscripten'
+LLVM_ROOT = '${SYSROOT}/${TOOLDIR}/bin'
+NODE_JS = '${SYSROOT}/${TOOLDIR}/bin/node'
+JAVA = 'java'
+TEMP_DIR = os.path.expanduser(os.getenv('TEMP_DIR'))
+COMPILER_ENGINE = NODE_JS
+JS_ENGINES = [NODE_JS]
+EOF
+}
+
+# vim: syntax=sh

@@ -1,0 +1,13 @@
+VERSION="2.4.2"
+DESCRIPTION="GNU libtool is a generic library support script."
+SOURCE_URI="http://ftpmirror.gnu.org/${NAME}/${NAME}-${VERSION}.tar.gz"
+CONFIG_OPTS="\
+	lt_cv_path_NM='llvm-nm\$IFS-B' \
+	ac_cv_func_argz_append=no \
+	ac_cv_func_argz_create_sep=no \
+	ac_cv_func_argz_insert=no \
+	ac_cv_func_argz_next=no \
+	ac_cv_func_argz_stringify=no \
+"
+
+# vim: syntax=sh

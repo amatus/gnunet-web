@@ -1,0 +1,11 @@
+VERSION="0.9.3"
+DESCRIPTION="This library provides functions for manipulating Unicode strings and for manipulating C strings according to the Unicode standard."
+SOURCE_URI="http://ftpmirror.gnu.org/${NAME}/${NAME}-${VERSION}.tar.gz"
+PATCHES="gnulib"
+CONFIG_OPTS="\
+	--disable-threads \
+	ac_cv_func_uselocale=no \
+	am_cv_func_iconv=no
+"
+
+# vim: syntax=sh

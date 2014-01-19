@@ -1,0 +1,36 @@
+VERSION="1.6.0"
+DESCRIPTION="This is a general purpose cryptographic library based on the code from GnuPG."
+SOURCE_URI="ftp://ftp.gnupg.org/gcrypt/${NAME}/${NAME}-${VERSION}.tar.bz2"
+BDEPENDS="${BDEPENDS} libs/libgpg-error"
+PATCHES="no-entropy"
+CONFIG_OPTS="\
+"
+
+pkg_compile() {
+        export TEMP_DIR="${T}"
+        emconfigure ./configure --prefix=/usr \
+                                --sysconfdir=/etc \
+				--host=i386-emscripten-linux-gnu \
+				--disable-threads \
+				--disable-asm \
+				--disable-avx-support \
+				--disable-avx2-support \
+				--disable-amd64-as-feature-detection \
+				--with-gpg-error-prefix="${SYSROOT}/usr" \
+				ac_cv_sizeof_unsigned_short=2 \
+				ac_cv_sizeof_unsigned_int=4 \
+				ac_cv_sizeof_unsigned_long=4 \
+				ac_cv_sizeof_unsigned_long_long=8 \
+				ac_cv_func_syslog=no \
+				ac_cv_func_mlock=no \
+				gnupg_cv_mlock_is_in_sys_mman=no \
+				CPPFLAGS="-I${SYSROOT}/usr/include" \
+				LDFLAGS="-L${SYSROOT}/usr/lib"
+        emmake make SUBDIRS="compat mpi cipher random src" \
+		LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
+        emmake make SUBDIRS="compat mpi cipher random src" \
+		DESTDIR="${D}" install
+}
+
+
+# vim: syntax=sh

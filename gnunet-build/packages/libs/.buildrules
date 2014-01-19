@@ -1,0 +1,15 @@
+BDEPENDS="build-utils/emscripten"
+
+pkg_compile() {
+	export TEMP_DIR="${T}"
+	emconfigure ./configure	--prefix=/usr \
+				--sysconfdir=/etc \
+				CPPFLAGS="-I${SYSROOT}/usr/include" \
+				LDFLAGS="-L${SYSROOT}/usr/lib" \
+				${CONFIG_OPTS}
+	emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking" \
+		${MAKE_OPTS}
+	emmake make DESTDIR="${D}" install
+}
+
+# vim: filetype=sh

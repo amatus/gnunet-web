@@ -1,0 +1,34 @@
+CPPFLAGS="-I${SYSROOT}/${TOOLDIR}/include"
+LDFLAGS="-L${SYSROOT}/${TOOLDIR}/lib"
+export CPPFLAGS LDFLAGS
+
+NOCLEAN="1"
+
+toolchain_fixup()
+{(
+	cd "${1}"
+
+	echo "compile: moving '${1}/${SYSROOT}/${TOOLDIR}' -> '${1}/'"
+	mv "${1}/./${SYSROOT}/${TOOLDIR}" "./"
+
+	toolchain_fixup_prefix="${SYSROOT#/*/}"
+	toolchain_fixup_prefix="${SYSROOT%/${toolchain_fixup_prefix}}"
+
+	echo "compile: erasing '${1}/${toolchain_fixup_prefix}'"
+	find ".${toolchain_fixup_prefix}" -delete
+
+	unset toolchain_fixup_prefix
+)}
+
+pkg_compile() {
+	[ -d "${S}/build" ] || mkdir "${S}/build"
+	cd "${S}/build"
+	"${S}/configure" \
+		--prefix="${SYSROOT}/${TOOLDIR}" \
+		--with-sysroot="${SYSROOT}" --disable-nls \
+		${CONFIG_OPTS}
+	make ${MAKE_OPTS} all && make DESTDIR="${D}" install
+	toolchain_fixup "${D}"
+}
+
+# vim: filetype=sh

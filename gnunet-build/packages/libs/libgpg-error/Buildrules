@@ -1,0 +1,24 @@
+VERSION="1.12"
+DESCRIPTION="Libgpg-error is a small library that defines common error values for all GnuPG components."
+SOURCE_URI="ftp://ftp.gnupg.org/gcrypt/${NAME}/${NAME}-${VERSION}.tar.bz2"
+
+pkg_compile() {
+        export TEMP_DIR="${T}"
+	# Build libgpg-error first using build system tools to produce generated
+	# header files.
+	./configure
+	make
+	# Build again with emscripten, keeping generated files fresh so make
+	# won't rebuild them.
+        emconfigure ./configure --prefix=/usr \
+                                --sysconfdir=/etc \
+				--disable-nls
+	touch src/mkerrcodes.h
+	touch src/mkerrcodes
+	touch src/code-from-errno.h
+	touch src/gpg-error.def
+        emmake make
+        emmake make DESTDIR="${D}" install
+}
+
+# vim: syntax=sh
