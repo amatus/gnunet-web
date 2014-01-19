@@ -56,10 +56,10 @@
                                      (:hello entry))
         msg-friend (encode-info-message (:identity entry)
                                         (:friend-only-hello entry))]
-    (doseq [nc notify-clients]
-      (.postMessage nc msg-pub))
-    (doseq [nc notify-clients-friend-only]
-      (.postMessage nc msg-friend))))
+    (doseq [nc @notify-clients]
+      (.postMessage nc (to-array msg-pub)))
+    (doseq [nc @notify-clients-friend-only]
+      (.postMessage nc (to-array msg-friend)))))
 
 (defn add-host-to-known-hosts
   [public-key]
