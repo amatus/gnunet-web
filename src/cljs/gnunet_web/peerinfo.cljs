@@ -18,7 +18,7 @@
   (:use [gnunet-web.encoder :only (encode-uint32)]
         [gnunet-web.hello :only (encode-hello equals-hello merge-hello
                                  message-type-hello parse-hello)]
-        [gnunet-web.message :only (parse-message-types)]
+        [gnunet-web.message :only (encode-message parse-message-types)]
         [gnunet-web.parser :only (parser parse-uint32)]
         [gnunet-web.service :only (add-service)])
   (:require-macros [monads.macros :as monadic]))
