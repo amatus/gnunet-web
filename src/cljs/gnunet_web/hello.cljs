@@ -33,7 +33,7 @@
                encoded-address (items address-length)]
               {:transport transport
                :expiration expiration
-               :encoded-address (.apply js/Array nil encoded-address)}))
+               :encoded-address (vec (.apply js/Array nil encoded-address))}))
 
 (defn encode-transport-address
   [{transport :transport
@@ -67,7 +67,7 @@
                  public-key (items 32)
                  addresses (none-or-more parse-transport-address)]
                 {:friend-only (not (zero? friend-only))
-                 :public-key (.apply js/Array nil public-key)
+                 :public-key (vec (.apply js/Array nil public-key))
                  :transport-addresses (transport-addresses-map addresses)})
     {:message-type message-type-hello}))
 

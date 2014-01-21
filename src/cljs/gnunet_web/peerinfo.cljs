@@ -20,7 +20,8 @@
                                  message-type-hello parse-hello)]
         [gnunet-web.message :only (encode-message parse-message-types)]
         [gnunet-web.parser :only (parser parse-uint32)]
-        [gnunet-web.service :only (add-service)])
+        [gnunet-web.service :only (add-service)]
+        [tailrecursion.cljson :only (clj->cljson cljson->clj)])
   (:require-macros [monads.macros :as monadic]))
 
 (def message-type-peerinfo-get 330)
@@ -61,17 +62,6 @@
     (doseq [nc @notify-clients-friend-only]
       (.postMessage nc (to-array msg-friend)))))
 
-(defn add-host-to-known-hosts
-  [public-key]
-  (let [host {:identity public-key}]
-    (swap! hostmap
-           (fn [hostmap]
-             (if (contains? hostmap public-key)
-               hostmap
-               (assoc hostmap public-key host))))
-    ;; TODO load host
-    (notify-all host)))
-
 (defn update-friend-hello
   [hello friend-hello]
   (merge-hello hello (or friend-hello {:public-key (:public-key hello)
@@ -87,12 +77,33 @@
         merged (merge-hello hello (dest host))
         delta (equals-hello merged (dest host) (js/Date.))]
     (when-not (= :equal delta)
-      (swap! hostmap assoc-in [peer dest] merged))
-    (if (:friend-only hello)
-      (swap! hostmap assoc-in [peer :friend-only-hello]
-             (update-friend-hello merged (:friend-only-hello host))))
-    ;; TODO save host
-    (notify-all host)))
+      (swap! hostmap assoc-in [peer dest] merged)
+      (when-not (:friend-only hello)
+        (swap! hostmap assoc-in [peer :friend-only-hello]
+               (update-friend-hello merged (:friend-only-hello host))))
+      (let [host (get @hostmap peer)]
+        (.setItem js/localStorage
+                  (str "hello:" peer)
+                  (clj->cljson (:hello host)))
+        (.setItem js/localStorage
+                  (str "friend-only-hello:" peer)
+                  (clj->cljson (:friend-only-hello host)))
+        (notify-all host)))))
+
+(defn add-host-to-known-hosts
+  [public-key]
+  (let [host {:identity public-key}]
+    (swap! hostmap
+           (fn [hostmap]
+             (if (contains? hostmap public-key)
+               hostmap
+               (assoc hostmap public-key host))))
+    (notify-all host)
+    (update-hello
+      (cljson->clj (.getItem js/localStorage (str "hello:" public-key))))
+    (update-hello
+      (cljson->clj
+        (.getItem js/localStorage (str "friend-only-hello:" public-key))))))
 
 (def peerinfo-message-channel (js/MessageChannel.))
 (def clients (atom #{}))
