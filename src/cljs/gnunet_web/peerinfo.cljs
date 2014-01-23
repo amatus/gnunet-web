@@ -18,7 +18,8 @@
   (:use [gnunet-web.encoder :only (encode-uint32)]
         [gnunet-web.hello :only (encode-hello equals-hello merge-hello
                                  message-type-hello parse-hello)]
-        [gnunet-web.message :only (encode-message parse-message-types)]
+        [gnunet-web.message :only (encode-message parse-message-types
+                                   parse-peer-identity)]
         [gnunet-web.parser :only (parser parse-uint32)]
         [gnunet-web.service :only (add-service)]
         [tailrecursion.cljson :only (clj->cljson cljson->clj)])
@@ -37,6 +38,22 @@
                 {:include-friend-only include-friend-only})
     {:message-type message-type-peerinfo-notify}))
 
+(def parse-list-peer
+  (with-meta
+    (monadic/do parser
+                [include-friend-only parse-uint32
+                 peer parse-peer-identity]
+                {:include-friend-only include-friend-only
+                 :peer peer})
+    {:message-type message-type-peerinfo-get}))
+
+(def parse-list-peer-all
+  (with-meta
+    (monadic/do parser
+                [include-friend-only parse-uint32]
+                {:include-friend-only include-friend-only})
+    {:message-type message-type-peerinfo-get-all}))
+
 (defn encode-info-message
   [peer hello]
   (encode-message
@@ -46,6 +63,9 @@
        (encode-uint32 0) ;; reserved
        peer
        (when hello (encode-hello hello)))}))
+
+(def info-end-message
+  (encode-message {:message-type message-type-peerinfo-info-end}))
 
 (def hostmap (atom nil))
 (def notify-clients (atom #{}))
@@ -111,7 +131,9 @@
 (defn client-get-message
   [event]
   (let [message (first (.-v ((parse-message-types #{parse-hello
-                                                    parse-peerinfo-notify})
+                                                    parse-peerinfo-notify
+                                                    parse-list-peer
+                                                    parse-list-peer-all})
                                (.-data event))))]
     (println "peerinfo-msg:" (js/JSON.stringify (clj->js message)))
     (condp = (:message-type message)
@@ -124,7 +146,26 @@
         (if (:include-friend-only (:message message))
           notify-clients-friend-only
           notify-clients)
-        conj (.-target event)))))
+        conj (.-target event))
+      message-type-peerinfo-get
+      (let [get-message {:message message}
+            peer (:public-key get-message)
+            hello-type (if (:include-friend-only get-message)
+                         :friend-only-hello
+                         :hello)
+            hello (hello-type (get @hostmap peer))]
+        (.postMessage (.-target event)
+                      (encode-info-message peer hello))
+        (.postMessage (.-target event) info-end-message))
+      message-type-peerinfo-get-all
+      (let [hello-type (if (:include-friend-only (:message message))
+                         :friend-only-hello
+                         :hello)]
+        (doseq [entry @hostmap]
+          (.postMessage (.-target event)
+                        (encode-info-message (key entry)
+                                             (hello-type (val entry)))))
+        (.postMessage (.-target event) info-end-message)))))
 
 (defn start-peerinfo
   []

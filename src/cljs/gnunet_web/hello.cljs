@@ -19,6 +19,7 @@
         [clojure.set :only (difference union)]
         [gnunet-web.encoder :only (encode-date encode-uint16 encode-uint32
                                    encode-utf8)]
+        [gnunet-web.message :only (parse-peer-identity)]
         [gnunet-web.parser :only (items none-or-more parser parse-date
                                   parse-uint16 parse-uint32 parse-utf8)])
   (:require-macros [monads.macros :as monadic]))
@@ -64,10 +65,10 @@
   (with-meta
     (monadic/do parser
                 [friend-only parse-uint32
-                 public-key (items 32)
+                 public-key parse-peer-identity
                  addresses (none-or-more parse-transport-address)]
                 {:friend-only (not (zero? friend-only))
-                 :public-key (vec (.apply js/Array nil public-key))
+                 :public-key public-key
                  :transport-addresses (transport-addresses-map addresses)})
     {:message-type message-type-hello}))
 

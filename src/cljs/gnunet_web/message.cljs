@@ -46,3 +46,8 @@
     (encode-uint16 (+ 4 (count message)))
     (encode-uint16 message-type)
     message))
+
+(def parse-peer-identity
+  (monadic/do parser
+              [peer-identity (items 32)]
+              (vec (.apply js/Array nil peer-identity))))
