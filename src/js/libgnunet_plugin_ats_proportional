@@ -1,0 +1,68 @@
+// libgnunet_plugin_ats_proportional - ATS proportional solver plugin
+// Copyright (C) 2014  David Barksdale <amatus@amatus.name>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+(function(FUNCTION_TABLE_OFFSET, parentModule) {
+  var s_add = Runtime.addFunction(function(solver, address, network) {
+  });
+  var s_address_update_property = Runtime.addFunction(function(solver, address,
+      type, abs_value, rel_value) {
+  });
+  var s_address_update_session = Runtime.addFunction(function(solver, address,
+      cur_session, new_session) {
+  });
+  var s_address_update_inuse = Runtime.addFunction(function(solver, address,
+      in_use) {
+  });
+  var s_address_update_network = Runtime.addFunction(function(solver, address,
+      current_network, new_network) {
+  });
+  var s_get = Runtime.addFunction(function(solver, peer) {
+    return 0;
+  });
+  var s_get_stop = Runtime.addFunction(function(solver, peer) {
+  });
+  var s_del = Runtime.addFunction(function(solver, address, session_only) {
+  });
+  var s_pref = Runtime.addFunction(function(solver, peer, kind, pref_rel) {
+  });
+  var s_feedback = Runtime.addFunction(function(solver, application, peer,
+        scope, kind, score) {
+  });
+  var s_bulk_start = Runtime.addFunction(function(solver) {
+  });
+  var s_bulk_stop = Runtime.addFunction(function(solver) {
+  });
+  return {
+    _init: function(env) {
+      var sf_off = 44; // offsetof(sf, struct GNUNET_ATS_PluginEnvironment)
+      setValue(env + sf_off +  0, s_add, 'i32');
+      setValue(env + sf_off +  4, s_address_update_property, 'i32');
+      setValue(env + sf_off +  8, s_address_update_session, 'i32');
+      setValue(env + sf_off + 12, s_address_update_inuse, 'i32');
+      setValue(env + sf_off + 16, s_address_update_network, 'i32');
+      setValue(env + sf_off + 20, s_get, 'i32');
+      setValue(env + sf_off + 24, s_get_stop, 'i32');
+      setValue(env + sf_off + 28, s_del, 'i32');
+      setValue(env + sf_off + 32, s_pref, 'i32');
+      setValue(env + sf_off + 36, s_feedback, 'i32');
+      setValue(env + sf_off + 40, s_bulk_start, 'i32');
+      setValue(env + sf_off + 44, s_bulk_stop, 'i32');
+      return 1;
+    }
+  };
+});
+
+// vim: set expandtab ts=2 sw=2 filetype=javascript:

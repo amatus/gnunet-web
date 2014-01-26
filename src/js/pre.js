@@ -99,6 +99,8 @@ function client_get_message(ev) {
 }
 
 // Ask a window to connect us to a service
+// TODO: wait for window connection in GNUNET_SERVICE_run instead of using
+// this do_to_window cleverness.
 function client_connect(service_name, message_port) {
   do_to_window(function(w) {
     w.postMessage({'type': 'client_connect',

@@ -15,8 +15,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.ui
-  (:use [gnunet-web.ats :only (start-ats)]
-        [gnunet-web.hostlist :only (fetch-and-process!)]
+  (:use [gnunet-web.hostlist :only (fetch-and-process!)]
         [gnunet-web.peerinfo :only (start-peerinfo)]
         [gnunet-web.service :only (client-connect)]))
 
@@ -31,7 +30,6 @@
 ;;(set! *print-fn* #(.log js/console %))
 
 (start-peerinfo)
-(start-ats)
 (def transport-message-channel (js/MessageChannel.))
 (def transport-port (.-port1 transport-message-channel))
 (set! (.-onmessage transport-port)

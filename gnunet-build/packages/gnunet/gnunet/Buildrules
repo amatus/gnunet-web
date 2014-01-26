@@ -7,7 +7,6 @@ BDEPENDS="${BDEPENDS}
 	libs/fake-extractor
 	libs/libgcrypt
 	libs/libidn
-	libs/libtool
 	libs/libunistring
 	libs/zlib
 "
@@ -27,8 +26,8 @@ pkg_compile() {
                 LDFLAGS="-L${SYSROOT}/usr/lib"
         emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
 	mkdir -p "${D}/var/lib/gnunet/js"
-	"${SYSROOT}/usr/bin/libtool" --tag=CC --mode=link \
-		emcc -v -fno-strict-aliasing -Wall \
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
 		"${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
@@ -47,6 +46,29 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/service.js" \
 		--pre-js "${BUILDROOT}/src/js/pre.js"
 	cp src/transport/.libs/gnunet-service-transport.js \
+		"${D}/var/lib/gnunet/js/"
+	ln -s "${BUILDROOT}/src/js/libgnunet_plugin_ats_proportional"
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-s DLOPEN_SUPPORT=1 \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/ats/gnunet-service-ats.js" \
+		"${S}/src/ats/gnunet-service-ats"*.o \
+		"${S}/src/ats/libgnunetats.la" \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		-lm -lsocket \
+		--js-library "${BUILDROOT}/src/js/client.js" \
+		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/plugin.js" \
+		--js-library "${BUILDROOT}/src/js/scheduler.js" \
+		--js-library "${BUILDROOT}/src/js/server.js" \
+		--js-library "${BUILDROOT}/src/js/service.js" \
+		--pre-js "${BUILDROOT}/src/js/pre.js" \
+		--embed-file libgnunet_plugin_ats_proportional
+	cp src/ats/.libs/gnunet-service-ats.js \
 		"${D}/var/lib/gnunet/js/"
 	cat contrib/hellos/* > "${D}/var/lib/gnunet/hostlist"
 }
