@@ -1,6 +1,6 @@
-VERSION="1.8.2"
+VERSION="1.10.0"
 DESCRIPTION="Emscripten is an LLVM-to-JavaScript compiler."
-SOURCE_URI="https://github.com/kripken/${NAME}/archive/${VERSION}.tar.gz"
+SOURCE_URI="git://github.com/amatus/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
 # XXX: these are actually RDEPENDS but that's broken
 BDEPENDS="build-utils/llvm build-utils/node"
 
