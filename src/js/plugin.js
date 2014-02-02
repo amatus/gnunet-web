@@ -15,14 +15,27 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 mergeInto(LibraryManager.library, {
-  GNUNET_PLUGIN_load__deps: ['$DLFCN', 'dlopen'],
+  GNUNET_PLUGIN_load__deps: ['dlclose', 'dlsym', 'dlopen'],
   GNUNET_PLUGIN_load: function(library_name, arg) {
     var handle = _dlopen(library_name, 0);
     if (0 == handle) {
       return 0;
     }
-    var lib = DLFCN.loadedLibs[handle];
-    return lib.module._init(arg);
+    var init_symbol = Pointer_stringify(library_name) + "_init";
+    var stack = Runtime.stackSave();
+    var str = allocate(intArrayFromString(init_symbol), 'i8', ALLOC_STACK);
+    var sym = _dlsym(handle, str);
+    Runtime.stackRestore(stack);
+    if (!sym) {
+      dlclose(handle);
+      return 0;
+    }
+    var ret = Runtime.dynCall('ii', sym, [arg]);
+    if (0 == ret) {
+      dlclose(handle);
+      return 0;
+    }
+    return ret;
   }
 });
 

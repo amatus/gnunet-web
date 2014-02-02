@@ -30,7 +30,7 @@ pkg_compile() {
 		emcc -fno-strict-aliasing -Wall \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
-		"${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
+"${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
 		"${S}/src/ats/libgnunetats.la" \
 		"${S}/src/hello/libgnunethello.la" \
 		"${S}/src/peerinfo/libgnunetpeerinfo.la" \
@@ -47,10 +47,31 @@ pkg_compile() {
 		--pre-js "${BUILDROOT}/src/js/pre.js"
 	cp src/transport/.libs/gnunet-service-transport.js \
 		"${D}/var/lib/gnunet/js/"
-	ln -s "${BUILDROOT}/src/js/libgnunet_plugin_ats_proportional"
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
+		-O2 \
+		-s SIDE_MODULE=1 \
 		-s DLOPEN_SUPPORT=1 \
+	-s EXPORTED_FUNCTIONS='["_libgnunet_plugin_ats_proportional_init"]' \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
+		"${S}/src/ats/plugin_ats_proportional.lo" \
+		"${S}/src/ats/libgnunetats.la" \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		"${SYSROOT}/usr/lib/libunistring.la" \
+		-lm -lsocket
+	ln -s "${S}/src/ats/.libs/libgnunet_plugin_ats_proportional.js" \
+		libgnunet_plugin_ats_proportional
+	# XXX: INCLUDE_FULL_LIBRARY=1 is a work-around for
+	# https://github.com/kripken/emscripten/issues/2078
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-O2 \
+		-s DLOPEN_SUPPORT=1 \
+		-s INCLUDE_FULL_LIBRARY=1 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/gnunet-service-ats.js" \
 		"${S}/src/ats/gnunet-service-ats"*.o \
