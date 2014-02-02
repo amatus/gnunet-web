@@ -1,5 +1,5 @@
 // configuration.js - config data handler for gnunet-web services
-// Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,11 +16,15 @@
 
 mergeInto(LibraryManager.library, {
   $CONFIG: {
-    'PEER': {
-      'PRIVATE_KEY': '/private_key',
+    PEER: {
+      PRIVATE_KEY: '/private_key',
     },
-    'statistics': {
-      'DISABLE': true,
+    statistics: {
+      DISABLE: true,
+    },
+    TRANSPORT: {
+      NEIGHBOUR_LIMIT: 50,
+      PLUGINS: 'http_client',
     },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
@@ -86,6 +90,7 @@ mergeInto(LibraryManager.library, {
     if (undefined === tmp)
       return -1;
     setValue(num, tmp, 'i64');
+    return 1;
   },
   GNUNET_CONFIGURATION_iterate_section_values__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_iterate_section_values:
