@@ -6,3 +6,8 @@ downloads/
 /gnunet
 out/
 repl/
+.repl/
+gnunet-build/artifacts/
+gnunet-build/sources/
+gnunet-build/sysroot/
+gnunet-build/tmp/
