@@ -34,14 +34,13 @@ What You Can Do Now
 9. Alice and Bob can send messages with the input box at the bottom of the page.
 
 ### Compile GNUnet with emscripten ###
-0. Install [emscripten] and add it to your `PATH`.
-1. Execute `./build-gnunet.sh`
-2. Execute `lein run`
-3. Open http://localhost:3000/gnunet.html
+0. Execute `./build-gnunet.sh`
+1. Execute `lein run`
+2. Open http://localhost:3000/gnunet.html
 
 We're a long way from running GNUnet in the browser. Currently we have the
-transport service linked into a javascript file which is loaded into a
-shared worker.
+transport and ats services running as shared workers and the peerinfo service
+provided by the browser window thread.
 
 To debug a shared worker in chrome open chrome://inspect and click the
 "inspect" link next to the http://localhost:3000/js/gnunet-service-transport.js
