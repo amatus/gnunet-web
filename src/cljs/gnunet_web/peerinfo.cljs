@@ -119,11 +119,19 @@
                hostmap
                (assoc hostmap public-key host))))
     (notify-all host)
-    (update-hello
-      (cljson->clj (.getItem js/localStorage (str "hello:" public-key))))
-    (update-hello
-      (cljson->clj
-        (.getItem js/localStorage (str "friend-only-hello:" public-key))))))
+    (when-let [hello (cljson->clj
+                       (.getItem js/localStorage (str "hello:" public-key)))]
+      (update-hello hello))
+    (when-let [hello (cljson->clj
+                       (.getItem js/localStorage (str "friend-only-hello:"
+                                                      public-key)))]
+      (update-hello hello))))
+
+(defn process-hello
+  [hello]
+  (println "processing hello:" (clj->cljson hello))
+  (add-host-to-known-hosts (:public-key hello))
+  (update-hello hello))
 
 (def peerinfo-message-channel (js/MessageChannel.))
 (def clients (atom #{}))
@@ -137,10 +145,7 @@
                                (.-data event))))]
     (println "peerinfo-msg:" (js/JSON.stringify (clj->js message)))
     (condp = (:message-type message)
-      message-type-hello
-      (do
-        (add-host-to-known-hosts (:public-key (:message message)))
-        (update-hello (:message message)))
+      message-type-hello (process-hello (:message message))
       message-type-peerinfo-notify
       (swap!
         (if (:include-friend-only (:message message))

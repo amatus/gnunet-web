@@ -17,6 +17,7 @@
 (ns gnunet-web.hostlist
   (:use [gnunet-web.http :only (GET)]
         [gnunet-web.parser :only (none-or-more parser)]
+        [gnunet-web.peerinfo :only (process-hello)]
         [gnunet-web.hello :only (parse-hello)]
         [gnunet-web.message :only (parse-message-types)])
   (:require-macros [cljs.core.async.macros :refer [go]]
@@ -25,12 +26,12 @@
 (def parse-hostlist
   (monadic/do parser
               [hellos (none-or-more (parse-message-types #{parse-hello}))]
-              hellos))
+              (doseq [hello hellos]
+                (process-hello (:message hello)))))
 
 (defn fetch-and-process!
   []
   (go
     (let [buf (<! (GET "hostlist"))
-          hostlist (js/Uint8Array. buf)
-          hellos (parse-hostlist hostlist)]
-      (js/console.log (str "Got hostlist: " (.-v hellos))))))
+          hostlist (js/Uint8Array. buf)]
+      (parse-hostlist hostlist))))
