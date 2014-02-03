@@ -48,7 +48,7 @@
 
 (defn latest-expiration
   [transport-addresses]
-  (first (reverse (sort (map :expiration transport-addresses)))))
+  [(first (reverse (sort (map :expiration transport-addresses))))])
 
 (defn transport-addresses-map
   [transport-addresses-list]
