@@ -1,0 +1,86 @@
+// libgnunet_plugin_transport_http_client - HTTP client transport plugin
+// Copyright (C) 2014  David Barksdale <amatus@amatus.name>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+(function(FUNCTION_TABLE_OFFSET, parentModule) {
+  var send = Runtime.addFunction(function(cls, session, msgbuf, msgbuf_size,
+      priority, to, cont, cont_cls) {
+    return -1;
+  });
+  var disconnect_peer = Runtime.addFunction(function(cls, target) {
+    return;
+  });
+  var disconnect_session = Runtime.addFunction(function(cls, session) {
+    return -1;
+  });
+  var update_session_timeout = Runtime.addFunction(function(cls, peer,
+      session) {
+    return;
+  });
+  var update_inbound_delay = Runtime.addFunction(function(cls, peer, session,
+      delay) {
+    return;
+  });
+  var query_keepalive_factor = Runtime.addFunction(function(cls) {
+    return -1;
+  });
+  var address_pretty_printer = Runtime.addFunction(function(cls, type, addr,
+      addrlen, numeric, timeout, asc, asc_cls) {
+    return;
+  });
+  var check_address = Runtime.addFunction(function(cls, addr, addrlen) {
+    return -1;
+  });
+  var address_to_string = Runtime.addFunction(function(cls, addr, addrlen) {
+    return 0;
+  });
+  var string_to_address = Runtime.addFunction(function(cls, addr, addrlen, buf,
+        added) {
+    return -1;
+  });
+  var get_session = Runtime.addFunction(function(cls, address) {
+    return 0;
+  });
+  var get_network = Runtime.addFunction(function(cls, session) {
+    return -1;
+  });
+  return {
+    _libgnunet_plugin_transport_http_client_init:
+      Runtime.addFunction(function(env) {
+        var cls = 0;
+        var ptrs = [
+          cls,
+          send,
+          disconnect_peer,
+          disconnect_session,
+          update_session_timeout,
+          update_inbound_delay,
+          query_keepalive_factor,
+          address_pretty_printer,
+          check_address,
+          address_to_string,
+          string_to_address,
+          get_session,
+          get_network];
+        var api = _malloc(ptrs.length * 4);
+        for (var i = 0; i < ptrs.length; ++i) {
+          setValue(api + i * 4, ptrs[i], 'i32');
+        }
+        return api;
+      })
+  };
+});
+
+// vim: set expandtab ts=2 sw=2 filetype=javascript:
