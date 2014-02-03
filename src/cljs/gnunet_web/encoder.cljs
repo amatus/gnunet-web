@@ -43,7 +43,7 @@
   [x]
   (concat
     (goog.crypt/stringToUtf8ByteArray x)
-    0))
+    [0]))
 
 (defn encode-date
   [x]
