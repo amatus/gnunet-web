@@ -22,6 +22,7 @@
                                    parse-peer-identity)]
         [gnunet-web.parser :only (parser parse-uint32)]
         [gnunet-web.service :only (add-service)]
+        [gnunet-web.util :only (now)]
         [tailrecursion.cljson :only (clj->cljson cljson->clj)])
   (:require-macros [monads.macros :as monadic]))
 
@@ -95,7 +96,7 @@
                :friend-only-hello
                :hello)
         merged (merge-hello hello (dest host))
-        delta (equals-hello merged (dest host) (js/Date.))]
+        delta (equals-hello merged (dest host) (now))]
     (when-not (= :equal delta)
       (swap! hostmap assoc-in [peer dest] merged)
       (when-not (:friend-only hello)

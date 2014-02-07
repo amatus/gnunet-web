@@ -108,7 +108,4 @@
                zero (items 1)]
               (goog.crypt/utf8ByteArrayToString (clj->js xs))))
 
-(def parse-date
-  (monadic/do parser
-              [value parse-uint64]
-              (js/Date. (/ value 1000))))
+(def parse-date parse-uint64)
