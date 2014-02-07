@@ -1,5 +1,5 @@
-;; hostlist.cljs - hostlist routines for gnunet-web website
-;; Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+;; http.cljs - http routines for gnunet-web website
+;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
