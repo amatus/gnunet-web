@@ -1,5 +1,5 @@
 // service.js - service routines for gnunet-web services
-// Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 mergeInto(LibraryManager.library, {
   GNUNET_SERVICE_run: function(argc, argv, service_name, options, task,
                                task_cls) {
-    Module.print('hello service run');
     var server = 1; // opaque non-null pointer
     var cfg = 2; // same
     Runtime.dynCall('viii', task, [task_cls, server, cfg]);
