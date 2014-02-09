@@ -26,12 +26,16 @@ pkg_compile() {
                 LDFLAGS="-L${SYSROOT}/usr/lib"
         emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
 	mkdir -p "${D}/var/lib/gnunet/js"
+	#
+	# Transport
+	#
 	ln -s "${BUILDROOT}/src/js/libgnunet_plugin_transport_http_client"
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
 "${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
+		"${S}/src/transport/libgnunettransport.la" \
 		"${S}/src/ats/libgnunetats.la" \
 		"${S}/src/hello/libgnunethello.la" \
 		"${S}/src/peerinfo/libgnunetpeerinfo.la" \
@@ -39,7 +43,6 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
-		-lm -lsocket \
 		--js-library "${BUILDROOT}/src/js/client.js" \
 		--js-library "${BUILDROOT}/src/js/configuration.js" \
 		--js-library "${BUILDROOT}/src/js/plugin.js" \
@@ -47,9 +50,13 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
 		--pre-js "${BUILDROOT}/src/js/pre.js" \
-		--embed-file libgnunet_plugin_transport_http_client
+		--preload-file libgnunet_plugin_transport_http_client
 	cp src/transport/.libs/gnunet-service-transport.js \
+		src/transport/.libs/gnunet-service-transport.data \
 		"${D}/var/lib/gnunet/js/"
+	#
+	# ATS
+	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
@@ -57,15 +64,15 @@ pkg_compile() {
 	-s EXPORTED_FUNCTIONS='["_libgnunet_plugin_ats_proportional_init"]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
-		"${S}/src/ats/plugin_ats_proportional.lo" \
-		-lm -lsocket
-	ln -s "${S}/src/ats/.libs/libgnunet_plugin_ats_proportional.js" \
+		"${S}/src/ats/plugin_ats_proportional.lo"
+	ln -s "${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
 		libgnunet_plugin_ats_proportional
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
 		-s TOTAL_MEMORY=33554432 \
+		-s EXPORTED_FUNCTIONS='["_GNUNET_xmalloc_"]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/gnunet-service-ats.js" \
 		"${S}/src/ats/gnunet-service-ats"*.o \
@@ -75,7 +82,6 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		"${SYSROOT}/usr/lib/libunistring.la" \
-		-lm -lsocket \
 		--js-library "${BUILDROOT}/src/js/client.js" \
 		--js-library "${BUILDROOT}/src/js/configuration.js" \
 		--js-library "${BUILDROOT}/src/js/plugin.js" \
@@ -87,6 +93,58 @@ pkg_compile() {
 	cp src/ats/.libs/gnunet-service-ats.js \
 		src/ats/.libs/gnunet-service-ats.data \
 		"${D}/var/lib/gnunet/js/"
+	#
+	# Topology
+	#
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/topology/gnunet-daemon-topology.js" \
+		"${S}/src/topology/gnunet-daemon-topology.o" \
+		"${S}/src/topology/libgnunetfriends.la" \
+		"${S}/src/core/libgnunetcore.la" \
+		"${S}/src/peerinfo/libgnunetpeerinfo.la" \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/transport/libgnunettransport.la" \
+		"${S}/src/hello/libgnunethello.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		--js-library "${BUILDROOT}/src/js/client.js" \
+		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/plugin.js" \
+		--js-library "${BUILDROOT}/src/js/program.js" \
+		--js-library "${BUILDROOT}/src/js/scheduler.js" \
+		--js-library "${BUILDROOT}/src/js/server.js" \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp src/topology/.libs/gnunet-daemon-topology.js \
+		"${D}/var/lib/gnunet/js/"
+	#
+	# Core
+	#
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/core/gnunet-service-core.js" \
+		"${S}/src/core/gnunet-service-core"*.o \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/transport/libgnunettransport.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		-lz \
+		--js-library "${BUILDROOT}/src/js/client.js" \
+		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/plugin.js" \
+		--js-library "${BUILDROOT}/src/js/scheduler.js" \
+		--js-library "${BUILDROOT}/src/js/server.js" \
+		--js-library "${BUILDROOT}/src/js/service.js" \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp src/core/.libs/gnunet-service-core.js \
+		"${D}/var/lib/gnunet/js/"
+	#
+	# Hostlist
+	#
 	cat contrib/hellos/* > "${D}/var/lib/gnunet/hostlist"
 }
 

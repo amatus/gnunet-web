@@ -1,5 +1,5 @@
 ;; service.cljs - service manager for gnunet-web website
-;; Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,35 +22,38 @@
   [service-name port]
   (swap! services assoc service-name port))
 
-(defn worker-for-service
-  [service-name]
-  (js/SharedWorker. (str "js/gnunet-service-" service-name ".js")))
+(def client-connect)
+
+(defn start-worker
+  [worker-name uri]
+  (let [worker (js/SharedWorker. uri)
+        port (.-port worker)]
+    (set! (.-onerror worker)
+          (fn [event]
+            (println worker-name ":" (.-filename event) ":" (.-lineno event)
+                     " " (.-message event))))
+    (set! (.-onmessage port)
+          (fn [event]
+            (let [data (.-data event)]
+              (condp = (.-type data)
+                "stdout" (set! (.-onmessage (.-port data))
+                               (fn [event]
+                                 (println worker-name ":" (.-data event))))
+                "client_connect" (client-connect (.-service_name data)
+                                                 (.-message_port data))
+                (println worker-name ":" (js/JSON.stringify data))))))
+    (.start port)
+    (.postMessage port (clj->js {:type "stdout"}))
+    worker))
 
 (defn client-connect
   [service-name message-port]
   (let [service (get @services service-name)]
     (if (nil? service)
-      (let [worker (worker-for-service service-name)
+      (let [worker (start-worker service-name
+                                 (str "js/gnunet-service-" service-name ".js"))
             port (.-port worker)]
         (add-service service-name port)
-        (set! (.-onerror worker)
-              (fn [event]
-                (println service-name ":"
-                             (.-filename event) ":" (.-lineno event) " "
-                             (.-message event))))
-        (set! (.-onmessage port)
-              (fn [event]
-                (let [data (.-data event)]
-                  (condp = (.-type data)
-                    "stdout" (set! (.-onmessage (.-port data))
-                                   (fn [event]
-                                     (println service-name ":"
-                                                  (.-data event))))
-                    "client_connect" (client-connect (.-service_name data)
-                                                     (.-message_port data))
-                    (println service-name ":" (js/JSON.stringify data))))))
-        (.start port)
-        (.postMessage port (clj->js {:type "stdout"}))
         (recur service-name message-port))
       (.postMessage service (clj->js {:type "connect"
                                       :port message-port})

@@ -17,7 +17,7 @@
 (ns gnunet-web.ui
   (:use [gnunet-web.hostlist :only (fetch-and-process!)]
         [gnunet-web.peerinfo :only (start-peerinfo)]
-        [gnunet-web.service :only (client-connect)]))
+        [gnunet-web.service :only (start-worker)]))
 
 (defn by-id
   [id]
@@ -30,18 +30,7 @@
 ;;(set! *print-fn* #(.log js/console %))
 
 (start-peerinfo)
-(def transport-message-channel (js/MessageChannel.))
-(def transport-port (.-port1 transport-message-channel))
-(set! (.-onmessage transport-port)
-      (fn [event]
-        (println "transport-msg:" (js/JSON.stringify (.-data event)))))
-(client-connect "transport" (.-port2 transport-message-channel))
-
-(.addEventListener
-  (by-id :send)
-  "click"
-  (fn [event]
-    (.postMessage transport-port (js/JSON.parse (.-value (by-id :message))))))
+(def topology-worker (start-worker "topology" "js/gnunet-daemon-topology.js"))
 
 (.addEventListener
   (by-id :hostlist)
