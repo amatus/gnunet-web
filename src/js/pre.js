@@ -1,5 +1,5 @@
 // pre.js - linked into each gnunet-web service
-// Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ onconnect = function(ev) {
 // do to window now or defer for later
 function do_to_window(fn) {
   for (var w in windows) {
-    fn(w);
+    fn(windows[w]);
     return;
   }
   deferred_for_window.push(fn);
