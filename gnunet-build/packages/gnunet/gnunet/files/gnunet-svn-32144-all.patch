@@ -11,22 +11,6 @@ Index: gnunet-svn-32144/configure.ac
  then
   AC_MSG_RESULT([libltdl found])
  else
-Index: gnunet-svn-32144/po/POTFILES.in
-===================================================================
---- gnunet-svn-32144/po/POTFILES.in	(revision 32144)
-+++ gnunet-svn-32144/po/POTFILES.in	(working copy)
-@@ -14,6 +14,11 @@
- src/ats/plugin_ats_mlp.c
- src/ats/plugin_ats_proportional.c
- src/ats/plugin_ats_ril.c
-+src/ats-tests/ats-testing.c
-+src/ats-tests/ats-testing-experiment.c
-+src/ats-tests/ats-testing-log.c
-+src/ats-tests/ats-testing-traffic.c
-+src/ats-tests/gnunet-ats-sim.c
- src/ats-tool/gnunet-ats.c
- src/block/block.c
- src/block/plugin_block_template.c
 Index: gnunet-svn-32144/src/Makefile.am
 ===================================================================
 --- gnunet-svn-32144/src/Makefile.am	(revision 32144)
@@ -352,12 +336,12 @@ Index: gnunet-svn-32144/src/util/Makefile.am
    container_bloomfilter.c \
    container_heap.c \
    container_meta_data.c \
-@@ -106,15 +103,11 @@
+@@ -106,15 +103,10 @@
    os_network.c \
    os_priority.c \
    peer.c \
 -  plugin.c \
-   program.c \
+-  program.c \
    resolver_api.c resolver.h \
 -  scheduler.c \
 -  server.c \
