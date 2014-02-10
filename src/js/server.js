@@ -34,12 +34,16 @@ mergeInto(LibraryManager.library, {
     }
   },
   GNUNET_SERVER_disconnect_notify: function(server, callback, callback_cls) {
+    // TODO
   },
   GNUNET_SERVER_receive_done: function(client, success) {
+    // TODO
   },
   GNUNET_SERVER_client_keep: function(client) {
+    // TODO
   },
   GNUNET_SERVER_client_drop: function(client) {
+    // TODO
   },
   GNUNET_SERVER_notify_transmit_ready: function(client, size, timeout, callback,
                                            callback_cls) {
@@ -53,6 +57,12 @@ mergeInto(LibraryManager.library, {
       Runtime.stackRestore(stack);
     }, 0);
     return 1; // opaque GNUNET_SERVER_TransmitHandle*
+  },
+  GNUNET_SERVER_suspend: function(server) {
+    // TODO
+  },
+  GNUNET_SERVER_resume: function(server) {
+    // TODO
   },
 });
 
