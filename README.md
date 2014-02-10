@@ -39,8 +39,8 @@ What You Can Do Now
 2. Open http://localhost:3000/gnunet.html
 
 We're a long way from running GNUnet in the browser. Currently we have the
-transport and ats services running as shared workers and the peerinfo service
-provided by the browser window thread.
+topology daemon and the transport, ats, and core services running as shared
+workers and the peerinfo service provided by the browser window thread.
 
 To debug a shared worker in chrome open chrome://inspect and click the
 "inspect" link next to the http://localhost:3000/js/gnunet-service-transport.js
