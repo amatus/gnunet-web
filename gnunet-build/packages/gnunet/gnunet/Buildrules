@@ -67,12 +67,18 @@ pkg_compile() {
 		"${S}/src/ats/plugin_ats_proportional.lo"
 	ln -s "${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
 		libgnunet_plugin_ats_proportional
+	cat > ats_exported_funcs << EOF
+["_main", "_GNUNET_asprintf",
+"_GNUNET_get_log_call_status", "_GNUNET_get_log_skip",
+"_GNUNET_CONTAINER_multipeermap_create",
+"_GNUNET_xmalloc_"]
+EOF
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
 		-s TOTAL_MEMORY=33554432 \
-		-s EXPORTED_FUNCTIONS='["_GNUNET_xmalloc_"]' \
+		-s EXPORTED_FUNCTIONS=@ats_exported_funcs \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/gnunet-service-ats.js" \
 		"${S}/src/ats/gnunet-service-ats"*.o \
