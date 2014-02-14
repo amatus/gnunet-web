@@ -17,6 +17,11 @@
 mergeInto(LibraryManager.library, {
   GNUNET_PROGRAM_run: function(argc, argv, binaryName, binaryHelp, options,
                                task, task_cls) {
+    var stack = Runtime.stackSave();
+    var loglevel = allocate(intArrayFromString('DEBUG'), 'i8', ALLOC_STACK);
+    var logfile = 0;
+    _GNUNET_log_setup(binaryName, loglevel, logfile);
+    Runtime.stackRestore(stack);
     var cfgfile = 0; // const char *
     var cfg = 1; // opaque non-null pointer
     Runtime.dynCall('viiii', task, [task_cls, argv, cfgfile, cfg]);

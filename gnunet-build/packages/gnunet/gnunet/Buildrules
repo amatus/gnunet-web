@@ -32,6 +32,7 @@ pkg_compile() {
 	ln -s "${BUILDROOT}/src/js/libgnunet_plugin_transport_http_client"
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
+		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
 "${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
@@ -69,7 +70,8 @@ pkg_compile() {
 		libgnunet_plugin_ats_proportional
 	cat > ats_exported_funcs << EOF
 ["_main", "_GNUNET_asprintf",
-"_GNUNET_get_log_call_status", "_GNUNET_get_log_skip",
+"_GNUNET_get_log_call_status", "_GNUNET_get_log_skip", "_GNUNET_log_setup",
+"_GNUNET_log_from_nocheck",
 "_GNUNET_CONTAINER_multipeermap_create",
 "_GNUNET_xmalloc_"]
 EOF
@@ -104,6 +106,7 @@ EOF
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
+		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/topology/gnunet-daemon-topology.js" \
 		"${S}/src/topology/gnunet-daemon-topology.o" \
@@ -130,6 +133,7 @@ EOF
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
+		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/core/gnunet-service-core.js" \
 		"${S}/src/core/gnunet-service-core"*.o \

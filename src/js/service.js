@@ -15,8 +15,14 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 mergeInto(LibraryManager.library, {
+  GNUNET_SERVICE_run__deps: ['_GNUNET_log_setup'],
   GNUNET_SERVICE_run: function(argc, argv, service_name, options, task,
                                task_cls) {
+    var stack = Runtime.stackSave();
+    var loglevel = allocate(intArrayFromString('DEBUG'), 'i8', ALLOC_STACK);
+    var logfile = 0;
+    _GNUNET_log_setup(service_name, loglevel, logfile);
+    Runtime.stackRestore(stack);
     var server = 1; // opaque non-null pointer
     var cfg = 2; // same
     Runtime.dynCall('viii', task, [task_cls, server, cfg]);
