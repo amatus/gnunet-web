@@ -17,43 +17,55 @@
 (function(FUNCTION_TABLE_OFFSET, parentModule) {
   var send = Runtime.addFunction(function(cls, session, msgbuf, msgbuf_size,
       priority, to, cont, cont_cls) {
+    parentModule.print('http_client: send');
     return -1;
   });
   var disconnect_peer = Runtime.addFunction(function(cls, target) {
+    parentModule.print('http_client: disconnect_peer');
     return;
   });
   var disconnect_session = Runtime.addFunction(function(cls, session) {
+    parentModule.print('http_client: disconnect_session');
     return -1;
   });
   var update_session_timeout = Runtime.addFunction(function(cls, peer,
       session) {
+    parentModule.print('http_client: update_session_timeout');
     return;
   });
   var update_inbound_delay = Runtime.addFunction(function(cls, peer, session,
       delay) {
+    parentModule.print('http_client: update_inbound_delay');
     return;
   });
   var query_keepalive_factor = Runtime.addFunction(function(cls) {
+    parentModule.print('http_client: query_keepalive_factor');
     return -1;
   });
   var address_pretty_printer = Runtime.addFunction(function(cls, type, addr,
       addrlen, numeric, timeout, asc, asc_cls) {
+    parentModule.print('http_client: address_pretty_printer');
     return;
   });
   var check_address = Runtime.addFunction(function(cls, addr, addrlen) {
+    parentModule.print('http_client: check_address');
     return -1;
   });
   var address_to_string = Runtime.addFunction(function(cls, addr, addrlen) {
+    parentModule.print('http_client: address_to_string');
     return 0;
   });
   var string_to_address = Runtime.addFunction(function(cls, addr, addrlen, buf,
         added) {
+    parentModule.print('http_client: string_to_address');
     return -1;
   });
   var get_session = Runtime.addFunction(function(cls, address) {
+    parentModule.print('http_client: get_session');
     return 0;
   });
   var get_network = Runtime.addFunction(function(cls, session) {
+    parentModule.print('http_client: get_network');
     return -1;
   });
   return {
