@@ -26,6 +26,9 @@ mergeInto(LibraryManager.library, {
       NEIGHBOUR_LIMIT: 50,
       PLUGINS: 'http_client',
     },
+    core: {
+      USE_EPHEMERAL_KEYS: true,
+    },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_get_value: function(section, option) {
