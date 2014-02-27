@@ -24,7 +24,9 @@ mergeInto(LibraryManager.library, {
     Runtime.stackRestore(stack);
     var cfgfile = 0; // const char *
     var cfg = 1; // opaque non-null pointer
-    Runtime.dynCall('viiii', task, [task_cls, argv, cfgfile, cfg]);
+    worker_setup(function() {
+      Runtime.dynCall('viiii', task, [task_cls, argv, cfgfile, cfg]);
+    });
   }
 });
 

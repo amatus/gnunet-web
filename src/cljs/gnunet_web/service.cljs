@@ -14,7 +14,17 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(ns gnunet-web.service)
+(ns gnunet-web.service
+  (:use [tailrecursion.cljson :only (clj->cljson cljson->clj)]))
+
+(def private-key
+  ;; XXX This has no synchronization!
+  (let [d (.getItem js/localStorage "private-key")]
+    (if (nil? d)
+      (let [d (repeatedly 32 #(int (* 0x100 (js/Math.random))))]
+        (.setItem js/localStorage "private-key" (clj->cljson d))
+        d)
+      (cljson->clj d))))
 
 (def services (atom {}))
 
@@ -43,7 +53,8 @@
                                                  (.-message_port data))
                 (println worker-name ":" (js/JSON.stringify data))))))
     (.start port)
-    (.postMessage port (clj->js {:type "stdout"}))
+    (.postMessage port (clj->js {:type "init"
+                                 :private-key private-key}))
     worker))
 
 (defn client-connect

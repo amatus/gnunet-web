@@ -31,8 +31,14 @@ gnunet_prerun = function() {
 if (typeof(Module) === "undefined") Module = { preRun: [] };
 Module.preRun.push(gnunet_prerun);
 
-// list of functions to call when a window is connected
-var deferred_for_window = [];
+var init_continuation;
+
+// Called by GNUNET_SERVICE_run and GNUNET_PROGRAM_run to perform
+// asynchronous setup tasks. Calls continuation when finished.
+worker_setup = function(continuation) {
+  init_continuation = continuation;
+};
+
 // a map of window index to port
 var windows = {};
 // next available index
@@ -42,19 +48,14 @@ onconnect = function(ev) {
   ev.ports[0]._name = next_window;
   windows[next_window] = ev.ports[0];
   next_window++;
-  deferred_for_window.forEach(function(fn) {
-    fn(ev.ports[0]);
-  });
-  deferred_for_window = [];
 };
 
-// do to window now or defer for later
+// do to any window
 function do_to_window(fn) {
   for (var w in windows) {
     fn(windows[w]);
     return;
   }
-  deferred_for_window.push(fn);
 }
 
 // a map of client index to port
@@ -63,12 +64,14 @@ var clients = {};
 var next_client = 1;
 
 function get_message(ev) {
-  if ('stdout' == ev.data.type) {
+  if ('init' == ev.data.type) {
     var channel = new MessageChannel();
     Module['print'] = function(x) { channel.port1.postMessage(x); };
     flush_worker_message_queue(Module.print);
     ev.target.postMessage({type: 'stdout', port: channel.port2},
                           [channel.port2]);
+    FS.writeFile('/private_key', ev.data['private-key'], {encoding: 'binary'});
+    init_continuation();
   } else if ('connect' == ev.data.type) {
     ev.data.port.onmessage = client_get_message;
     ev.data.port._name = next_client;
@@ -99,8 +102,6 @@ function client_get_message(ev) {
 }
 
 // Ask a window to connect us to a service
-// TODO: wait for window connection in GNUNET_SERVICE_run instead of using
-// this do_to_window cleverness.
 function client_connect(service_name, message_port) {
   do_to_window(function(w) {
     w.postMessage({'type': 'client_connect',
