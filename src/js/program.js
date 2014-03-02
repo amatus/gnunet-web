@@ -27,6 +27,7 @@ mergeInto(LibraryManager.library, {
     worker_setup(function() {
       Runtime.dynCall('viiii', task, [task_cls, argv, cfgfile, cfg]);
     });
+    throw 'SimulateInfiniteLoop';
   }
 });
 
