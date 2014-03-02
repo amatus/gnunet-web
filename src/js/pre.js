@@ -22,10 +22,8 @@ function flush_worker_message_queue(f) {
 gnunet_prerun = function() {
   ENV.GNUNET_PREFIX = "/.";
   if (ENVIRONMENT_IS_WORKER) {
-    Module['print'] = function(x) {
-      WorkerMessageQueue.push(x);
-    };
-    Module['printErr'] = Module['print'];
+    Module['print'] = function(x) { WorkerMessageQueue.push(x); };
+    Module['printErr'] = function(x) { Module.print(x); };
   }
 }
 if (typeof(Module) === "undefined") Module = { preRun: [] };
