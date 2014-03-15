@@ -25,7 +25,7 @@ mergeInto(LibraryManager.library, {
       var expected_size = getValue(handlers + i + 10, 'i16');
       if (callback === 0)
         break;
-      Module.print('Adding handler for message type: ' + type);
+      //Module.print('Adding handler for message type: ' + type);
       SERVERS.handlers[type] = {
         'callback': callback,
         'callback_cls': callback_cls,
@@ -48,7 +48,7 @@ mergeInto(LibraryManager.library, {
   GNUNET_SERVER_notify_transmit_ready: function(client, size, timeout, callback,
                                            callback_cls) {
     setTimeout(function() {
-      Module.print('I want to send ' + size + ' bytes to client ' + client);
+      //Module.print('I want to send ' + size + ' bytes to client ' + client);
       var stack = Runtime.stackSave();
       var buffer = allocate(size, 'i8', ALLOC_STACK);
       var ret = Runtime.dynCall('iiii', callback, [callback_cls, size, buffer]);

@@ -84,16 +84,16 @@ function client_get_message(ev) {
   var size = getValue(message, 'i8') << 8 | getValue(message + 1, 'i8');
   var type = getValue(message + 2, 'i8') << 8 | getValue(message + 3, 'i8');
   var handler = SERVERS.handlers[type];
-  Module.print("Got message of type " + type + " size " + size + " from "
-      + ev.target._name);
+  //Module.print("Got message of type " + type + " size " + size + " from "
+  //    + ev.target._name);
   if (typeof handler === 'undefined') {
-    Module.print("But I don't know what to do with it");
+    //Module.print("But I don't know what to do with it");
   } else {
     if (handler.expected_size == 0 || handler.expected_size == size) {
       Runtime.dynCall('viii', handler.callback,
           [handler.callback_cls, ev.target._name, message]);
     } else {
-      Module.print("But I was expecting size " + handler.expected_size);
+      //Module.print("But I was expecting size " + handler.expected_size);
     }
   }
   Runtime.stackRestore(stack);

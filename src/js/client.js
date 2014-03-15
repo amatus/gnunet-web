@@ -49,7 +49,7 @@ mergeInto(LibraryManager.library, {
     // Supposedly we can call notify right now, but the current code never
     // does so let's emulate that.
     setTimeout(function() {
-      Module.print('I want to send ' + size + ' bytes to service ' + client);
+      //Module.print('I want to send ' + size + ' bytes to service ' + client);
       var stack = Runtime.stackSave();
       var buffer = allocate(size, 'i8', ALLOC_STACK);
       var ret = Runtime.dynCall('iiii', notify, [notify_cls, size, buffer]);
