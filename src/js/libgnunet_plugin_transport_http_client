@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (function(FUNCTION_TABLE_OFFSET, parentModule) {
+  var plugin = 'http_client';
   var send = Runtime.addFunction(function(cls, session, msgbuf, msgbuf_size,
       priority, to, cont, cont_cls) {
     parentModule.print('http_client: send');
@@ -51,9 +52,33 @@
     parentModule.print('http_client: check_address');
     return -1;
   });
+  var address_to_string_ret = parentModule.allocate(1024, 'i8', ALLOC_NORMAL);
   var address_to_string = Runtime.addFunction(function(cls, addr, addrlen) {
-    parentModule.print('http_client: address_to_string');
-    return 0;
+    if (!addr) {
+      parentModule.print('address_to_string: no address');
+      return 0;
+    }
+    if (addrlen < 8) {
+      parentModule.print('address_to_string: address too short: ' + addrlen);
+      return 0;
+    }
+    var options = parentModule.getValue(addr, 'i8') << 24
+      |  parentModule.getValue(addr + 1, 'i8') << 16
+      |  parentModule.getValue(addr + 2, 'i8') << 8
+      |  parentModule.getValue(addr + 3, 'i8');
+    var urlen = parentModule.getValue(addr + 4, 'i8') << 24
+      |  parentModule.getValue(addr + 5, 'i8') << 16
+      |  parentModule.getValue(addr + 6, 'i8') << 8
+      |  parentModule.getValue(addr + 7, 'i8');
+    if (addrlen != urlen + 8) {
+      parentModule.print('address_to_string: address wrong size: ' + addrlen + ' != ' + (urlen + 8));
+      return 0;
+    }
+    var address = parentModule.Pointer_stringify(addr + 8, urlen);
+    parentModule.writeArrayToMemory(
+        parentModule.intArrayFromString(plugin + '.' + options + '.' + address),
+        address_to_string_ret);
+    return address_to_string_ret;
   });
   var string_to_address = Runtime.addFunction(function(cls, addr, addrlen, buf,
         added) {
