@@ -21,6 +21,7 @@ pkg_compile() {
 		--with-libgcrypt-prefix="${SYSROOT}/usr" \
 		--without-libcurl \
 		--disable-testing \
+		--enable-logging=verbose \
 		ac_cv_lib_idn_stringprep_check_version=yes \
                 CPPFLAGS="-I${SYSROOT}/usr/include" \
                 LDFLAGS="-L${SYSROOT}/usr/lib"
