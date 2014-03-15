@@ -106,6 +106,6 @@
   (monadic/do parser
               [xs (none-or-more (satisfy #(not (== 0 %))))
                zero (items 1)]
-              (goog.crypt/utf8ByteArrayToString (clj->js xs))))
+              (goog.crypt/utf8ByteArrayToString (to-array xs))))
 
 (def parse-date parse-uint64)
