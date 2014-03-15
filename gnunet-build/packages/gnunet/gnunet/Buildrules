@@ -70,11 +70,21 @@ pkg_compile() {
 	ln -s "${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
 		libgnunet_plugin_ats_proportional
 	cat > ats_exported_funcs << EOF
-["_main", "_GNUNET_asprintf",
-"_GNUNET_get_log_call_status", "_GNUNET_get_log_skip", "_GNUNET_log_setup",
-"_GNUNET_log_from_nocheck",
+[
+"_GNUNET_CONTAINER_multipeermap_contains",
 "_GNUNET_CONTAINER_multipeermap_create",
-"_GNUNET_xmalloc_"]
+"_GNUNET_CONTAINER_multipeermap_destroy",
+"_GNUNET_CONTAINER_multipeermap_get_multiple",
+"_GNUNET_CONTAINER_multipeermap_put",
+"_GNUNET_CONTAINER_multipeermap_remove",
+"_GNUNET_asprintf",
+"_GNUNET_get_log_call_status",
+"_GNUNET_get_log_skip",
+"_GNUNET_i2s",
+"_GNUNET_log_from_nocheck",
+"_GNUNET_log_setup",
+"_GNUNET_xmalloc_",
+"_main"]
 EOF
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
