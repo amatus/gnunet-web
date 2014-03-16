@@ -96,11 +96,13 @@
 
 (def parse-uint64
   "Parse an unsigned 64-bit integer in network byte order (big endian).
+   Clojurescript cannot represent a 64-bit integer so we return a vector
+   of numbers.
    Input must be a Uint8Array."
   (monadic/do parser
               [msw parse-uint32
                lsw parse-uint32]
-              (+ lsw (* 4294967296 msw))))
+              [msw lsw]))
 
 (def parse-utf8
   (monadic/do parser

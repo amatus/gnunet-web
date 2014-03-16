@@ -34,10 +34,10 @@
     (encode-uint16 x)))
 
 (defn encode-uint64
-  [x]
+  [[msw lsw]]
   (concat
-    (encode-uint32 (bit-shift-right x 32))
-    (encode-uint32 x)))
+    (encode-uint32 msw)
+    (encode-uint32 lsw)))
 
 (defn encode-utf8
   [x]
