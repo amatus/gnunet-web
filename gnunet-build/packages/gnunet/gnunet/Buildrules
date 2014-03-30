@@ -12,6 +12,8 @@ BDEPENDS="${BDEPENDS}
 "
 
 pkg_compile() {
+	cp "${F}/plugin_transport_http_client_emscripten.c" \
+		"${S}/src/transport/"
 	BUILDROOT="${BUILDER_TOPDIR}/.."
         export TEMP_DIR="${T}"
 	./bootstrap
@@ -30,7 +32,17 @@ pkg_compile() {
 	#
 	# Transport
 	#
-	ln -s "${BUILDROOT}/src/js/libgnunet_plugin_transport_http_client"
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-O2 \
+		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+	-s EXPORTED_FUNCTIONS='["_libgnunet_plugin_transport_http_client"]' \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/transport/libgnunet_plugin_transport_http_client.js" \
+		"${S}/src/transport/libgnunet_plugin_transport_http_client_la-plugin_transport_http_client_emscripten.lo" \
+		"${S}/src/transport/libgnunet_plugin_transport_http_client_la-plugin_transport_http_common.lo"
+	ln -s "${S}/src/transport/libgnunet_plugin_transport_http_client.js" \
+		libgnunet_plugin_transport_http_client
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \

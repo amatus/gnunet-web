@@ -300,7 +300,7 @@ Index: gnunet-svn-32653/src/transport/Makefile.am
  install-exec-hook:
  	$(top_srcdir)/src/transport/install-wlan-helper.sh $(libexecdir) $(SUDO_BINARY) || true
  else
-@@ -233,18 +218,6 @@
+@@ -233,17 +218,7 @@
    $(CFLAGS)
  # -DANALYZE
  
@@ -315,10 +315,19 @@ Index: gnunet-svn-32653/src/transport/Makefile.am
 -  $(WLAN_PLUGIN_LA) \
 -  $(BT_PLUGIN_LA) \
 -  libgnunet_plugin_transport_template.la
--
++plugin_LTLIBRARIES = libgnunet_plugin_transport_http_client.la
+ 
  libgnunet_plugin_transport_tcp_la_SOURCES = \
    plugin_transport_tcp.c
- libgnunet_plugin_transport_tcp_la_LIBADD = \
+@@ -314,7 +289,7 @@
+ 
+ 
+ libgnunet_plugin_transport_http_client_la_SOURCES = \
+-  plugin_transport_http_client.c plugin_transport_http_common.c plugin_transport_http_common.h
++  plugin_transport_http_client_emscripten.c plugin_transport_http_common.c plugin_transport_http_common.h
+ libgnunet_plugin_transport_http_client_la_LIBADD = \
+   $(top_builddir)/src/hello/libgnunethello.la \
+   $(top_builddir)/src/statistics/libgnunetstatistics.la \
 Index: gnunet-svn-32653/src/util/Makefile.am
 ===================================================================
 --- gnunet-svn-32653/src/util/Makefile.am	(revision 32653)
