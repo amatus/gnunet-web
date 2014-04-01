@@ -27,12 +27,12 @@ mergeInto(LibraryManager.library, {
     var sym = _dlsym(handle, str);
     Runtime.stackRestore(stack);
     if (!sym) {
-      dlclose(handle);
+      _dlclose(handle);
       return 0;
     }
     var ret = Runtime.dynCall('ii', sym, [arg]);
     if (0 == ret) {
-      dlclose(handle);
+      _dlclose(handle);
       return 0;
     }
     return ret;

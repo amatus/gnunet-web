@@ -53,7 +53,7 @@ mergeInto(LibraryManager.library, {
     return undefined === _GNUNET_CONFIGURATION_get_value(cfg, section, option);
   },
   GNUNET_CONFIGURATION_get_value_string__deps:
-    ['GNUNET_CONFIGURATION_get_value'],
+    ['GNUNET_CONFIGURATION_get_value', 'GNUNET_xstrdup_'],
   GNUNET_CONFIGURATION_get_value_string: function(cfg, section, option, value) {
     var tmp = _GNUNET_CONFIGURATION_get_value(section, option);
     if (undefined === tmp)
@@ -78,7 +78,7 @@ mergeInto(LibraryManager.library, {
     return tmp;
   },
   GNUNET_CONFIGURATION_get_value_time__deps:
-    ['GNUNET_CONFIGURATION_get_value'],
+    ['GNUNET_CONFIGURATION_get_value', 'GNUNET_STRINGS_fancy_time_to_relative'],
   GNUNET_CONFIGURATION_get_value_time: function(cfg, section, option, time) {
     var tmp = _GNUNET_CONFIGURATION_get_value(section, option);
     if (undefined === tmp)

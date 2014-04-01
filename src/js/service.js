@@ -15,7 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 mergeInto(LibraryManager.library, {
-  GNUNET_SERVICE_run__deps: ['_GNUNET_log_setup'],
+  GNUNET_SERVICE_run__deps: ['GNUNET_log_setup'],
   GNUNET_SERVICE_run: function(argc, argv, service_name, options, task,
                                task_cls) {
     var stack = Runtime.stackSave();

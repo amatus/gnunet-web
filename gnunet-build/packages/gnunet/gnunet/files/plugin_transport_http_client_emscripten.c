@@ -769,7 +769,7 @@ client_receive_mst_cb (void *cls, void *client,
  * @param cls destination pointer, passed to the libcurl handle
  * @return bytes read from stream
  */
-static size_t
+static size_t EMSCRIPTEN_KEEPALIVE
 client_receive (void *stream, size_t size, size_t nmemb, void *cls)
 {
   struct Session *s = cls;
@@ -819,7 +819,7 @@ client_connect_get (struct Session *s)
 {
   /* create get connection */
   s->client_get = (void *)next_xhr++;
-  EM_ASM({
+  EM_ASM_INT({
     var xhr = new goog.net.XhrIo();
     xhrs[$0] = xhr;
     xhr.setResponseType(goog.net.XhrIo.ResponseType.ARRAY_BUFFER);
@@ -1067,7 +1067,10 @@ http_client_plugin_get_session (void *cls,
 static int
 client_start (struct HTTP_Client_Plugin *plugin)
 {
-  EM_ASM(goog.require('goog.net.XhrIo'));
+  EM_ASM(
+    goog.require('goog.net.XhrIo');
+    xhrs={};
+  );
   return GNUNET_OK;
 }
 
