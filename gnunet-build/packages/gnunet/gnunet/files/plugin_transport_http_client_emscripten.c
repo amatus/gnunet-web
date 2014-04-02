@@ -820,16 +820,17 @@ client_connect_get (struct Session *s)
   /* create get connection */
   s->client_get = (void *)next_xhr++;
   EM_ASM_INT({
-    var xhr = new goog.net.XhrIo();
+    var xhr = new XMLHttpRequest();
     xhrs[$0] = xhr;
-    xhr.setResponseType(goog.net.XhrIo.ResponseType.ARRAY_BUFFER);
-    xhr.setTimeoutInterval($1);
-    goog.events.listen(xhr, goog.net.EventType.COMPLETE, function(e) {
-      var response = e.target.getResponse();
+    xhr.open('GET', $3, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.timeout = $1;
+    xhr.onload = function(e) {
+      var response = new Uint8Array(e.target.response);
       ccall('client_receive', 'number', ['array', 'number', 'number', 'number'],
         [response, response.length, 1, $2]);
-    });
-    xhr.send($3);
+    };
+    xhr.send();
   }, next_xhr, (long)(HTTP_CLIENT_NOT_VALIDATED_TIMEOUT.rel_value_us / 1000LL),
   s, s->url);
   return GNUNET_OK;
@@ -1067,10 +1068,7 @@ http_client_plugin_get_session (void *cls,
 static int
 client_start (struct HTTP_Client_Plugin *plugin)
 {
-  EM_ASM(
-    goog.require('goog.net.XhrIo');
-    xhrs={};
-  );
+  EM_ASM(xhrs = {};);
   return GNUNET_OK;
 }
 
