@@ -51,15 +51,27 @@ pkg_compile() {
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
 		-s EXPORTED_FUNCTIONS='[
+			"_GNUNET_HELLO_address_cmp",
+			"_GNUNET_HELLO_address_copy",
+			"_GNUNET_STATISTICS_set",
+			"_GNUNET_STRINGS_to_address_ip",
+			"_GNUNET_TIME_relative_get_minute_",
+			"_GNUNET_TIME_relative_get_second_",
+			"_GNUNET_TIME_relative_multiply",
+			"_GNUNET_asprintf",
 			"_GNUNET_get_log_call_status",
 			"_GNUNET_get_log_skip",
+			"_GNUNET_i2s",
+			"_GNUNET_i2s_full",
 			"_GNUNET_log_from_nocheck",
 			"_GNUNET_log_setup",
+			"_GNUNET_xfree_",
 			"_GNUNET_xmalloc_",
 			"_GNUNET_xstrdup_",
 			"_emscripten_asm_const",
 			"_emscripten_asm_const_int",
 			"_main",
+			"_memcmp",
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
