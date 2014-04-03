@@ -54,6 +54,7 @@ pkg_compile() {
 			"_GNUNET_HELLO_address_cmp",
 			"_GNUNET_HELLO_address_copy",
 			"_GNUNET_STATISTICS_set",
+			"_GNUNET_STATISTICS_update",
 			"_GNUNET_STRINGS_to_address_ip",
 			"_GNUNET_TIME_relative_get_minute_",
 			"_GNUNET_TIME_relative_get_second_",
@@ -71,7 +72,7 @@ pkg_compile() {
 			"_emscripten_asm_const",
 			"_emscripten_asm_const_int",
 			"_main",
-			"_memcmp",
+			"_memcmp"
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
@@ -114,12 +115,16 @@ pkg_compile() {
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
 		-s TOTAL_MEMORY=33554432 \
 		-s EXPORTED_FUNCTIONS='[
+			"_GNUNET_BANDWIDTH_value_init",
 			"_GNUNET_CONTAINER_multipeermap_contains",
 			"_GNUNET_CONTAINER_multipeermap_create",
 			"_GNUNET_CONTAINER_multipeermap_destroy",
 			"_GNUNET_CONTAINER_multipeermap_get_multiple",
 			"_GNUNET_CONTAINER_multipeermap_put",
 			"_GNUNET_CONTAINER_multipeermap_remove",
+			"_GNUNET_STATISTICS_update",
+			"_GNUNET_TIME_absolute_get",
+			"_GNUNET_TIME_absolute_max",
 			"_GNUNET_asprintf",
 			"_GNUNET_get_log_call_status",
 			"_GNUNET_get_log_skip",
@@ -185,6 +190,7 @@ pkg_compile() {
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/core/gnunet-service-core.js" \
 		"${S}/src/core/gnunet-service-core"*.o \
+		"${S}/src/hello/libgnunethello.la" \
 		"${S}/src/statistics/libgnunetstatistics.la" \
 		"${S}/src/transport/libgnunettransport.la" \
 		"${S}/src/util/libgnunetutil.la" \
