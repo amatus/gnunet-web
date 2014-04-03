@@ -827,7 +827,11 @@ client_connect_get (struct Session *s)
     xhr.timeout = $1;
     xhr.onload = function(e) {
       var response = new Uint8Array(e.target.response);
-      ccall('client_receive', 'number', ['array', 'number', 'number', 'number'],
+      var handle =
+        DLFCN.loadedLibNames['/libgnunet_plugin_transport_http_client'];
+      var client_receive = DLFCN.loadedLibs[handle].module['_client_receive'];
+      ccallFunc(client_receive, 'number',
+        ['array', 'number', 'number', 'number'],
         [response, response.length, 1, $2]);
     };
     xhr.send();
