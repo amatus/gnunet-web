@@ -822,21 +822,18 @@ client_connect_get (struct Session *s)
   EM_ASM_INT({
     var xhr = new XMLHttpRequest();
     xhrs[$0] = xhr;
-    xhr.open('GET', $3, true);
+    xhr.open('GET', Pointer_stringify($2), true);
     xhr.responseType = 'arraybuffer';
-    xhr.timeout = $1;
     xhr.onload = function(e) {
       var response = new Uint8Array(e.target.response);
       var handle =
         DLFCN.loadedLibNames['/libgnunet_plugin_transport_http_client'];
-      var client_receive = DLFCN.loadedLibs[handle].module['_client_receive'];
-      ccallFunc(client_receive, 'number',
+      ccallFunc(DLFCN.loadedLibs[handle].module['_client_receive'], 'number',
         ['array', 'number', 'number', 'number'],
-        [response, response.length, 1, $2]);
+        [response, response.length, 1, $1]);
     };
     xhr.send();
-  }, next_xhr, (long)(HTTP_CLIENT_NOT_VALIDATED_TIMEOUT.rel_value_us / 1000LL),
-  s, s->url);
+  }, next_xhr, s, s->url);
   return GNUNET_OK;
 }
 
