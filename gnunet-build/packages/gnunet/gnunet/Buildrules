@@ -53,9 +53,13 @@ pkg_compile() {
 		-s EXPORTED_FUNCTIONS='[
 			"_GNUNET_HELLO_address_cmp",
 			"_GNUNET_HELLO_address_copy",
+			"_GNUNET_SERVER_mst_create",
+			"_GNUNET_SERVER_mst_receive",
 			"_GNUNET_STATISTICS_set",
 			"_GNUNET_STATISTICS_update",
+			"_GNUNET_STRINGS_relative_time_to_string",
 			"_GNUNET_STRINGS_to_address_ip",
+			"_GNUNET_TIME_absolute_get",
 			"_GNUNET_TIME_relative_get_minute_",
 			"_GNUNET_TIME_relative_get_second_",
 			"_GNUNET_TIME_relative_multiply",
