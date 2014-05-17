@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+var xhrs = [];
+
 var WorkerMessageQueue = [];
 function flush_worker_message_queue(f) {
   WorkerMessageQueue.forEach(f);
@@ -106,6 +108,10 @@ function client_connect(service_name, message_port) {
       'service_name': service_name,
       'message_port': message_port}, [message_port]);
   });
+}
+
+function breakpoint() {
+  var x = 1; // Something to break on
 }
 
 // vim: set expandtab ts=2 sw=2:

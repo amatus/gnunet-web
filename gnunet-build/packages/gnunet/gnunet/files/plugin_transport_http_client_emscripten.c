@@ -166,11 +166,6 @@ struct Session
    */
   struct HTTP_Client_Plugin *plugin;
 
-  /**
-   * Client send handle
-   */
-  void *client_put;
-
   struct ConnectionHandle put;
   struct ConnectionHandle get;
 
@@ -326,16 +321,6 @@ client_reschedule_session_timeout (struct Session *s);
 
 
 /**
- * Connect a HTTP put connection
- *
- * @param s the session to connect
- * @return #GNUNET_SYSERR for hard failure, #GNUNET_OK for success
- */
-static int
-client_connect_put (struct Session *s);
-
-
-/**
  * Does a session s exists?
  *
  * @param plugin the plugin
@@ -403,10 +388,41 @@ http_client_plugin_send (void *cls,
   }
 
   GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, s->plugin->name,
-                   "Session %p/connection %p: Sending message with %u to peer `%s' \n",
-                   s, s->client_put,
-                   msgbuf_size, GNUNET_i2s (&s->target));
+                   "Session %p: Sending message with %u to peer `%s' \n",
+                   s, msgbuf_size, GNUNET_i2s (&s->target));
 
+  EM_ASM_INT({
+    var url = Pointer_stringify($0);
+    var data = HEAP8.subarray($1, $1 + $2);
+    var data_size = $2;
+    var cont = $3;
+    var cont_cls = $4;
+    var target = $5;
+    var xhr = new XMLHttpRequest();
+    xhr.open('PUT', url);
+    xhr.send(data);
+    xhr.onload = function(e) {
+      Module.print('put onload readyState ' + xhr.readyState + ' status ' + xhr.status);
+      if (cont) {
+        Runtime.dynCall('viiiii', cont, [cont_cls, target, 1, data_size, data_size]);
+      }
+    };
+    xhr.onerror = function(e) {
+      Module.print('put onerror readyState ' + xhr.readyState + ' status ' + xhr.status);
+      if (cont) {
+        Runtime.dynCall('viiiii', cont, [cont_cls, target, -1, data_size, data_size]);
+      }
+    };
+  },
+  s->url,       // $0
+  msgbuf,       // $1
+  msgbuf_size,  // $2
+  cont,         // $3
+  cont_cls,     // $4
+  &s->target    // $5
+  );
+  // XXX
+  return msgbuf_size;
   /* create new message and schedule */
   msg = GNUNET_malloc (sizeof (struct HTTP_Message) + msgbuf_size);
   msg->next = NULL;
@@ -430,8 +446,8 @@ http_client_plugin_send (void *cls,
     /* PUT connection is currently getting disconnected */
     s->put_reconnect_required = GNUNET_YES;
     GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, s->plugin->name,
-                     "Session %p/connection %jp: currently disconnecting, reconnecting immediately\n",
-                     s, s->client_put);
+                     "Session %p: currently disconnecting, reconnecting immediately\n",
+                     s);
     return msgbuf_size;
   }
   else if (GNUNET_YES == s->put_paused)
@@ -441,11 +457,9 @@ http_client_plugin_send (void *cls,
     GNUNET_SCHEDULER_cancel (s->put_disconnect_task);
     s->put_disconnect_task = GNUNET_SCHEDULER_NO_TASK;*/
     GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, s->plugin->name,
-                     "Session %p/connection %p: unpausing connection\n",
-                     s, s->client_put);
+                     "Session %p: unpausing connection\n",
+                     s);
     s->put_paused = GNUNET_NO;
-    if (NULL != s->client_put)
-      ; //XXX curl_easy_pause (s->client_put, CURLPAUSE_CONT);
   }
   else if (GNUNET_YES == s->put_tmp_disconnected)
   {
@@ -454,11 +468,6 @@ http_client_plugin_send (void *cls,
                      "Session %p: Reconnecting PUT connection\n",
                      s);
     s->put_tmp_disconnected = GNUNET_NO;
-    GNUNET_break (s->client_put == NULL);
-    if (GNUNET_SYSERR == client_connect_put (s))
-    {
-      return GNUNET_SYSERR;
-    }
   }
 
   return msgbuf_size;
@@ -534,18 +543,6 @@ http_client_session_disconnect (void *cls,
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
-
-  if (NULL != s->client_put)
-  {
-    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                     "Session %p/connection %p: disconnecting PUT connection to peer `%s'\n",
-                     s, s->client_put, GNUNET_i2s (&s->target));
-
-    /* remove curl handle from multi handle */
-    //XXX curl_easy_cleanup (s->client_put);
-    s->client_put = NULL;
-  }
-
 
   if (s->recv_wakeup_task != GNUNET_SCHEDULER_NO_TASK)
   {
@@ -820,36 +817,57 @@ client_connect_get (struct Session *s)
   /* create get connection */
   s->client_get = (void *)next_xhr++;
   EM_ASM_INT({
+    var s = $1;
+    var url = Pointer_stringify($2);
+    var client_receive = $3;
+    var http_client_session_disconnect = $4;
+    var plugin  = $5;
+    Module.print('Creating new get xhr: ' + $0);
     var xhr = new XMLHttpRequest();
     xhrs[$0] = xhr;
-    xhr.open('GET', Pointer_stringify($2), true);
     xhr.responseType = 'arraybuffer';
+    xhr.resend = function() {
+      xhr.open('GET', url + 'x');
+      xhr.send();
+    };
+    xhr.onreadystatechange = function() {
+      Module.print('xhr' + $0 + ' readyState ' + xhr.readyState +
+          ' status ' +  xhr.status + ':' + xhr.statusText);
+    };
     xhr.onload = function(e) {
       var response = new Uint8Array(e.target.response);
-      var handle =
-        DLFCN.loadedLibNames['/libgnunet_plugin_transport_http_client'];
-      ccallFunc(DLFCN.loadedLibs[handle].module['_client_receive'], 'number',
+      Module.print('xhr' + $0 + ' got ' + response.length + ' bytes');
+      ccallFunc(Runtime.getFuncWrapper(client_receive, 'iiiii'), 'number',
         ['array', 'number', 'number', 'number'],
-        [response, response.length, 1, $1]);
+        [response, response.length, 1, s]);
+      xhr.resend();
     };
-    xhr.send();
-  }, next_xhr, s, s->url);
-  return GNUNET_OK;
-}
-
-
-/**
- * Connect a HTTP put connection
- *
- * @param s the session to connect
- * @return #GNUNET_SYSERR for hard failure, #GNUNET_OK for ok
- */
-static int
-client_connect_put (struct Session *s)
-{
-  /* create put connection */
-  s->client_put = NULL; //XXX curl_easy_init ();
-  s->put_tmp_disconnected = GNUNET_NO;
+    xhr.onerror = function(e) {
+      Module.print('xhr' + $0 + ' status:'
+        + xhr.status + ':' + xhr.statusText);
+      if (false) {
+        ccallFunc(Runtime.getFuncWrapper(http_client_session_disconnect, 'iii'),
+          'number',
+          ['number', 'number'],
+          [plugin, s]);
+      }
+      xhr.resend();
+    };
+    xhr.onabort = function() {
+      Module.print('xhr' + $0 + ' aborted');
+    };
+    xhr.ontimeout = function() {
+      Module.print('xhr' + $0 + ' timedout');
+    };
+    xhr.resend();
+  },
+    s->client_get,                    // $0
+    s,                                // $1
+    s->url,                           // $2
+    &client_receive,                  // $3
+    &http_client_session_disconnect,  // $4
+    s->plugin                         // $5
+      );
   return GNUNET_OK;
 }
 
@@ -890,8 +908,7 @@ client_connect (struct Session *s)
                    "Initiating outbound session peer `%s' using address `%s'\n",
                    GNUNET_i2s (&s->target), s->url);
 
-  if ((GNUNET_SYSERR == client_connect_get (s)) ||
-      (GNUNET_SYSERR == client_connect_put (s)))
+  if (GNUNET_SYSERR == client_connect_get (s))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -899,8 +916,8 @@ client_connect (struct Session *s)
 
   GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
                    plugin->name,
-                   "Session %p: connected with connections GET %p and PUT %p\n",
-                   s, s->client_get, s->client_put);
+                   "Session %p: connected with connection GET %p\n",
+                   s, s->client_get);
 
   /* Perform connect */
   plugin->cur_connections += 2;
@@ -1057,20 +1074,6 @@ http_client_plugin_get_session (void *cls,
     return NULL;
   }
   return s;
-}
-
-
-/**
- * Setup http_client plugin
- *
- * @param plugin the plugin handle
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-static int
-client_start (struct HTTP_Client_Plugin *plugin)
-{
-  EM_ASM(xhrs = {};);
-  return GNUNET_OK;
 }
 
 
@@ -1261,13 +1264,6 @@ LIBGNUNET_PLUGIN_TRANSPORT_INIT (void *cls)
   plugin->options = 0; /* Setup options */
 
   if (GNUNET_SYSERR == client_configure_plugin (plugin))
-  {
-    LIBGNUNET_PLUGIN_TRANSPORT_DONE (api);
-    return NULL;
-  }
-
-  /* Start client */
-  if (GNUNET_SYSERR == client_start (plugin))
   {
     LIBGNUNET_PLUGIN_TRANSPORT_DONE (api);
     return NULL;
