@@ -3,8 +3,6 @@ DESCRIPTION="This is a general purpose cryptographic library based on the code f
 SOURCE_URI="ftp://ftp.gnupg.org/gcrypt/${NAME}/${NAME}-${VERSION}.tar.bz2"
 BDEPENDS="${BDEPENDS} libs/libgpg-error"
 PATCHES="no-entropy"
-CONFIG_OPTS="\
-"
 
 pkg_compile() {
         export TEMP_DIR="${T}"
@@ -24,13 +22,19 @@ pkg_compile() {
 				ac_cv_func_syslog=no \
 				ac_cv_func_mlock=no \
 				gnupg_cv_mlock_is_in_sys_mman=no \
+				gcry_cv_have_asm=no \
+				gcry_cv_have___asm__=no \
 				CPPFLAGS="-I${SYSROOT}/usr/include" \
 				LDFLAGS="-L${SYSROOT}/usr/lib"
         emmake make SUBDIRS="compat mpi cipher random src" \
 		LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
+	#emmake make SUBDIRS="tests"
+	#touch tests/*.o
+	#EMMAKEN_JUST_CONFIGURE=true EMCONFIGURE_JS=true emmake make check \
+	#  SUBDIRS="tests" \
+	#  LDFLAGS="-L${SYSROOT}/usr/lib -Wc,-s,TOTAL_MEMORY=33554432"
         emmake make SUBDIRS="compat mpi cipher random src" \
 		DESTDIR="${D}" install
 }
-
 
 # vim: syntax=sh

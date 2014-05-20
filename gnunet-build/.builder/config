@@ -9,4 +9,7 @@ export PATH
 EM_CONFIG="${SYSROOT}/${TOOLDIR}/etc/emscripten"
 export EM_CONFIG
 
+# Turns out the now default fastcomp does not support dlopen
+export EMCC_FAST_COMPILER=0
+
 # vim: filetype=sh
