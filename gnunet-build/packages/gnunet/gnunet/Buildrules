@@ -121,6 +121,7 @@ pkg_compile() {
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
 		-s TOTAL_MEMORY=33554432 \
 		-s EXPORTED_FUNCTIONS='[
+			"_GNUNET_ATS_print_property_type",
 			"_GNUNET_BANDWIDTH_value_init",
 			"_GNUNET_CONTAINER_multipeermap_contains",
 			"_GNUNET_CONTAINER_multipeermap_create",
