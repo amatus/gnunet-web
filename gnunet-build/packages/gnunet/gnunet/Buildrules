@@ -139,6 +139,7 @@ pkg_compile() {
 			"_GNUNET_log_from_nocheck",
 			"_GNUNET_log_setup",
 			"_GNUNET_xmalloc_",
+			"_GNUNET_xstrdup_",
 			"_main"
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
