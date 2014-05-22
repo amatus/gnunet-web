@@ -98,7 +98,7 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
 		--pre-js "${BUILDROOT}/src/js/pre.js" \
-		--preload-file libgnunet_plugin_transport_http_client
+		--preload-file "${S}/src/transport/libgnunet_plugin_transport_http_client.js"@/libgnunet_plugin_transport_http_client
 	cp src/transport/.libs/gnunet-service-transport.js \
 		src/transport/.libs/gnunet-service-transport.data \
 		"${D}/var/lib/gnunet/js/"
@@ -158,7 +158,7 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
 		--pre-js "${BUILDROOT}/src/js/pre.js" \
-		--preload-file libgnunet_plugin_ats_proportional
+		--preload-file "${S}/src/ats/libgnunet_plugin_ats_proportional.js"@/libgnunet_plugin_ats_proportional
 	cp src/ats/.libs/gnunet-service-ats.js \
 		src/ats/.libs/gnunet-service-ats.data \
 		"${D}/var/lib/gnunet/js/"
