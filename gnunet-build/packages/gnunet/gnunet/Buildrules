@@ -38,48 +38,20 @@ pkg_compile() {
 		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
 		-s EXPORTED_FUNCTIONS='[
 			"_libgnunet_plugin_transport_http_client_init",
-			"_client_receive",
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/libgnunet_plugin_transport_http_client.js" \
 		"${S}/src/transport/libgnunet_plugin_transport_http_client_la-plugin_transport_http_client_emscripten.lo" \
 		"${S}/src/transport/libgnunet_plugin_transport_http_client_la-plugin_transport_http_common.lo"
-	ln -s "${S}/src/transport/libgnunet_plugin_transport_http_client.js" \
-		libgnunet_plugin_transport_http_client
+	( echo '['
+	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
+	  echo '"_GNUNET_log_setup",'
+          echo '"_main"]' ) > transport_http_client.imports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS='[
-			"_GNUNET_HELLO_address_cmp",
-			"_GNUNET_HELLO_address_copy",
-			"_GNUNET_SERVER_mst_create",
-			"_GNUNET_SERVER_mst_receive",
-			"_GNUNET_STATISTICS_set",
-			"_GNUNET_STATISTICS_update",
-			"_GNUNET_STRINGS_relative_time_to_string",
-			"_GNUNET_STRINGS_to_address_ip",
-			"_GNUNET_TIME_absolute_add",
-			"_GNUNET_TIME_absolute_get",
-			"_GNUNET_TIME_relative_get_minute_",
-			"_GNUNET_TIME_relative_get_second_",
-			"_GNUNET_TIME_relative_multiply",
-			"_GNUNET_asprintf",
-			"_GNUNET_get_log_call_status",
-			"_GNUNET_get_log_skip",
-			"_GNUNET_i2s",
-			"_GNUNET_i2s_full",
-			"_GNUNET_log_from_nocheck",
-			"_GNUNET_log_nocheck",
-			"_GNUNET_log_setup",
-			"_GNUNET_xfree_",
-			"_GNUNET_xmalloc_",
-			"_GNUNET_xstrdup_",
-			"_emscripten_asm_const",
-			"_emscripten_asm_const_int",
-			"_main",
-			"_memcmp"
-		]' \
+		-s EXPORTED_FUNCTIONS=@transport_http_client.imports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
 "${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
@@ -109,39 +81,23 @@ pkg_compile() {
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
-	-s EXPORTED_FUNCTIONS='["_libgnunet_plugin_ats_proportional_init"]' \
+		-s EXPORTED_FUNCTIONS='[
+			"_libgnunet_plugin_ats_proportional_init"
+		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
 		"${S}/src/ats/plugin_ats_proportional.lo"
-	ln -s "${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
-		libgnunet_plugin_ats_proportional
+	( echo '['
+	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
+	  echo '"_GNUNET_log_setup",'
+          echo '"_GNUNET_xstrdup_",'
+          echo '"_main"]' ) > plugin_ats_proportional.imports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
 		-s TOTAL_MEMORY=33554432 \
-		-s EXPORTED_FUNCTIONS='[
-			"_GNUNET_ATS_print_property_type",
-			"_GNUNET_BANDWIDTH_value_init",
-			"_GNUNET_CONTAINER_multipeermap_contains",
-			"_GNUNET_CONTAINER_multipeermap_create",
-			"_GNUNET_CONTAINER_multipeermap_destroy",
-			"_GNUNET_CONTAINER_multipeermap_get_multiple",
-			"_GNUNET_CONTAINER_multipeermap_put",
-			"_GNUNET_CONTAINER_multipeermap_remove",
-			"_GNUNET_STATISTICS_update",
-			"_GNUNET_TIME_absolute_get",
-			"_GNUNET_TIME_absolute_max",
-			"_GNUNET_asprintf",
-			"_GNUNET_get_log_call_status",
-			"_GNUNET_get_log_skip",
-			"_GNUNET_i2s",
-			"_GNUNET_log_from_nocheck",
-			"_GNUNET_log_setup",
-			"_GNUNET_xmalloc_",
-			"_GNUNET_xstrdup_",
-			"_main"
-		]' \
+		-s EXPORTED_FUNCTIONS=@plugin_ats_proportional.imports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/gnunet-service-ats.js" \
 		"${S}/src/ats/gnunet-service-ats"*.o \

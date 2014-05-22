@@ -1,0 +1,13 @@
+Index: b/emscripten.py
+===================================================================
+--- a/emscripten.py	2014-05-21 20:06:16.410485120 -0500
++++ b/emscripten.py	2014-05-21 22:24:01.090538929 -0500
+@@ -530,6 +530,8 @@
+     # If no named globals, only need externals
+     global_vars = map(lambda g: g['name'], filter(lambda g: settings['NAMED_GLOBALS'] or g.get('external') or g.get('unIndexable'), forwarded_json['Variables']['globals'].values()))
+     global_funcs = ['_' + key for key, value in forwarded_json['Functions']['libraryFunctions'].iteritems() if value != 2]
++    with open(os.path.join(get_configuration().TEMP_DIR, 'imports'), 'w') as imports_file:
++        imports_file.write('\n'.join(global_funcs) + '\n');
+     def math_fix(g):
+       return g if not g.startswith('Math_') else g.split('_')[1]
+     asm_global_funcs = ''.join(['  var ' + g.replace('.', '_') + '=global.' + g + ';\n' for g in maths]) + \
