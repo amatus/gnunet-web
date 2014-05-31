@@ -1,7 +1,7 @@
-Index: gnunet-svn-32653/configure.ac
+Index: source/configure.ac
 ===================================================================
---- gnunet-svn-32653/configure.ac	(revision 32653)
-+++ gnunet-svn-32653/configure.ac	(working copy)
+--- source/configure.ac	(revision 33447)
++++ source/configure.ac	(working copy)
 @@ -582,7 +582,7 @@
      AC_CHECK_HEADERS(ltdl.h,
       AC_CHECK_LIB([ltdl], [lt_dlopenext],
@@ -11,11 +11,11 @@ Index: gnunet-svn-32653/configure.ac
  then
   AC_MSG_RESULT([libltdl found])
  else
-Index: gnunet-svn-32653/src/Makefile.am
+Index: source/src/Makefile.am
 ===================================================================
---- gnunet-svn-32653/src/Makefile.am	(revision 32653)
-+++ gnunet-svn-32653/src/Makefile.am	(working copy)
-@@ -64,10 +64,8 @@
+--- source/src/Makefile.am	(revision 33447)
++++ source/src/Makefile.am	(working copy)
+@@ -69,10 +69,8 @@
    peerinfo-tool \
    core \
    $(TESTBED) \
@@ -25,8 +25,8 @@ Index: gnunet-svn-32653/src/Makefile.am
 -  hostlist \
    topology \
    regex \
-   mesh \
-@@ -78,11 +76,6 @@
+   cadet \
+@@ -83,11 +81,6 @@
    gnsrecord \
    namecache \
    namestore \
@@ -38,10 +38,10 @@ Index: gnunet-svn-32653/src/Makefile.am
 -  pt \
 -  integration-tests \
    $(EXP_DIR)
-Index: gnunet-svn-32653/src/arm/gnunet-service-arm.c
+Index: source/src/arm/gnunet-service-arm.c
 ===================================================================
---- gnunet-svn-32653/src/arm/gnunet-service-arm.c	(revision 32653)
-+++ gnunet-svn-32653/src/arm/gnunet-service-arm.c	(working copy)
+--- source/src/arm/gnunet-service-arm.c	(revision 33447)
++++ source/src/arm/gnunet-service-arm.c	(working copy)
 @@ -1561,19 +1561,5 @@
  }
  
@@ -62,10 +62,10 @@ Index: gnunet-svn-32653/src/arm/gnunet-service-arm.c
 -
 -
  /* end of gnunet-service-arm.c */
-Index: gnunet-svn-32653/src/dht/gnunet-service-dht_neighbours.c
+Index: source/src/dht/gnunet-service-dht_neighbours.c
 ===================================================================
---- gnunet-svn-32653/src/dht/gnunet-service-dht_neighbours.c	(revision 32653)
-+++ gnunet-svn-32653/src/dht/gnunet-service-dht_neighbours.c	(working copy)
+--- source/src/dht/gnunet-service-dht_neighbours.c	(revision 33447)
++++ source/src/dht/gnunet-service-dht_neighbours.c	(working copy)
 @@ -46,7 +46,6 @@
  #include "gnunet-service-dht_neighbours.h"
  #include "gnunet-service-dht_nse.h"
@@ -74,10 +74,10 @@ Index: gnunet-svn-32653/src/dht/gnunet-service-dht_neighbours.c
  #include "dht.h"
  
  #define LOG_TRAFFIC(kind,...) GNUNET_log_from (kind, "dht-traffic",__VA_ARGS__)
-Index: gnunet-svn-32653/src/dns/Makefile.am
+Index: source/src/dns/Makefile.am
 ===================================================================
---- gnunet-svn-32653/src/dns/Makefile.am	(revision 32653)
-+++ gnunet-svn-32653/src/dns/Makefile.am	(working copy)
+--- source/src/dns/Makefile.am	(revision 33447)
++++ source/src/dns/Makefile.am	(working copy)
 @@ -17,14 +17,6 @@
  pkgcfg_DATA = \
    dns.conf
@@ -93,10 +93,10 @@ Index: gnunet-svn-32653/src/dns/Makefile.am
  lib_LTLIBRARIES = \
    libgnunetdnsparser.la \
    libgnunetdnsstub.la \
-Index: gnunet-svn-32653/src/nat/Makefile.am
+Index: source/src/nat/Makefile.am
 ===================================================================
---- gnunet-svn-32653/src/nat/Makefile.am	(revision 32653)
-+++ gnunet-svn-32653/src/nat/Makefile.am	(working copy)
+--- source/src/nat/Makefile.am	(revision 33447)
++++ source/src/nat/Makefile.am	(working copy)
 @@ -14,24 +14,6 @@
  dist_pkgcfg_DATA = \
    nat.conf
@@ -122,11 +122,11 @@ Index: gnunet-svn-32653/src/nat/Makefile.am
  bin_PROGRAMS = \
   gnunet-nat-server 
  
-Index: gnunet-svn-32653/src/nse/gnunet-service-nse.c
+Index: source/src/nse/gnunet-service-nse.c
 ===================================================================
---- gnunet-svn-32653/src/nse/gnunet-service-nse.c	(revision 32653)
-+++ gnunet-svn-32653/src/nse/gnunet-service-nse.c	(working copy)
-@@ -1539,21 +1539,7 @@
+--- source/src/nse/gnunet-service-nse.c	(revision 33447)
++++ source/src/nse/gnunet-service-nse.c	(working copy)
+@@ -1609,21 +1609,7 @@
  }
  
  
@@ -148,10 +148,10 @@ Index: gnunet-svn-32653/src/nse/gnunet-service-nse.c
  
 -
  /* end of gnunet-service-nse.c */
-Index: gnunet-svn-32653/src/regex/gnunet-daemon-regexprofiler.c
+Index: source/src/regex/gnunet-daemon-regexprofiler.c
 ===================================================================
---- gnunet-svn-32653/src/regex/gnunet-daemon-regexprofiler.c	(revision 32653)
-+++ gnunet-svn-32653/src/regex/gnunet-daemon-regexprofiler.c	(working copy)
+--- source/src/regex/gnunet-daemon-regexprofiler.c	(revision 33447)
++++ source/src/regex/gnunet-daemon-regexprofiler.c	(working copy)
 @@ -382,19 +382,6 @@
  }
  
@@ -172,10 +172,10 @@ Index: gnunet-svn-32653/src/regex/gnunet-daemon-regexprofiler.c
  
 -
  /* end of gnunet-daemon-regexprofiler.c */
-Index: gnunet-svn-32653/src/revocation/gnunet-service-revocation.c
+Index: source/src/revocation/gnunet-service-revocation.c
 ===================================================================
---- gnunet-svn-32653/src/revocation/gnunet-service-revocation.c	(revision 32653)
-+++ gnunet-svn-32653/src/revocation/gnunet-service-revocation.c	(working copy)
+--- source/src/revocation/gnunet-service-revocation.c	(revision 33447)
++++ source/src/revocation/gnunet-service-revocation.c	(working copy)
 @@ -889,21 +889,7 @@
  }
  
@@ -198,10 +198,10 @@ Index: gnunet-svn-32653/src/revocation/gnunet-service-revocation.c
  
 -
  /* end of gnunet-service-revocation.c */
-Index: gnunet-svn-32653/src/set/Makefile.am
+Index: source/src/set/Makefile.am
 ===================================================================
---- gnunet-svn-32653/src/set/Makefile.am	(revision 32653)
-+++ gnunet-svn-32653/src/set/Makefile.am	(working copy)
+--- source/src/set/Makefile.am	(revision 33447)
++++ source/src/set/Makefile.am	(working copy)
 @@ -24,24 +24,6 @@
  lib_LTLIBRARIES = \
    libgnunetset.la
@@ -227,10 +227,10 @@ Index: gnunet-svn-32653/src/set/Makefile.am
  gnunet_service_set_SOURCES = \
   gnunet-service-set.c gnunet-service-set.h \
   gnunet-service-set_union.c \
-Index: gnunet-svn-32653/src/statistics/gnunet-service-statistics.c
+Index: source/src/statistics/gnunet-service-statistics.c
 ===================================================================
---- gnunet-svn-32653/src/statistics/gnunet-service-statistics.c	(revision 32653)
-+++ gnunet-svn-32653/src/statistics/gnunet-service-statistics.c	(working copy)
+--- source/src/statistics/gnunet-service-statistics.c	(revision 33447)
++++ source/src/statistics/gnunet-service-statistics.c	(working copy)
 @@ -861,19 +861,6 @@
                                GNUNET_SERVICE_OPTION_SOFT_SHUTDOWN, &run, NULL)) ? 0 : 1;
  }
@@ -251,11 +251,11 @@ Index: gnunet-svn-32653/src/statistics/gnunet-service-statistics.c
  
 -
  /* end of gnunet-service-statistics.c */
-Index: gnunet-svn-32653/src/topology/gnunet-daemon-topology.c
+Index: source/src/topology/gnunet-daemon-topology.c
 ===================================================================
---- gnunet-svn-32653/src/topology/gnunet-daemon-topology.c	(revision 32653)
-+++ gnunet-svn-32653/src/topology/gnunet-daemon-topology.c	(working copy)
-@@ -1294,18 +1294,5 @@
+--- source/src/topology/gnunet-daemon-topology.c	(revision 33447)
++++ source/src/topology/gnunet-daemon-topology.c	(working copy)
+@@ -1300,18 +1300,5 @@
  }
  
  
@@ -274,11 +274,11 @@ Index: gnunet-svn-32653/src/topology/gnunet-daemon-topology.c
 -#endif
 -
  /* end of gnunet-daemon-topology.c */
-Index: gnunet-svn-32653/src/transport/Makefile.am
+Index: source/src/transport/Makefile.am
 ===================================================================
---- gnunet-svn-32653/src/transport/Makefile.am	(revision 32653)
-+++ gnunet-svn-32653/src/transport/Makefile.am	(working copy)
-@@ -46,21 +46,6 @@
+--- source/src/transport/Makefile.am	(revision 33447)
++++ source/src/transport/Makefile.am	(working copy)
+@@ -48,20 +48,6 @@
  endif
  
  if LINUX
@@ -291,7 +291,6 @@ Index: gnunet-svn-32653/src/transport/Makefile.am
 - WLAN_API_TEST = test_transport_api_wlan
 - WLAN_TIMEOUT_TEST = test_transport_api_timeout_wlan
 - WLAN_REL_TEST = test_transport_api_reliability_wlan
-- WLAN_UREL_TEST = test_transport_api_unreliability_wlan
 - WLAN_QUOTA_TEST = test_quota_compliance_wlan \
 -		test_quota_compliance_wlan_asymmetric
 -endif
@@ -300,7 +299,7 @@ Index: gnunet-svn-32653/src/transport/Makefile.am
  install-exec-hook:
  	$(top_srcdir)/src/transport/install-wlan-helper.sh $(libexecdir) $(SUDO_BINARY) || true
  else
-@@ -233,17 +218,7 @@
+@@ -233,17 +219,7 @@
    $(CFLAGS)
  # -DANALYZE
  
@@ -319,7 +318,7 @@ Index: gnunet-svn-32653/src/transport/Makefile.am
  
  libgnunet_plugin_transport_tcp_la_SOURCES = \
    plugin_transport_tcp.c
-@@ -314,7 +289,7 @@
+@@ -314,7 +290,7 @@
  
  
  libgnunet_plugin_transport_http_client_la_SOURCES = \
@@ -328,15 +327,16 @@ Index: gnunet-svn-32653/src/transport/Makefile.am
  libgnunet_plugin_transport_http_client_la_LIBADD = \
    $(top_builddir)/src/hello/libgnunethello.la \
    $(top_builddir)/src/statistics/libgnunetstatistics.la \
-Index: gnunet-svn-32653/src/util/Makefile.am
+Index: source/src/util/Makefile.am
 ===================================================================
---- gnunet-svn-32653/src/util/Makefile.am	(revision 32653)
-+++ gnunet-svn-32653/src/util/Makefile.am	(working copy)
-@@ -72,12 +72,9 @@
+--- source/src/util/Makefile.am	(revision 33447)
++++ source/src/util/Makefile.am	(working copy)
+@@ -72,13 +72,10 @@
  libgnunetutil_la_SOURCES = \
    bandwidth.c \
    bio.c \
 -  client.c \
+   client_manager.c \
    common_allocation.c \
    common_endian.c \
    common_logging.c \
@@ -345,7 +345,7 @@ Index: gnunet-svn-32653/src/util/Makefile.am
    container_bloomfilter.c \
    container_heap.c \
    container_meta_data.c \
-@@ -106,15 +103,10 @@
+@@ -107,15 +104,10 @@
    os_network.c \
    os_priority.c \
    peer.c \
@@ -361,10 +361,10 @@ Index: gnunet-svn-32653/src/util/Makefile.am
    signal.c \
    strings.c \
    time.c \
-Index: gnunet-svn-32653/src/util/gnunet-service-resolver.c
+Index: source/src/util/gnunet-service-resolver.c
 ===================================================================
---- gnunet-svn-32653/src/util/gnunet-service-resolver.c	(revision 32653)
-+++ gnunet-svn-32653/src/util/gnunet-service-resolver.c	(working copy)
+--- source/src/util/gnunet-service-resolver.c	(revision 33447)
++++ source/src/util/gnunet-service-resolver.c	(working copy)
 @@ -590,19 +590,6 @@
    return ret;
  }
