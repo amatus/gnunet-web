@@ -36,7 +36,10 @@ var init_continuation;
 // Called by GNUNET_SERVICE_run and GNUNET_PROGRAM_run to perform
 // asynchronous setup tasks. Calls continuation when finished.
 worker_setup = function(continuation) {
-  init_continuation = continuation;
+  if (init_continuation === 'now')
+    continuation();
+  else
+    init_continuation = continuation;
 };
 
 // a map of window index to port
@@ -71,7 +74,10 @@ function get_message(ev) {
     ev.target.postMessage({type: 'stdout', port: channel.port2},
                           [channel.port2]);
     FS.writeFile('/private_key', ev.data['private-key'], {encoding: 'binary'});
-    init_continuation();
+    if (typeof (init_continuation) === 'undefined')
+      init_continuation = 'now';
+    else
+      init_continuation();
   } else if ('connect' == ev.data.type) {
     ev.data.port.onmessage = client_get_message;
     ev.data.port._name = next_client;
