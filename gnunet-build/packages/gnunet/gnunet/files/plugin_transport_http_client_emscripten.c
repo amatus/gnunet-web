@@ -827,7 +827,7 @@ client_connect_get (struct Session *s)
     xhrs[$0] = xhr;
     xhr.responseType = 'arraybuffer';
     xhr.resend = function() {
-      xhr.open('GET', url + 'x');
+      xhr.open('GET', url + ',1');
       xhr.send();
     };
     xhr.onreadystatechange = function() {
