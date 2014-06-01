@@ -89,6 +89,7 @@ pkg_compile() {
 		"${S}/src/ats/plugin_ats_proportional.lo"
 	( echo '['
 	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
+	  echo '"_GNUNET_CONFIGURATION_get_value_float",'
 	  echo '"_GNUNET_log_setup",'
           echo '"_GNUNET_xstrdup_",'
           echo '"_main"]' ) > plugin_ats_proportional.imports

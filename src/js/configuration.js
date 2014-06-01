@@ -109,6 +109,15 @@ mergeInto(LibraryManager.library, {
     setValue(num, tmp, 'i64');
     return 1;
   },
+  GNUNET_CONFIGURATION_get_value_float__deps:
+    ['GNUNET_CONFIGURATION_get_value'],
+  GNUNET_CONFIGURATION_get_value_float: function(cfg, section, option, num) {
+    var tmp = _GNUNET_CONFIGURATION_get_value(section, option);
+    if (undefined === tmp)
+      return -1;
+    setValue(num, tmp, 'float');
+    return 1;
+  },
   GNUNET_CONFIGURATION_iterate_section_values__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_iterate_section_values:
   function(cfg, section, iter, iter_cls) {
