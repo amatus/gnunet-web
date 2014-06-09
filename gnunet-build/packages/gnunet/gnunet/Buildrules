@@ -75,7 +75,7 @@ pkg_compile() {
 		src/transport/.libs/gnunet-service-transport.data \
 		"${D}/var/lib/gnunet/js/"
 	#
-	# ATS
+	# Automatic Transport Selection
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
@@ -170,6 +170,60 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/service.js" \
 		--pre-js "${BUILDROOT}/src/js/pre.js"
 	cp src/core/.libs/gnunet-service-core.js \
+		"${D}/var/lib/gnunet/js/"
+	#
+	# Network Size Estimation
+	#
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/nse/gnunet-service-nse.js" \
+		"${S}/src/nse/gnunet-service-nse.o" \
+		"${S}/src/core/libgnunetcore.la" \
+		"${S}/src/nse/libgnunetnse.la" \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		-lz \
+		--js-library "${BUILDROOT}/src/js/client.js" \
+		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/scheduler.js" \
+		--js-library "${BUILDROOT}/src/js/server.js" \
+		--js-library "${BUILDROOT}/src/js/service.js" \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp src/nse/.libs/gnunet-service-nse.js \
+		"${D}/var/lib/gnunet/js/"
+	#
+	# Distributed Hash Table
+	#
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/dht/gnunet-service-dht.js" \
+		"${S}/src/dht/gnunet-service-dht"*.o \
+		"${S}/src/ats/libgnunetats.la" \
+		"${S}/src/block/libgnunetblock.la" \
+		"${S}/src/core/libgnunetcore.la" \
+		"${S}/src/datacache/libgnunetdatacache.la" \
+		"${S}/src/hello/libgnunethello.la" \
+		"${S}/src/nse/libgnunetnse.la" \
+		"${S}/src/peerinfo/libgnunetpeerinfo.la" \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/transport/libgnunettransport.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		-lz \
+		--js-library "${BUILDROOT}/src/js/client.js" \
+		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/scheduler.js" \
+		--js-library "${BUILDROOT}/src/js/server.js" \
+		--js-library "${BUILDROOT}/src/js/service.js" \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp src/dht/.libs/gnunet-service-dht.js \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Hostlist
