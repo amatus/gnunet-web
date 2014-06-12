@@ -18,11 +18,9 @@ mergeInto(LibraryManager.library, {
   GNUNET_PROGRAM_run__deps: ['GNUNET_log_setup'],
   GNUNET_PROGRAM_run: function(argc, argv, binaryName, binaryHelp, options,
                                task, task_cls) {
-    var stack = Runtime.stackSave();
-    var loglevel = allocate(intArrayFromString('DEBUG'), 'i8', ALLOC_STACK);
-    var logfile = 0;
-    _GNUNET_log_setup(binaryName, loglevel, logfile);
-    Runtime.stackRestore(stack);
+    ccall('GNUNET_log_setup', 'void',
+      ['number', 'string', 'number'],
+      [binaryName, 'DEBUG', 0]);
     var cfgfile = 0; // const char *
     var cfg = 1; // opaque non-null pointer
     worker_setup(function() {

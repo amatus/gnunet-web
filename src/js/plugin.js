@@ -22,10 +22,9 @@ mergeInto(LibraryManager.library, {
       return 0;
     }
     var init_symbol = Pointer_stringify(library_name) + "_init";
-    var stack = Runtime.stackSave();
-    var str = allocate(intArrayFromString(init_symbol), 'i8', ALLOC_STACK);
-    var sym = _dlsym(handle, str);
-    Runtime.stackRestore(stack);
+    var sym = ccallFunc(_dlsym, 'number',
+      ['number', 'string'],
+      [handle, init_symbol]);
     if (!sym) {
       _dlclose(handle);
       return 0;

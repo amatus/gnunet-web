@@ -72,8 +72,9 @@ mergeInto(LibraryManager.library, {
     var tmp = _GNUNET_CONFIGURATION_get_value(section, option);
     if (undefined === tmp)
       return -1;
-    var tmp = ccall('GNUNET_xstrdup_', 'number', ['string', 'string', 'number'],
-                    [tmp, 'configuration.js', 0]);
+    var tmp = ccall('GNUNET_xstrdup_', 'number',
+        ['string', 'string', 'number'],
+        [tmp, 'configuration.js', 0]);
     setValue(value, tmp, 'i32');
     return 1;
   },
@@ -98,7 +99,8 @@ mergeInto(LibraryManager.library, {
     if (undefined === tmp)
       return -1;
     return ccall('GNUNET_STRINGS_fancy_time_to_relative', 'number',
-        ['string', 'number'], [tmp, time]);
+        ['string', 'number'],
+        [tmp, time]);
   },
   GNUNET_CONFIGURATION_get_value_number__deps:
     ['GNUNET_CONFIGURATION_get_value'],

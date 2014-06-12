@@ -87,10 +87,8 @@ function get_message(ev) {
 }
 
 function client_get_message(ev) {
-  var stack = Runtime.stackSave();
-  var message = allocate(ev.data, 'i8', ALLOC_STACK);
-  var size = getValue(message, 'i8') << 8 | getValue(message + 1, 'i8');
-  var type = getValue(message + 2, 'i8') << 8 | getValue(message + 3, 'i8');
+  var size = ev.data[0] << 8 | ev.data[1];
+  var type = ev.data[2] << 8 | ev.data[3];
   var handler = SERVERS.handlers[type];
   //Module.print("Got message of type " + type + " size " + size + " from "
   //    + ev.target._name);
@@ -98,13 +96,13 @@ function client_get_message(ev) {
     //Module.print("But I don't know what to do with it");
   } else {
     if (handler.expected_size == 0 || handler.expected_size == size) {
-      Runtime.dynCall('viii', handler.callback,
-          [handler.callback_cls, ev.target._name, message]);
+      ccallFunc(Runtime.getFuncWrapper(handler.callback, 'viii'), 'void',
+          ['number', 'number', 'array'],
+          [handler.callback_cls, ev.target._name, ev.data]);
     } else {
       //Module.print("But I was expecting size " + handler.expected_size);
     }
   }
-  Runtime.stackRestore(stack);
 }
 
 // Ask a window to connect us to a service

@@ -1,5 +1,5 @@
 // server.js - server routines for gnunet-web services
-// Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ mergeInto(LibraryManager.library, {
     setTimeout(function() {
       //Module.print('I want to send ' + size + ' bytes to client ' + client);
       var stack = Runtime.stackSave();
-      var buffer = allocate(size, 'i8', ALLOC_STACK);
+      var buffer = Runtime.stackAlloc(size);
       var ret = Runtime.dynCall('iiii', callback, [callback_cls, size, buffer]);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
       clients[client].postMessage(view);

@@ -1,5 +1,5 @@
 // scheduler.js - scheduler routines for gnunet-web services
-// Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

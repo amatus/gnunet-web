@@ -1,5 +1,5 @@
 // client.js - client routines for gnunet-web services
-// Copyright (C) 2013  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -30,10 +30,9 @@ mergeInto(LibraryManager.library, {
   GNUNET_CLIENT_receive__deps: ['$CLIENT_PORTS'],
   GNUNET_CLIENT_receive: function(client, handler, handler_cls, timeout) {
     CLIENT_PORTS[client].onmessage = function(ev) {
-      var stack = Runtime.stackSave();
-      var message = allocate(ev.data, 'i8', ALLOC_STACK);
-      Runtime.dynCall('vii', handler, [handler_cls, message]);
-      Runtime.stackRestore(stack);
+      ccallFunc(Runtime.getFuncWrapper(handler, 'vii'), 'void',
+        ['number', 'array'],
+        [handler_cls, ev.data]);
     };
     var delay = getValue(timeout, 'i64');
     if (-1 != delay) {
@@ -51,7 +50,7 @@ mergeInto(LibraryManager.library, {
     setTimeout(function() {
       //Module.print('I want to send ' + size + ' bytes to service ' + client);
       var stack = Runtime.stackSave();
-      var buffer = allocate(size, 'i8', ALLOC_STACK);
+      var buffer = Runtime.stackAlloc(size);
       var ret = Runtime.dynCall('iiii', notify, [notify_cls, size, buffer]);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
       CLIENT_PORTS[client].postMessage(view);
