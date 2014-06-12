@@ -45,9 +45,9 @@ mergeInto(LibraryManager.library, {
     } catch (e) {
       return;
     }
-    for (var entry in entries) {
+    entries.map(function(entry) {
       if (entry.lastIndexOf(prefix, 0) !== 0)
-        continue;
+        return;
       var rc = ccallFunc(_GNUNET_PLUGIN_load, 'number',
           ['string', 'number'],
           [entry, arg]);
@@ -55,7 +55,7 @@ mergeInto(LibraryManager.library, {
         ccallFunc(Runtime.getFuncWrapper(cb, 'viii'), 'void',
             ['number', 'string', 'number'],
             [cb_cls, entry, rc]);
-    }
+    });
   }
 });
 
