@@ -102,6 +102,16 @@ mergeInto(LibraryManager.library, {
         ['string', 'number'],
         [tmp, time]);
   },
+  GNUNET_CONFIGURATION_get_value_size__deps:
+    ['GNUNET_CONFIGURATION_get_value', 'GNUNET_STRINGS_fancy_size_to_bytes'],
+  GNUNET_CONFIGURATION_get_value_size: function(cfg, section, option, size) {
+    var tmp = _GNUNET_CONFIGURATION_get_value(section, option);
+    if (undefined === tmp)
+      return -1;
+    return ccall('GNUNET_STRINGS_fancy_size_to_bytes', 'number',
+        ['string', 'number'],
+        [tmp, size]);
+  },
   GNUNET_CONFIGURATION_get_value_number__deps:
     ['GNUNET_CONFIGURATION_get_value'],
   GNUNET_CONFIGURATION_get_value_number: function(cfg, section, option, num) {
