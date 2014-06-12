@@ -219,6 +219,7 @@ pkg_compile() {
 		-lz \
 		--js-library "${BUILDROOT}/src/js/client.js" \
 		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/plugin.js" \
 		--js-library "${BUILDROOT}/src/js/scheduler.js" \
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
