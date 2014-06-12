@@ -34,7 +34,7 @@ mergeInto(LibraryManager.library, {
     return id;
   },
   GNUNET_SCHEDULER_add_delayed__deps:
-  ['GNUNET_SCHEDULER_add_delayed_with_priority'],
+    ['GNUNET_SCHEDULER_add_delayed_with_priority'],
   GNUNET_SCHEDULER_add_delayed: function(delay, task, task_cls) {
     return _GNUNET_SCHEDULER_add_delayed_with_priority(delay, 0, task,
       task_cls);
@@ -42,6 +42,11 @@ mergeInto(LibraryManager.library, {
   GNUNET_SCHEDULER_add_now__deps: ['GNUNET_SCHEDULER_add_delayed'],
   GNUNET_SCHEDULER_add_now: function(task, task_cls) {
     return _GNUNET_SCHEDULER_add_delayed(0, task, task_cls);
+  },
+  GNUNET_SCHEDULER_add_with_priority__deps:
+    ['GNUNET_SCHEDULER_add_delayed_with_priority'],
+  GNUNET_SCHEDULER_add_with_priority: function(prio, task, task_cls) {
+    return _GNUNET_SCHEDULER_add_delayed_with_priority(0, prio, task, task_cls);
   },
   GNUNET_SCHEDULER_cancel__deps: ['$SCHEDULER_TASKS'],
   GNUNET_SCHEDULER_cancel: function(task) {
