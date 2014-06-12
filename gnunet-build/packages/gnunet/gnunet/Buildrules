@@ -176,7 +176,11 @@ pkg_compile() {
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \
+		-s EXPORTED_FUNCTIONS='[
+			"_main",
+			"_GNUNET_log_setup",
+			"_GNUNET_STRINGS_fancy_time_to_relative"
+		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/nse/gnunet-service-nse.js" \
 		"${S}/src/nse/gnunet-service-nse.o" \
