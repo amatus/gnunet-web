@@ -43,6 +43,16 @@ mergeInto(LibraryManager.library, {
     core: {
       USE_EPHEMERAL_KEYS: true,
     },
+    DHT: {
+      CACHE_RESULTS: true,
+      DISABLE_TRY_CONNECT: false,
+    },
+    NSE: {
+      PROOFFILE: '/proof.dat',
+      WORKDELAY: '5 ms',
+      INTERVAL: '1 h',
+      WORKBITS: 22,
+    },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_get_value: function(section, option) {
