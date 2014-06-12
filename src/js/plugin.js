@@ -36,6 +36,27 @@ mergeInto(LibraryManager.library, {
       return 0;
     }
     return ret;
+  },
+  GNUNET_PLUGIN_load_all__deps: ['$FS', 'GNUNET_PLUGIN_load'],
+  GNUNET_PLUGIN_load_all: function(basename, arg, cb, cb_cls) {
+    var prefix = Pointer_stringify(basename);
+    var entries = [];
+    try {
+      entries = FS.readdir('.');
+    } catch (e) {
+      return;
+    }
+    for (var entry in entries) {
+      if (entry.lastIndexOf(prefix, 0) !== 0)
+        continue;
+      var rc = ccallFunc(_GNUNET_PLUGIN_load, 'number',
+          ['string', 'number'],
+          [entry, arg]);
+      if (rc !== 0)
+        ccallFunc(Runtime.getFuncWrapper(cb, 'viii'), 'void',
+            ['number', 'string', 'number'],
+            [cb_cls, entry, rc]);
+    }
   }
 });
 
