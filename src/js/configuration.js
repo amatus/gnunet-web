@@ -48,7 +48,8 @@ mergeInto(LibraryManager.library, {
       DISABLE_TRY_CONNECT: false,
     },
     NSE: {
-      PROOFFILE: '/proof.dat',
+      // disable NSE for now
+      //PROOFFILE: '/proof.dat',
       WORKDELAY: '5 ms',
       INTERVAL: '1 h',
       WORKBITS: 22,
