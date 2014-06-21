@@ -47,6 +47,11 @@ mergeInto(LibraryManager.library, {
       CACHE_RESULTS: true,
       DISABLE_TRY_CONNECT: false,
     },
+    dhtcache: {
+      QUOTA: '8 MB',
+      DATABASE: 'heap',
+      DISABLE_BF: true,
+    },
     NSE: {
       // disable NSE for now
       //PROOFFILE: '/proof.dat',

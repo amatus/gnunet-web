@@ -210,9 +210,24 @@ pkg_compile() {
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/dht/libgnunet_plugin_block_dht.js" \
 		"${S}/src/dht/plugin_block_dht.lo"
+	mv "${TEMP_DIR}/imports" libgnunet_plugin_block_dht.imports
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-O2 \
+		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+		-s EXPORTED_FUNCTIONS='[
+			"_libgnunet_plugin_datacache_heap_init"
+		]' \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/datacache/libgnunet_plugin_datacache_heap.js" \
+		"${S}/src/datacache/plugin_datacache_heap.lo"
+	mv "${TEMP_DIR}/imports" libgnunet_plugin_datacache_heap.imports
 	( echo '['
-	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
+	  sed -e 's/.*/"&",/' < libgnunet_plugin_block_dht.imports
+	  sed -e 's/.*/"&",/' < libgnunet_plugin_datacache_heap.imports
 	  echo '"_GNUNET_log_setup",'
+	  echo '"_GNUNET_STRINGS_fancy_size_to_bytes",'
+	  echo '"_GNUNET_xstrdup_",'
           echo '"_main"]' ) > dht.imports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
@@ -242,7 +257,8 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
 		--pre-js "${BUILDROOT}/src/js/pre.js" \
-		--preload-file "${S}/src/dht/libgnunet_plugin_block_dht.js"@/libgnunet_plugin_block_dht
+		--preload-file "${S}/src/dht/libgnunet_plugin_block_dht.js"@/libgnunet_plugin_block_dht \
+		--preload-file "${S}/src/datacache/libgnunet_plugin_datacache_heap.js"@/libgnunet_plugin_datacache_heap
 	cp src/dht/.libs/gnunet-service-dht.js \
 		src/dht/.libs/gnunet-service-dht.data \
 		"${D}/var/lib/gnunet/js/"
