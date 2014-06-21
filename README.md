@@ -7,7 +7,16 @@ communication.
 Roadmap
 -------
 * Compile GNUnet using [emscripten].
-* Write an HTTP(S) transport plugin using [CORS].
+    * gnunet-service-transport.js - Done, with HTTP(S) transport.
+    * gnunet-service-ats.js - Done.
+    * gnunet-daemon-topology.js - Done.
+    * gnunet-service-core.js - Done.
+    * gnunet-service-nse.js - Done, PoW not persistent yet.
+    * gnunet-service-dht.js - Done.
+    * gnunet-service-cadet.js - To do.
+    * gnunet-service-datastore.js - To do.
+        * Needs an [indexedDB] backend plugin.
+    * gnunet-service-fs.js - To do.
 * Write a minimal UI that allows publishing, searching, and downloading via the
   file-sharing service.
 * Release alpha.
@@ -38,17 +47,13 @@ What You Can Do Now
 1. Execute `lein run`
 2. Open http://localhost:3000/gnunet.html
 
-We're a long way from running GNUnet in the browser. Currently we have the
-topology daemon and the transport, ats, and core services running as shared
-workers and the peerinfo service provided by the browser window thread.
+Each GNUnet service running in its own [Web Worker] thread. The APIs used by
+the services to schedule tasks, communicate with each other, and load plugins
+are implemented as emscripten js libraries.
 
 To debug a shared worker in chrome open chrome://inspect and click the
 "inspect" link next to the http://localhost:3000/js/gnunet-service-transport.js
 shared worker.
-
-Eventually we will have each GNUnet service running in its own [Web Worker]
-thread. The APIs used by the services to schedule tasks and communicate with
-each other is being implemented in javascript.
 
   [gnunet]: https://gnunet.org
   [webrtc]: http://www.webrtc.org
@@ -56,3 +61,5 @@ each other is being implemented in javascript.
   [rfc3264]: http://www.ietf.org/rfc/rfc3264.txt
   [web worker]: http://www.w3.org/TR/workers/
   [cors]: http://www.w3.org/TR/access-control/
+  [indexeddb]: http://www.w3.org/TR/IndexedDB/
+
