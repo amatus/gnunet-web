@@ -301,6 +301,47 @@ pkg_compile() {
 		src/cadet/.libs/gnunet-service-cadet.data \
 		"${D}/var/lib/gnunet/js/"
 	#
+	# Datastore
+	#
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-O2 \
+		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+		-s EXPORTED_FUNCTIONS='[
+			"_libgnunet_plugin_datastore_heap_init"
+		]' \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/datastore/libgnunet_plugin_datastore_heap.js" \
+		"${S}/src/datastore/plugin_datastore_heap.lo"
+	( echo '['
+	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
+	  echo '"_GNUNET_log_setup",'
+	  echo '"_GNUNET_STRINGS_fancy_size_to_bytes",'
+	  echo '"_GNUNET_xstrdup_",'
+          echo '"_main"]' ) > datastore.exports
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-O2 \
+		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
+		-s EXPORTED_FUNCTIONS=@datastore.exports \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/datastore/gnunet-service-datastore.js" \
+		"${S}/src/datastore/gnunet-service-datastore.o" \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/plugin.js" \
+		--js-library "${BUILDROOT}/src/js/scheduler.js" \
+		--js-library "${BUILDROOT}/src/js/server.js" \
+		--js-library "${BUILDROOT}/src/js/service.js" \
+		--pre-js "${BUILDROOT}/src/js/pre.js" \
+		--preload-file "${S}/src/datastore/libgnunet_plugin_datastore_heap.js"@/libgnunet_plugin_datastore_heap
+	cp src/datastore/.libs/gnunet-service-datastore.js \
+		src/datastore/.libs/gnunet-service-datastore.data \
+		"${D}/var/lib/gnunet/js/"
+	#
 	# Hostlist
 	#
 	cat contrib/hellos/* > "${D}/var/lib/gnunet/hostlist"

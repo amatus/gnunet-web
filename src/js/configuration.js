@@ -65,6 +65,10 @@ mergeInto(LibraryManager.library, {
       REFRESH_CONNECTION_TIME: '5 min',
       ID_ANNOUNCE_TIME: '1 h',
     },
+    DATASTORE: {
+      DATABASE: 'heap',
+      QUOTA: '64 MB',
+    },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_get_value: function(section, option) {

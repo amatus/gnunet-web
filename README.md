@@ -14,7 +14,7 @@ Roadmap
     * gnunet-service-nse.js - Done, PoW not persistent yet.
     * gnunet-service-dht.js - Done.
     * gnunet-service-cadet.js - Done.
-    * gnunet-service-datastore.js - To do.
+    * gnunet-service-datastore.js - Building with heap backend plugin.
         * Needs an [indexedDB] backend plugin.
     * gnunet-service-fs.js - To do.
 * Write a minimal UI that allows publishing, searching, and downloading via the
@@ -60,6 +60,5 @@ shared worker.
   [emscripten]: https://github.com/kripken/emscripten
   [rfc3264]: http://www.ietf.org/rfc/rfc3264.txt
   [web worker]: http://www.w3.org/TR/workers/
-  [cors]: http://www.w3.org/TR/access-control/
   [indexeddb]: http://www.w3.org/TR/IndexedDB/
 
