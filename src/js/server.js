@@ -15,8 +15,46 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 mergeInto(LibraryManager.library, {
-  $SERVERS: { handlers: {} },
-  GNUNET_SERVER_add_handlers__deps: ['$SERVERS'],
+  $SERVER: {
+    handlers: {},
+    connect_notify_list: [],
+    disconnect_notify_list: [],
+    clients: {},
+    next_client: 1,
+    connect: function(port) {
+      port.onmessage = SERVER.client_get_message;
+      port._name = SERVER.next_client++;
+      SERVER.clients[port._name] = {
+        port: port,
+        ref_count: 0,
+        shtudown_now: false,
+      };
+      SERVER.connect_notify_list.map(function(notify) {
+        ccallFunc(Runtime.getFuncWrapper(notify.callback, 'vii'), 'void',
+          ['number', 'number'],
+          [notify.callback_cls, port._name]);
+      });
+    },
+    client_get_message: function(ev) {
+      var size = ev.data[0] << 8 | ev.data[1];
+      var type = ev.data[2] << 8 | ev.data[3];
+      var handler = SERVER.handlers[type];
+      //Module.print("Got message of type " + type + " size " + size + " from "
+      //    + ev.target._name);
+      if (typeof handler === 'undefined') {
+        //Module.print("But I don't know what to do with it");
+      } else {
+        if (handler.expected_size == 0 || handler.expected_size == size) {
+          ccallFunc(Runtime.getFuncWrapper(handler.callback, 'viii'), 'void',
+              ['number', 'number', 'array'],
+              [handler.callback_cls, ev.target._name, ev.data]);
+        } else {
+          //Module.print("But I was expecting size " + handler.expected_size);
+        }
+      }
+    }
+  },
+  GNUNET_SERVER_add_handlers__deps: ['$SERVER'],
   GNUNET_SERVER_add_handlers: function(server, handlers) {
     for (var i = 0; ; i += 12 /* sizeof GNUNET_SERVER_MessageHandler */) {
       var callback = getValue(handlers + i, 'i32');
@@ -26,23 +64,44 @@ mergeInto(LibraryManager.library, {
       if (callback === 0)
         break;
       //Module.print('Adding handler for message type: ' + type);
-      SERVERS.handlers[type] = {
+      SERVER.handlers[type] = {
         'callback': callback,
         'callback_cls': callback_cls,
         'expected_size': expected_size
       };
     }
   },
-  GNUNET_SERVER_disconnect_notify: function(server, callback, callback_cls) {
-    // TODO
-  },
+  GNUNET_SERVER_receive_done__deps: [
+    '$SERVER',
+    'GNUNET_SERVER_client_disconnect',
+  ],
   GNUNET_SERVER_receive_done: function(client, success) {
-    // TODO
+    var c = SERVER.clients[client];
+    if (!success) {
+      if (c.ref_count > 0)
+        c.shutdown_now = true;
+      else
+        _GNUNET_SERVER_client_disconnect(client);
+      return;
+    }
+    if (c.shutdown_now)
+      _GNUNET_SERVER_client_disconnect(client);
   },
+  GNUNET_SERVER_client_keep__deps: ['$SERVER'],
   GNUNET_SERVER_client_keep: function(client) {
-    // TODO
+    SERVER.clients[client].ref_count++;
   },
+  GNUNET_SERVER_client_drop__deps: [
+    '$SERVER',
+    'GNUNET_SERVER_client_disconnect',
+  ],
   GNUNET_SERVER_client_drop: function(client) {
+    var c = SERVER.clients[client];
+    c.ref_count--;
+    if (c.ref_count == 0 && c.shutdown_now)
+      _GNUNET_SERVER_client_disconnect(client);
+  },
+  GNUNET_SERVER_client_disconnect: function(client) {
     // TODO
   },
   GNUNET_SERVER_notify_transmit_ready: function(client, size, timeout, callback,
@@ -53,16 +112,32 @@ mergeInto(LibraryManager.library, {
       var buffer = Runtime.stackAlloc(size);
       var ret = Runtime.dynCall('iiii', callback, [callback_cls, size, buffer]);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
-      clients[client].postMessage(view);
+      SERVER.clients[client].port.postMessage(view);
       Runtime.stackRestore(stack);
     }, 0);
     return 1; // opaque GNUNET_SERVER_TransmitHandle*
   },
+  GNUNET_SERVER_connect_notify__deps: ['$SERVER'],
+  GNUNET_SERVER_connect_notify: function(server, callback, callback_cls) {
+    SERVER.connect_notify_list.push({
+      callback: callback,
+      callback_cls: callback_cls
+    });
+  },
+  GNUNET_SERVER_disconnect_notify__deps: ['$SERVER'],
+  GNUNET_SERVER_disconnect_notify: function(server, callback, callback_cls) {
+    SERVER.disconnect_notify_list.push({
+      callback: callback,
+      callback_cls: callback_cls
+    });
+  },
   GNUNET_SERVER_suspend: function(server) {
-    // TODO
+    // TODO: We either need to fail client connections when the server is
+    // suspended or we could allow connections but queue messages and
+    // connection notifications for delivery when the server is resumed.
   },
   GNUNET_SERVER_resume: function(server) {
-    // TODO
+    // TODO: see GNUNET_SERVER_suspend
   },
 });
 

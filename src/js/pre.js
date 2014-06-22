@@ -61,11 +61,6 @@ function do_to_window(fn) {
   }
 }
 
-// a map of client index to port
-var clients = {};
-// next available index
-var next_client = 1;
-
 function get_message(ev) {
   if ('init' == ev.data.type) {
     var channel = new MessageChannel();
@@ -79,29 +74,7 @@ function get_message(ev) {
     else
       init_continuation();
   } else if ('connect' == ev.data.type) {
-    ev.data.port.onmessage = client_get_message;
-    ev.data.port._name = next_client;
-    clients[next_client] = ev.data.port;
-    next_client++;
-  }
-}
-
-function client_get_message(ev) {
-  var size = ev.data[0] << 8 | ev.data[1];
-  var type = ev.data[2] << 8 | ev.data[3];
-  var handler = SERVERS.handlers[type];
-  //Module.print("Got message of type " + type + " size " + size + " from "
-  //    + ev.target._name);
-  if (typeof handler === 'undefined') {
-    //Module.print("But I don't know what to do with it");
-  } else {
-    if (handler.expected_size == 0 || handler.expected_size == size) {
-      ccallFunc(Runtime.getFuncWrapper(handler.callback, 'viii'), 'void',
-          ['number', 'number', 'array'],
-          [handler.callback_cls, ev.target._name, ev.data]);
-    } else {
-      //Module.print("But I was expecting size " + handler.expected_size);
-    }
+    SERVER.connect(ev.data.port);
   }
 }
 
