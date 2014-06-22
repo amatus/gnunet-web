@@ -59,6 +59,12 @@ mergeInto(LibraryManager.library, {
       INTERVAL: '1 h',
       WORKBITS: 22,
     },
+    CADET: {
+      MAX_MSGS_QUEUE: 10000,
+      MAX_CONNECTIONS: 1000,
+      REFRESH_CONNECTION_TIME: '5 min',
+      ID_ANNOUNCE_TIME: '1 h',
+    },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_get_value: function(section, option) {

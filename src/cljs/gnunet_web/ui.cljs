@@ -31,7 +31,7 @@
 
 (start-peerinfo)
 (def topology-worker (start-worker "topology" "js/gnunet-daemon-topology.js"))
-(def dht-worker (start-worker "dht" "js/gnunet-service-dht.js"))
+(def cadet-worker (start-worker "cadet" "js/gnunet-service-cadet.js"))
 
 (.addEventListener
   (by-id :hostlist)

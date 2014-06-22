@@ -46,12 +46,12 @@ pkg_compile() {
 	( echo '['
 	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
 	  echo '"_GNUNET_log_setup",'
-          echo '"_main"]' ) > transport_http_client.imports
+          echo '"_main"]' ) > transport.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@transport_http_client.imports \
+		-s EXPORTED_FUNCTIONS=@transport.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
 "${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
@@ -92,13 +92,13 @@ pkg_compile() {
 	  echo '"_GNUNET_CONFIGURATION_get_value_float",'
 	  echo '"_GNUNET_log_setup",'
           echo '"_GNUNET_xstrdup_",'
-          echo '"_main"]' ) > plugin_ats_proportional.imports
+          echo '"_main"]' ) > ats.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
 		-s TOTAL_MEMORY=33554432 \
-		-s EXPORTED_FUNCTIONS=@plugin_ats_proportional.imports \
+		-s EXPORTED_FUNCTIONS=@ats.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/gnunet-service-ats.js" \
 		"${S}/src/ats/gnunet-service-ats"*.o \
@@ -228,12 +228,12 @@ pkg_compile() {
 	  echo '"_GNUNET_log_setup",'
 	  echo '"_GNUNET_STRINGS_fancy_size_to_bytes",'
 	  echo '"_GNUNET_xstrdup_",'
-          echo '"_main"]' ) > dht.imports
+          echo '"_main"]' ) > dht.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@dht.imports \
+		-s EXPORTED_FUNCTIONS=@dht.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/dht/gnunet-service-dht.js" \
 		"${S}/src/dht/gnunet-service-dht"*.o \
@@ -261,6 +261,40 @@ pkg_compile() {
 		--preload-file "${S}/src/datacache/libgnunet_plugin_datacache_heap.js"@/libgnunet_plugin_datacache_heap
 	cp src/dht/.libs/gnunet-service-dht.js \
 		src/dht/.libs/gnunet-service-dht.data \
+		"${D}/var/lib/gnunet/js/"
+	#
+	# Cadet
+	#
+	( echo '['
+	  sed -e 's/.*/"&",/' < libgnunet_plugin_block_dht.imports
+	  echo '"_GNUNET_log_setup",'
+	  echo '"_GNUNET_STRINGS_fancy_time_to_relative",'
+          echo '"_main"]' ) > cadet.exports
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-s EXPORTED_FUNCTIONS=@cadet.exports \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/cadet/gnunet-service-cadet.js" \
+		"${S}/src/cadet/gnunet_service_cadet"*.o \
+		"${S}/src/block/libgnunetblock.la" \
+		"${S}/src/core/libgnunetcore.la" \
+		"${S}/src/dht/libgnunetdht.la" \
+		"${S}/src/hello/libgnunethello.la" \
+		"${S}/src/peerinfo/libgnunetpeerinfo.la" \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/transport/libgnunettransport.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		-lz \
+		--js-library "${BUILDROOT}/src/js/client.js" \
+		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/scheduler.js" \
+		--js-library "${BUILDROOT}/src/js/server.js" \
+		--js-library "${BUILDROOT}/src/js/service.js" \
+		--pre-js "${BUILDROOT}/src/js/pre.js" \
+		--preload-file "${S}/src/dht/libgnunet_plugin_block_dht.js"@/libgnunet_plugin_block_dht
+	cp src/cadet/.libs/gnunet-service-cadet.js \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Hostlist

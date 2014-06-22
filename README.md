@@ -13,7 +13,7 @@ Roadmap
     * gnunet-service-core.js - Done.
     * gnunet-service-nse.js - Done, PoW not persistent yet.
     * gnunet-service-dht.js - Done.
-    * gnunet-service-cadet.js - To do.
+    * gnunet-service-cadet.js - Done.
     * gnunet-service-datastore.js - To do.
         * Needs an [indexedDB] backend plugin.
     * gnunet-service-fs.js - To do.
@@ -47,7 +47,7 @@ What You Can Do Now
 1. Execute `lein run`
 2. Open http://localhost:3000/gnunet.html
 
-Each GNUnet service running in its own [Web Worker] thread. The APIs used by
+Each GNUnet service is running in its own [Web Worker] thread. The APIs used by
 the services to schedule tasks, communicate with each other, and load plugins
 are implemented as emscripten js libraries.
 
