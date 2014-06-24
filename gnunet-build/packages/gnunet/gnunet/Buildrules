@@ -23,8 +23,10 @@ pkg_compile() {
 		--with-libgcrypt-prefix="${SYSROOT}/usr" \
 		--without-libcurl \
 		--disable-testing \
+		--disable-nls \
 		--enable-logging=verbose \
 		ac_cv_lib_idn_stringprep_check_version=yes \
+		ac_cv_func_srandom=no \
                 CPPFLAGS="-I${SYSROOT}/usr/include" \
                 LDFLAGS="-L${SYSROOT}/usr/lib"
         emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
