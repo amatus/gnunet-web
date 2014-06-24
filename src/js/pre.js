@@ -26,6 +26,16 @@ gnunet_prerun = function() {
   if (ENVIRONMENT_IS_WORKER) {
     Module['print'] = function(x) { WorkerMessageQueue.push(x); };
     Module['printErr'] = function(x) { Module.print(x); };
+    [
+      'ats_proportional',
+      'block_dht',
+      'datacache_heap',
+      'datastore_heap',
+      'transport_http_client',
+    ].map(function(plugin) {
+      FS.createPreloadedFile('/', 'libgnunet_plugin_' + plugin + '.js',
+          'libgnunet_plugin_' + plugin + '.js', true, false);
+    });
   }
 }
 if (typeof(Module) === "undefined") Module = { preRun: [] };

@@ -17,14 +17,16 @@
 mergeInto(LibraryManager.library, {
   GNUNET_PLUGIN_load__deps: ['dlclose', 'dlsym', 'dlopen'],
   GNUNET_PLUGIN_load: function(library_name, arg) {
-    var handle = _dlopen(library_name, 0);
+    var lib = Pointer_stringify(library_name);
+    var handle = ccallFunc(_dlopen, 'number',
+      ['string', 'number'],
+      [lib + '.js', 0]);
     if (0 == handle) {
       return 0;
     }
-    var init_symbol = Pointer_stringify(library_name) + "_init";
     var sym = ccallFunc(_dlsym, 'number',
       ['number', 'string'],
-      [handle, init_symbol]);
+      [handle, lib + '_init']);
     if (!sym) {
       _dlclose(handle);
       return 0;

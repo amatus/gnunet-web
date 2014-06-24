@@ -69,10 +69,9 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/scheduler.js" \
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js" \
-		--preload-file "${S}/src/transport/libgnunet_plugin_transport_http_client.js"@/libgnunet_plugin_transport_http_client
-	cp src/transport/.libs/gnunet-service-transport.js \
-		src/transport/.libs/gnunet-service-transport.data \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp "${S}/src/transport/.libs/gnunet-service-transport.js" \
+		"${S}/src/transport/libgnunet_plugin_transport_http_client.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Automatic Transport Selection
@@ -114,10 +113,9 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/scheduler.js" \
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js" \
-		--preload-file "${S}/src/ats/libgnunet_plugin_ats_proportional.js"@/libgnunet_plugin_ats_proportional
-	cp src/ats/.libs/gnunet-service-ats.js \
-		src/ats/.libs/gnunet-service-ats.data \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp "${S}/src/ats/.libs/gnunet-service-ats.js" \
+		"${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Topology
@@ -144,7 +142,7 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/scheduler.js" \
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--pre-js "${BUILDROOT}/src/js/pre.js"
-	cp src/topology/.libs/gnunet-daemon-topology.js \
+	cp "${S}/src/topology/.libs/gnunet-daemon-topology.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Core
@@ -169,7 +167,7 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
 		--pre-js "${BUILDROOT}/src/js/pre.js"
-	cp src/core/.libs/gnunet-service-core.js \
+	cp "${S}/src/core/.libs/gnunet-service-core.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Network Size Estimation
@@ -197,7 +195,7 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
 		--pre-js "${BUILDROOT}/src/js/pre.js"
-	cp src/nse/.libs/gnunet-service-nse.js \
+	cp "${S}/src/nse/.libs/gnunet-service-nse.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Distributed Hash Table
@@ -256,11 +254,10 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/scheduler.js" \
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js" \
-		--preload-file "${S}/src/dht/libgnunet_plugin_block_dht.js"@/libgnunet_plugin_block_dht \
-		--preload-file "${S}/src/datacache/libgnunet_plugin_datacache_heap.js"@/libgnunet_plugin_datacache_heap
-	cp src/dht/.libs/gnunet-service-dht.js \
-		src/dht/.libs/gnunet-service-dht.data \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp "${S}/src/dht/.libs/gnunet-service-dht.js" \
+		"${S}/src/datacache/libgnunet_plugin_datacache_heap.js" \
+		"${S}/src/dht/libgnunet_plugin_block_dht.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Cadet
@@ -295,10 +292,8 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/scheduler.js" \
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js" \
-		--preload-file "${S}/src/dht/libgnunet_plugin_block_dht.js"@/libgnunet_plugin_block_dht
-	cp src/cadet/.libs/gnunet-service-cadet.js \
-		src/cadet/.libs/gnunet-service-cadet.data \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp "${S}/src/cadet/.libs/gnunet-service-cadet.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Datastore
@@ -336,15 +331,14 @@ pkg_compile() {
 		--js-library "${BUILDROOT}/src/js/scheduler.js" \
 		--js-library "${BUILDROOT}/src/js/server.js" \
 		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js" \
-		--preload-file "${S}/src/datastore/libgnunet_plugin_datastore_heap.js"@/libgnunet_plugin_datastore_heap
-	cp src/datastore/.libs/gnunet-service-datastore.js \
-		src/datastore/.libs/gnunet-service-datastore.data \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp "${S}/src/datastore/.libs/gnunet-service-datastore.js" \
+		"${S}/src/datastore/libgnunet_plugin_datastore_heap.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Hostlist
 	#
-	cat contrib/hellos/* > "${D}/var/lib/gnunet/hostlist"
+	cat "${S}/contrib/hellos/"* > "${D}/var/lib/gnunet/hostlist"
 }
 
 # vim: syntax=sh
