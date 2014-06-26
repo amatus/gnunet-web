@@ -37,6 +37,22 @@ gnunet_prerun = function() {
           'libgnunet_plugin_' + plugin + '.js', true, false);
     });
   }
+  var id = FS.makedev(1, 8);
+  FS.registerDevice(id, {
+    read: function(stream, buffer, offset, length, pos) {
+      //var buf = new Uint8Array(length);
+      //window.crypto.getRandomValues(buf);
+      for (var i = 0; i < length; i++) {
+        buffer[offset+i] = Math.floor(Math.random() * 256);
+      }
+      return length;
+    },
+  });
+  FS.mkdev('/dev/random', id);
+  FS.mkdev('/dev/urandom', id);
+//  addRunDependency("randomness")
+//  <gather randomness>
+//  removeRunDependency("randomness")
 }
 if (typeof(Module) === "undefined") Module = { preRun: [] };
 Module.preRun.push(gnunet_prerun);

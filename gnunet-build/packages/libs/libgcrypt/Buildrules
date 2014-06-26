@@ -2,13 +2,13 @@ VERSION="1.6.0"
 DESCRIPTION="This is a general purpose cryptographic library based on the code from GnuPG."
 SOURCE_URI="ftp://ftp.gnupg.org/gcrypt/${NAME}/${NAME}-${VERSION}.tar.bz2"
 BDEPENDS="${BDEPENDS} libs/libgpg-error"
-PATCHES="no-entropy"
 
 pkg_compile() {
         export TEMP_DIR="${T}"
         emconfigure ./configure --prefix=/usr \
                                 --sysconfdir=/etc \
 				--host=i386-emscripten-linux-gnu \
+				--enable-random=linux \
 				--disable-threads \
 				--disable-asm \
 				--disable-avx-support \

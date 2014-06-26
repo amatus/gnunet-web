@@ -21,7 +21,9 @@
   ;; XXX This has no synchronization!
   (let [d (.getItem js/localStorage "private-key")]
     (if (nil? d)
-      (let [d (repeatedly 32 #(int (* 0x100 (js/Math.random))))]
+      (let [d (js/Uint8Array. 32)
+            _ (js/window.crypto.getRandomValues d)
+            d (vec (.apply js/Array (array) d))]
         (.setItem js/localStorage "private-key" (clj->cljson d))
         d)
       (cljson->clj d))))
