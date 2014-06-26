@@ -29,6 +29,7 @@ gnunet_prerun = function() {
     [
       'ats_proportional',
       'block_dht',
+      'block_fs',
       'datacache_heap',
       'datastore_heap',
       'transport_http_client',

@@ -16,13 +16,13 @@
 
 mergeInto(LibraryManager.library, {
   $CONFIG: {
-    PEER: {
+    peer: {
       PRIVATE_KEY: '/private_key',
     },
     statistics: {
       DISABLE: true,
     },
-    TRANSPORT: {
+    transport: {
       NEIGHBOUR_LIMIT: 50,
       PLUGINS: 'http_client',
     },
@@ -43,7 +43,7 @@ mergeInto(LibraryManager.library, {
     core: {
       USE_EPHEMERAL_KEYS: true,
     },
-    DHT: {
+    dht: {
       CACHE_RESULTS: true,
       DISABLE_TRY_CONNECT: false,
     },
@@ -52,28 +52,35 @@ mergeInto(LibraryManager.library, {
       DATABASE: 'heap',
       DISABLE_BF: true,
     },
-    NSE: {
+    nse: {
       // disable NSE for now
       //PROOFFILE: '/proof.dat',
       WORKDELAY: '5 ms',
       INTERVAL: '1 h',
       WORKBITS: 22,
     },
-    CADET: {
+    cadet: {
       MAX_MSGS_QUEUE: 10000,
       MAX_CONNECTIONS: 1000,
       REFRESH_CONNECTION_TIME: '5 min',
       ID_ANNOUNCE_TIME: '1 h',
     },
-    DATASTORE: {
+    datastore: {
       DATABASE: 'heap',
       QUOTA: '64 MB',
+    },
+    fs: {
+      DELAY: true,
+      CONTENT_CACHING: true,
+      CONTENT_PUSHING: true,
+      MAX_CADET_CLIENTS: 128,
+      RESPECT: '/fs/credit/',
     },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_get_value: function(section, option) {
-    var section = Pointer_stringify(section);
-    var option = Pointer_stringify(option);
+    var section = Pointer_stringify(section).toLowerCase();
+    var option = Pointer_stringify(option).toUpperCase();
     Module.print('GNUNET_CONFIGURATION_get_value(' + section + ',' + option + ')');
     if (!(section in CONFIG)) {
       Module.print(section + ' not in CONFIG');
@@ -172,6 +179,9 @@ mergeInto(LibraryManager.library, {
         ['i32', 'string', 'string', 'string'],
         [iter_cls, section_name, option, value]);
     }
+  },
+  GNUNET_CONFIGURATION_create: function() {
+    return 1; // opaque non-null pointer
   },
 });
 
