@@ -1,7 +1,6 @@
 /*
      This file is part of GNUnet
-     (C) 2014 David Barksdale <amatus@amatus.name>
-     (C) 2002-2013 Christian Grothoff (and other contributing authors)
+     (C) 2002-2014 Christian Grothoff (and other contributing authors)
 
      GNUnet is free software; you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published
@@ -23,6 +22,8 @@
  * @file transport/plugin_transport_http_client.c
  * @brief HTTP/S client transport plugin
  * @author Matthias Wachs
+ * @author Christian Grothoff
+ * @author David Barksdale <amatus@amatus.name>
  */
 
 #if BUILD_HTTPS
@@ -50,6 +51,7 @@
 #include <emscripten.h>
 
 
+#define LOG(kind,...) GNUNET_log_from(kind, PLUGIN_NAME, __VA_ARGS__)
 
 /**
  * Encapsulation of all of the state of the plugin.
@@ -78,6 +80,18 @@ struct HTTP_Message
   char *buf;
 
   /**
+   * Continuation function to call once the transmission buffer
+   * has again space available.  NULL if there is no
+   * continuation to call.
+   */
+  GNUNET_TRANSPORT_TransmitContinuation transmit_cont;
+
+  /**
+   * Closure for @e transmit_cont.
+   */
+  void *transmit_cont_cls;
+
+  /**
    * amount of data already sent
    */
   size_t pos;
@@ -86,18 +100,6 @@ struct HTTP_Message
    * buffer length
    */
   size_t size;
-
-  /**
-   * Continuation function to call once the transmission buffer
-   * has again space available.  NULL if there is no
-   * continuation to call.
-   */
-  GNUNET_TRANSPORT_TransmitContinuation transmit_cont;
-
-  /**
-   * Closure for transmit_cont.
-   */
-  void *transmit_cont_cls;
 };
 
 
@@ -108,44 +110,10 @@ struct Session;
 
 
 /**
- * A connection handle
- *
- */
-struct ConnectionHandle
-{
-  /**
-   * The curl easy handle
-   */
-  //XXX CURL *easyhandle;
-
-  /**
-   * The related session
-   */
-  struct Session *s;
-};
-
-
-/**
  * Session handle for connections.
  */
 struct Session
 {
-  /**
-   * To whom are we talking to (set to our identity
-   * if we are still waiting for the welcome message)
-   */
-  struct GNUNET_PeerIdentity target;
-
-  /**
-   * Stored in a linked list.
-   */
-  struct Session *next;
-
-  /**
-   * Stored in a linked list.
-   */
-  struct Session *prev;
-
   /**
    * The URL to connect to
    */
@@ -157,20 +125,59 @@ struct Session
   struct GNUNET_HELLO_Address *address;
 
   /**
+   * Pointer to the global plugin struct.
+   */
+  struct HTTP_Client_Plugin *plugin;
+
+  /**
+   * Handle for the HTTP GET request
+   */
+  int get;
+
+  /**
+   * Message stream tokenizer for incoming data
+   */
+  struct GNUNET_SERVER_MessageStreamTokenizer *msg_tk;
+
+  /**
+   * Session timeout task
+   */
+  GNUNET_SCHEDULER_TaskIdentifier timeout_task;
+
+  /**
+   * Task to wake up client receive handle when receiving is allowed again
+   */
+  GNUNET_SCHEDULER_TaskIdentifier recv_wakeup_task;
+
+  /**
+   * Absolute time when to receive data again
+   * Used for receive throttling
+   */
+  struct GNUNET_TIME_Absolute next_receive;
+
+  /**
+   * When does this session time out.
+   */
+  struct GNUNET_TIME_Absolute timeout;
+
+  /**
+   * Number of bytes waiting for transmission to this peer.
+   */
+  unsigned long long bytes_in_queue;
+
+  /**
+   * Outbound overhead due to HTTP connection
+   * Add to next message of this session when calling callback
+   */
+  size_t overhead;
+
+  /**
    * ATS network type in NBO
    */
   uint32_t ats_address_network_type;
 
   /**
-   * Pointer to the global plugin struct.
-   */
-  struct HTTP_Client_Plugin *plugin;
-
-  struct ConnectionHandle put;
-  struct ConnectionHandle get;
-
-  /**
-   * Is the client PUT handle currently paused
+   * Is the client PUT handle currently paused?
    */
   int put_paused;
 
@@ -188,53 +195,6 @@ struct Session
    * We received data to send while disconnecting, reconnect immediately
    */
   int put_reconnect_required;
-
-  /**
-   * Client receive handle
-   */
-  void *client_get;
-
-  /**
-   * Outbound overhead due to HTTP connection
-   * Add to next message of this session when calling callback
-   */
-  size_t overhead;
-
-  /**
-   * next pointer for double linked list
-   */
-  struct HTTP_Message *msg_head;
-
-  /**
-   * previous pointer for double linked list
-   */
-  struct HTTP_Message *msg_tail;
-
-  /**
-   * Message stream tokenizer for incoming data
-   */
-  struct GNUNET_SERVER_MessageStreamTokenizer *msg_tk;
-
-  /**
-   * Session timeout task
-   */
-  //XXX GNUNET_SCHEDULER_TaskIdentifier put_disconnect_task;
-
-  /**
-   * Session timeout task
-   */
-  GNUNET_SCHEDULER_TaskIdentifier timeout_task;
-
-  /**
-   * Task to wake up client receive handle when receiving is allowed again
-   */
-  GNUNET_SCHEDULER_TaskIdentifier recv_wakeup_task;
-
-  /**
-  * Absolute time when to receive data again
-  * Used for receive throttling
-  */
-  struct GNUNET_TIME_Absolute next_receive;
 };
 
 
@@ -249,14 +209,19 @@ struct HTTP_Client_Plugin
   struct GNUNET_TRANSPORT_PluginEnvironment *env;
 
   /**
-   * Linked list head of open sessions.
+   * Open sessions.
    */
-  struct Session *head;
+  struct GNUNET_CONTAINER_MultiPeerMap *sessions;
 
   /**
-   * Linked list tail of open sessions.
+   * Function to call about session status changes.
    */
-  struct Session *tail;
+  GNUNET_TRANSPORT_SessionInfoCallback sic;
+
+  /**
+   * Closure for @e sic.
+   */
+  void *sic_cls;
 
   /**
    * Plugin name
@@ -299,44 +264,109 @@ struct HTTP_Client_Plugin
    * use IPv4
    */
   uint16_t use_ipv4;
-
-  /**
-   * cURL Multihandle
-   */
-  //XXX CURLM *curl_multi_handle;
-
-  /**
-   * curl perform task
-   */
-  //XXX GNUNET_SCHEDULER_TaskIdentifier client_perform_task;
 };
 
 
+
 /**
- * Increment session timeout due to activity for a session
+ * If a session monitor is attached, notify it about the new
+ * session state.
+ *
+ * @param plugin our plugin
+ * @param session session that changed state
+ * @param state new state of the session
+ */
+static void
+notify_session_monitor (struct HTTP_Client_Plugin *plugin,
+                        struct Session *session,
+                        enum GNUNET_TRANSPORT_SessionState state)
+{
+  struct GNUNET_TRANSPORT_SessionInfo info;
+
+  if (NULL == plugin->sic)
+    return;
+  memset (&info, 0, sizeof (info));
+  info.state = state;
+  info.is_inbound = GNUNET_NO;
+  info.num_msg_pending = 0;
+  info.num_bytes_pending = 0;
+  info.receive_delay = session->next_receive;
+  info.session_timeout = session->timeout;
+  info.address = session->address;
+  plugin->sic (plugin->sic_cls,
+               session,
+               &info);
+}
+
+
+/**
+ * Delete session @a s
+ *
+ * @param s the session to delete
+ */
+static void
+client_delete_session (struct Session *s)
+{
+  struct HTTP_Client_Plugin *plugin = s->plugin;
+
+  if (GNUNET_SCHEDULER_NO_TASK != s->timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (s->timeout_task);
+    s->timeout_task = GNUNET_SCHEDULER_NO_TASK;
+    s->timeout = GNUNET_TIME_UNIT_ZERO_ABS;
+  }
+  /*XXX if (GNUNET_SCHEDULER_NO_TASK != s->put_disconnect_task)
+  {
+    GNUNET_SCHEDULER_cancel (s->put_disconnect_task);
+    s->put_disconnect_task = GNUNET_SCHEDULER_NO_TASK;
+  }*/
+  if (GNUNET_SCHEDULER_NO_TASK != s->recv_wakeup_task)
+  {
+    GNUNET_SCHEDULER_cancel (s->recv_wakeup_task);
+    s->recv_wakeup_task = GNUNET_SCHEDULER_NO_TASK;
+  }
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_CONTAINER_multipeermap_remove (plugin->sessions,
+                                                       &s->address->peer,
+                                                       s));
+  if (s->get)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Session %p/connection %d: disconnecting GET connection to peer `%s'\n",
+         s, s->get,
+         GNUNET_i2s (&s->address->peer));
+    GNUNET_assert (plugin->cur_connections > 0);
+    plugin->cur_connections--;
+    s->get = 0;
+  }
+  GNUNET_STATISTICS_set (plugin->env->stats,
+                         HTTP_STAT_STR_CONNECTIONS,
+                         plugin->cur_connections,
+                         GNUNET_NO);
+
+  notify_session_monitor (plugin,
+                          s,
+                          GNUNET_TRANSPORT_SS_DOWN);
+  if (NULL != s->msg_tk)
+  {
+    GNUNET_SERVER_mst_destroy (s->msg_tk);
+    s->msg_tk = NULL;
+  }
+  GNUNET_HELLO_address_free (s->address);
+  GNUNET_free (s->url);
+  GNUNET_free (s);
+}
+
+
+/**
+ * Increment session timeout due to activity for session @a s
  * @param s the session
  */
 static void
-client_reschedule_session_timeout (struct Session *s);
-
-
-/**
- * Does a session s exists?
- *
- * @param plugin the plugin
- * @param s desired session
- * @return #GNUNET_YES or #GNUNET_NO
- */
-static int
-client_exist_session (struct HTTP_Client_Plugin *plugin,
-                      struct Session *s)
+client_reschedule_session_timeout (struct Session *s)
 {
-  struct Session * head;
-
-  for (head = plugin->head; head != NULL; head = head->next)
-    if (head == s)
-      return GNUNET_YES;
-  return GNUNET_NO;
+  GNUNET_assert (GNUNET_SCHEDULER_NO_TASK != s->timeout_task);
+  s->timeout = GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
 }
 
 
@@ -351,7 +381,7 @@ client_exist_session (struct HTTP_Client_Plugin *plugin,
  * @param cls closure
  * @param s which session must be used
  * @param msgbuf the message to transmit
- * @param msgbuf_size number of bytes in 'msgbuf'
+ * @param msgbuf_size number of bytes in @a msgbuf
  * @param priority how important is the message (most plugins will
  *                 ignore message priority and just FIFO)
  * @param to how long to wait at most for the transmission (does not
@@ -370,26 +400,19 @@ client_exist_session (struct HTTP_Client_Plugin *plugin,
 static ssize_t
 http_client_plugin_send (void *cls,
                          struct Session *s,
-                         const char *msgbuf, size_t msgbuf_size,
+                         const char *msgbuf,
+                         size_t msgbuf_size,
                          unsigned int priority,
                          struct GNUNET_TIME_Relative to,
                          GNUNET_TRANSPORT_TransmitContinuation cont,
                          void *cont_cls)
 {
   struct HTTP_Client_Plugin *plugin = cls;
-  struct HTTP_Message *msg;
-  char *stat_txt;
 
-  /* lookup if session is really existing */
-  if (GNUNET_YES != client_exist_session (plugin, s))
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, s->plugin->name,
-                   "Session %p: Sending message with %u to peer `%s' \n",
-                   s, msgbuf_size, GNUNET_i2s (&s->target));
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Session %p: Sending message with %u to peer `%s' \n",
+       s,
+       msgbuf_size, GNUNET_i2s (&s->address->peer));
 
   EM_ASM_INT({
     var url = Pointer_stringify($0);
@@ -414,185 +437,45 @@ http_client_plugin_send (void *cls,
       }
     };
   },
-  s->url,       // $0
-  msgbuf,       // $1
-  msgbuf_size,  // $2
-  cont,         // $3
-  cont_cls,     // $4
-  &s->target    // $5
+  s->url,             // $0
+  msgbuf,             // $1
+  msgbuf_size,        // $2
+  cont,               // $3
+  cont_cls,           // $4
+  &s->address->peer   // $5
   );
-  // XXX
   return msgbuf_size;
-  /* create new message and schedule */
-  msg = GNUNET_malloc (sizeof (struct HTTP_Message) + msgbuf_size);
-  msg->next = NULL;
-  msg->size = msgbuf_size;
-  msg->pos = 0;
-  msg->buf = (char *) &msg[1];
-  msg->transmit_cont = cont;
-  msg->transmit_cont_cls = cont_cls;
-  memcpy (msg->buf, msgbuf, msgbuf_size);
-  GNUNET_CONTAINER_DLL_insert_tail (s->msg_head, s->msg_tail, msg);
-
-  GNUNET_asprintf (&stat_txt,
-                   "# bytes currently in %s_client buffers",
-                   plugin->protocol);
-  GNUNET_STATISTICS_update (plugin->env->stats,
-                            stat_txt, msgbuf_size, GNUNET_NO);
-  GNUNET_free (stat_txt);
-
-  if (GNUNET_YES == s->put_tmp_disconnecting)
-  {
-    /* PUT connection is currently getting disconnected */
-    s->put_reconnect_required = GNUNET_YES;
-    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, s->plugin->name,
-                     "Session %p: currently disconnecting, reconnecting immediately\n",
-                     s);
-    return msgbuf_size;
-  }
-  else if (GNUNET_YES == s->put_paused)
-  {
-    /* PUT connection was paused, unpause */
-    /*XXX GNUNET_assert (s->put_disconnect_task != GNUNET_SCHEDULER_NO_TASK);
-    GNUNET_SCHEDULER_cancel (s->put_disconnect_task);
-    s->put_disconnect_task = GNUNET_SCHEDULER_NO_TASK;*/
-    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, s->plugin->name,
-                     "Session %p: unpausing connection\n",
-                     s);
-    s->put_paused = GNUNET_NO;
-  }
-  else if (GNUNET_YES == s->put_tmp_disconnected)
-  {
-    /* PUT connection was disconnected, reconnect */
-    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, s->plugin->name,
-                     "Session %p: Reconnecting PUT connection\n",
-                     s);
-    s->put_tmp_disconnected = GNUNET_NO;
-  }
-
-  return msgbuf_size;
-}
-
-
-/**
- * Delete session s
- *
- * @param s the session to delete
- */
-static void
-client_delete_session (struct Session *s)
-{
-  struct HTTP_Client_Plugin *plugin = s->plugin;
-  struct HTTP_Message *pos;
-  struct HTTP_Message *next;
-
-  if (GNUNET_SCHEDULER_NO_TASK != s->timeout_task)
-  {
-    GNUNET_SCHEDULER_cancel (s->timeout_task);
-    s->timeout_task = GNUNET_SCHEDULER_NO_TASK;
-  }
-  /*XXX if (GNUNET_SCHEDULER_NO_TASK != s->put_disconnect_task)
-  {
-      GNUNET_SCHEDULER_cancel (s->put_disconnect_task);
-      s->put_disconnect_task = GNUNET_SCHEDULER_NO_TASK;
-  }*/
-
-  GNUNET_CONTAINER_DLL_remove (plugin->head, plugin->tail, s);
-
-  next = s->msg_head;
-  while (NULL != (pos = next))
-  {
-    next = pos->next;
-    GNUNET_CONTAINER_DLL_remove (s->msg_head, s->msg_tail, pos);
-    if (pos->transmit_cont != NULL)
-      pos->transmit_cont (pos->transmit_cont_cls, &s->target, GNUNET_SYSERR,
-                          pos->size, pos->pos + s->overhead);
-    s->overhead = 0;
-    GNUNET_free (pos);
-  }
-
-  if (s->msg_tk != NULL)
-  {
-    GNUNET_SERVER_mst_destroy (s->msg_tk);
-    s->msg_tk = NULL;
-  }
-  GNUNET_HELLO_address_free (s->address);
-  GNUNET_free (s->url);
-  GNUNET_free (s);
 }
 
 
 /**
  * Disconnect a session
  *
- * @param cls the `struct HTTP_Client_Plugin`
+ * @param cls the `struct HTTP_Client_Plugin *`
  * @param s session
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 static int
-http_client_session_disconnect (void *cls,
-                                struct Session *s)
+http_client_plugin_session_disconnect (void *cls,
+                                       struct Session *s)
 {
   struct HTTP_Client_Plugin *plugin = cls;
-  struct HTTP_Message *msg;
-  struct HTTP_Message *t;
-  int res = GNUNET_OK;
 
-  if (GNUNET_YES != client_exist_session (plugin, s))
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Session %p: notifying transport about ending session\n",s);
 
-  if (s->recv_wakeup_task != GNUNET_SCHEDULER_NO_TASK)
-  {
-    GNUNET_SCHEDULER_cancel (s->recv_wakeup_task);
-    s->recv_wakeup_task = GNUNET_SCHEDULER_NO_TASK;
-  }
-
-  if (NULL != s->client_get)
-  {
-    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                     "Session %p/connection %p: disconnecting GET connection to peer `%s'\n",
-                     s, s->client_get,
-                     GNUNET_i2s (&s->target));
-    /* remove curl handle from multi handle */
-    //XXX curl_easy_cleanup (s->client_get);
-    s->client_get = NULL;
-  }
-
-  msg = s->msg_head;
-  while (NULL != msg)
-  {
-    t = msg->next;
-    if (NULL != msg->transmit_cont)
-      msg->transmit_cont (msg->transmit_cont_cls, &s->target, GNUNET_SYSERR,
-                          msg->size, msg->pos + s->overhead);
-    s->overhead = 0;
-    GNUNET_CONTAINER_DLL_remove (s->msg_head, s->msg_tail, msg);
-    GNUNET_free (msg);
-    msg = t;
-  }
-
-  GNUNET_assert (plugin->cur_connections >= 2);
-  plugin->cur_connections -= 2;
-  GNUNET_STATISTICS_set (plugin->env->stats,
-                         HTTP_STAT_STR_CONNECTIONS,
-                         plugin->cur_connections,
-                         GNUNET_NO);
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                   "Session %p: notifying transport about ending session\n",s);
-
-  plugin->env->session_end (plugin->env->cls, &s->target, s);
+  plugin->env->session_end (plugin->env->cls,
+                            s->address,
+                            s);
   client_delete_session (s);
 
-  return res;
+  return GNUNET_OK;
 }
 
 
 /**
  * Function that is called to get the keepalive factor.
- * GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT is divided by this number to
+ * #GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT is divided by this number to
  * calculate the interval between keepalive packets.
  *
  * @param cls closure with the `struct Plugin`
@@ -602,6 +485,26 @@ static unsigned int
 http_client_query_keepalive_factor (void *cls)
 {
   return 3;
+}
+
+/**
+ * Callback to destroys all sessions on exit.
+ *
+ * @param cls the `struct HTTP_Client_Plugin *`
+ * @param peer identity of the peer
+ * @param value the `struct Session *`
+ * @return #GNUNET_OK (continue iterating)
+ */
+static int
+destroy_session_cb (void *cls,
+                    const struct GNUNET_PeerIdentity *peer,
+                    void *value)
+{
+  struct HTTP_Client_Plugin *plugin = cls;
+  struct Session *session = value;
+
+  http_client_plugin_session_disconnect (plugin, session);
+  return GNUNET_OK;
 }
 
 
@@ -614,30 +517,61 @@ http_client_query_keepalive_factor (void *cls)
  * @param target peer from which to disconnect
  */
 static void
-http_client_peer_disconnect (void *cls,
-                             const struct GNUNET_PeerIdentity *target)
+http_client_plugin_peer_disconnect (void *cls,
+                                    const struct GNUNET_PeerIdentity *target)
 {
   struct HTTP_Client_Plugin *plugin = cls;
-  struct Session *next = NULL;
-  struct Session *pos = NULL;
 
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                   "Transport tells me to disconnect `%s'\n",
-                   GNUNET_i2s (target));
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Transport tells me to disconnect `%s'\n",
+       GNUNET_i2s (target));
 
-  next = plugin->head;
-  while (NULL != (pos = next))
+  GNUNET_CONTAINER_multipeermap_get_multiple (plugin->sessions,
+                                              target,
+                                              &destroy_session_cb,
+                                              plugin);
+}
+
+/**
+ * Closure for #session_lookup_client_by_address().
+ */
+struct SessionClientCtx
+{
+  /**
+   * Address we are looking for.
+   */
+  const struct GNUNET_HELLO_Address *address;
+
+  /**
+   * Session that was found.
+   */
+  struct Session *ret;
+};
+
+
+/**
+ * Locate the seession object for a given address.
+ *
+ * @param cls the `struct SessionClientCtx *`
+ * @param key peer identity
+ * @param value the `struct Session` to check
+ * @return #GNUNET_NO if found, #GNUNET_OK if not
+ */
+static int
+session_lookup_client_by_address (void *cls,
+                                  const struct GNUNET_PeerIdentity *key,
+                                  void *value)
+{
+  struct SessionClientCtx *sc_ctx = cls;
+  struct Session *s = value;
+
+  if (0 == GNUNET_HELLO_address_cmp (sc_ctx->address,
+                                     s->address))
   {
-    next = pos->next;
-    if (0 == memcmp (target, &pos->target, sizeof (struct GNUNET_PeerIdentity)))
-    {
-      GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                       "Disconnecting session %p to `%pos'\n",
-                       pos, GNUNET_i2s (target));
-      GNUNET_assert (GNUNET_OK == http_client_session_disconnect (plugin,
-                                                                  pos));
-    }
+    sc_ctx->ret = s;
+    return GNUNET_NO;
   }
+  return GNUNET_YES;
 }
 
 
@@ -652,15 +586,14 @@ static struct Session *
 client_lookup_session (struct HTTP_Client_Plugin *plugin,
                        const struct GNUNET_HELLO_Address *address)
 {
-  struct Session *pos;
+  struct SessionClientCtx sc_ctx;
 
-  for (pos = plugin->head; NULL != pos; pos = pos->next)
-  {
-    if ((0 == memcmp (&address->peer, &pos->target, sizeof (struct GNUNET_PeerIdentity))) &&
-        (0 == GNUNET_HELLO_address_cmp(address, pos->address)))
-      return pos;
-  }
-  return NULL;
+  sc_ctx.address = address;
+  sc_ctx.ret = NULL;
+  GNUNET_CONTAINER_multipeermap_iterate (plugin->sessions,
+                                         &session_lookup_client_by_address,
+                                         &sc_ctx);
+  return sc_ctx.ret;
 }
 
 
@@ -675,24 +608,20 @@ client_wake_up (void *cls,
                 const struct GNUNET_SCHEDULER_TaskContext *tc)
 {
   struct Session *s = cls;
-  struct HTTP_Client_Plugin *p = s->plugin;
 
-  if (GNUNET_YES != client_exist_session (p, s))
-  {
-    GNUNET_break (0);
-    return;
-  }
   s->recv_wakeup_task = GNUNET_SCHEDULER_NO_TASK;
   if (0 != (tc->reason & GNUNET_SCHEDULER_REASON_SHUTDOWN))
     return;
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, s->plugin->name,
-                   "Session %p/connection %p: Waking up GET handle\n",
-                   s,
-                   s->client_get);
-  s->put_paused = GNUNET_NO;
-  if (NULL != s->client_get)
-    ; //XXX curl_easy_pause (s->client_get, CURLPAUSE_CONT);
-
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Session %p/connection %d: Waking up GET handle\n",
+       s, s->get);
+  if (GNUNET_YES == s->put_paused)
+  {
+    /* PUT connection was paused, unpause */
+    s->put_paused = GNUNET_NO;
+  }
+  if (s->get)
+    ; //XXX curl_easy_pause (s->get.easyhandle, CURLPAUSE_CONT);
 }
 
 
@@ -705,7 +634,8 @@ client_wake_up (void *cls,
  * @return always #GNUNET_OK
  */
 static int
-client_receive_mst_cb (void *cls, void *client,
+client_receive_mst_cb (void *cls,
+                       void *client,
                        const struct GNUNET_MessageHeader *message)
 {
   struct Session *s = cls;
@@ -715,17 +645,14 @@ client_receive_mst_cb (void *cls, void *client,
   char *stat_txt;
 
   plugin = s->plugin;
-  if (GNUNET_YES != client_exist_session (plugin, s))
-  {
-    GNUNET_break (0);
-    return GNUNET_OK;
-  }
-
   atsi.type = htonl (GNUNET_ATS_NETWORK_TYPE);
   atsi.value = s->ats_address_network_type;
   GNUNET_break (s->ats_address_network_type != ntohl (GNUNET_ATS_NET_UNSPECIFIED));
 
-  delay = s->plugin->env->receive (plugin->env->cls, s->address, s, message);
+  delay = s->plugin->env->receive (plugin->env->cls,
+                                   s->address,
+                                   s,
+                                   message);
   plugin->env->update_address_metrics (plugin->env->cls,
 				       s->address, s,
 				       &atsi, 1);
@@ -734,22 +661,22 @@ client_receive_mst_cb (void *cls, void *client,
                    "# bytes received via %s_client",
                    plugin->protocol);
   GNUNET_STATISTICS_update (plugin->env->stats,
-                            stat_txt, ntohs(message->size), GNUNET_NO);
+                            stat_txt,
+                            ntohs(message->size),
+                            GNUNET_NO);
   GNUNET_free (stat_txt);
 
-  s->next_receive =
-      GNUNET_TIME_absolute_add (GNUNET_TIME_absolute_get (), delay);
-
+  s->next_receive = GNUNET_TIME_absolute_add (GNUNET_TIME_absolute_get (), delay);
   if (GNUNET_TIME_absolute_get ().abs_value_us < s->next_receive.abs_value_us)
   {
-    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                     "Client: peer `%s' address `%s' next read delayed for %s\n",
-                     GNUNET_i2s (&s->target),
-                     http_common_plugin_address_to_string (NULL,
-			s->plugin->protocol, s->address->address,
-			s->address->address_length),
-                     GNUNET_STRINGS_relative_time_to_string (delay,
-							     GNUNET_YES));
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Client: peer `%s' address `%s' next read delayed for %s\n",
+         GNUNET_i2s (&s->address->peer),
+         http_common_plugin_address_to_string (s->plugin->protocol,
+                                               s->address->address,
+                                               s->address->address_length),
+         GNUNET_STRINGS_relative_time_to_string (delay,
+                                                 GNUNET_YES));
   }
   client_reschedule_session_timeout (s);
   return GNUNET_OK;
@@ -766,40 +693,53 @@ client_receive_mst_cb (void *cls, void *client,
  * @param cls destination pointer, passed to the libcurl handle
  * @return bytes read from stream
  */
-static size_t EMSCRIPTEN_KEEPALIVE
-client_receive (void *stream, size_t size, size_t nmemb, void *cls)
+static size_t
+client_receive (void *stream,
+                size_t size,
+                size_t nmemb,
+                void *cls)
 {
   struct Session *s = cls;
   struct GNUNET_TIME_Absolute now;
   size_t len = size * nmemb;
 
   GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, s->plugin->name,
-                   "Session %p / connection %p: Received %u bytes from peer `%s'\n",
-                   s, s->client_get,
-                   len, GNUNET_i2s (&s->target));
+                   "Session %p / connection %d: Received %u bytes from peer `%s'\n",
+                   s, s->get,
+                   len, GNUNET_i2s (&s->address->peer));
   now = GNUNET_TIME_absolute_get ();
   if (now.abs_value_us < s->next_receive.abs_value_us)
   {
     struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
-    struct GNUNET_TIME_Relative delta =
-        GNUNET_TIME_absolute_get_difference (now, s->next_receive);
-    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, s->plugin->name,
-                     "Session %p / connection %p: No inbound bandwidth available! Next read was delayed for %s\n",
-                     s, s->client_get,
+    struct GNUNET_TIME_Relative delta
+      = GNUNET_TIME_absolute_get_difference (now, s->next_receive);
+
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Session %p / connection %d: No inbound bandwidth available! Next read was delayed for %s\n",
+         s,
+         s->get,
 		     GNUNET_STRINGS_relative_time_to_string (delta,
-							     GNUNET_YES));
+                                                 GNUNET_YES));
     if (s->recv_wakeup_task != GNUNET_SCHEDULER_NO_TASK)
     {
       GNUNET_SCHEDULER_cancel (s->recv_wakeup_task);
       s->recv_wakeup_task = GNUNET_SCHEDULER_NO_TASK;
     }
-    s->recv_wakeup_task =
-        GNUNET_SCHEDULER_add_delayed (delta, &client_wake_up, s);
-    return 0; //XXX CURL_WRITEFUNC_PAUSE;
+    s->recv_wakeup_task
+      = GNUNET_SCHEDULER_add_delayed (delta,
+                                      &client_wake_up,
+                                      s);
+    return 0;
   }
   if (NULL == s->msg_tk)
-    s->msg_tk = GNUNET_SERVER_mst_create (&client_receive_mst_cb, s);
-  GNUNET_SERVER_mst_receive (s->msg_tk, s, stream, len, GNUNET_NO, GNUNET_NO);
+    s->msg_tk = GNUNET_SERVER_mst_create (&client_receive_mst_cb,
+                                          s);
+  GNUNET_SERVER_mst_receive (s->msg_tk,
+                             s,
+                             stream,
+                             len,
+                             GNUNET_NO,
+                             GNUNET_NO);
   return len;
 }
 
@@ -815,12 +755,13 @@ static int
 client_connect_get (struct Session *s)
 {
   /* create get connection */
-  s->client_get = (void *)next_xhr++;
+  s->get = next_xhr++;
+  s->plugin->cur_connections++;
   EM_ASM_INT({
     var s = $1;
     var url = Pointer_stringify($2);
     var client_receive = $3;
-    var http_client_session_disconnect = $4;
+    var http_client_plugin_session_disconnect = $4;
     var plugin  = $5;
     Module.print('Creating new get xhr: ' + $0);
     var xhr = new XMLHttpRequest();
@@ -845,13 +786,10 @@ client_connect_get (struct Session *s)
     xhr.onerror = function(e) {
       Module.print('xhr' + $0 + ' status:'
         + xhr.status + ':' + xhr.statusText);
-      if (false) {
-        ccallFunc(Runtime.getFuncWrapper(http_client_session_disconnect, 'iii'),
-          'number',
-          ['number', 'number'],
-          [plugin, s]);
-      }
-      xhr.resend();
+      ccallFunc(Runtime.getFuncWrapper(http_client_plugin_session_disconnect, 'iii'),
+        'number',
+        ['number', 'number'],
+        [plugin, s]);
     };
     xhr.onabort = function() {
       Module.print('xhr' + $0 + ' aborted');
@@ -861,12 +799,12 @@ client_connect_get (struct Session *s)
     };
     xhr.resend();
   },
-    s->client_get,                    // $0
-    s,                                // $1
-    s->url,                           // $2
-    &client_receive,                  // $3
-    &http_client_session_disconnect,  // $4
-    s->plugin                         // $5
+    s->get,                                 // $0
+    s,                                      // $1
+    s->url,                                 // $2
+    &client_receive,                        // $3
+    &http_client_plugin_session_disconnect, // $4
+    s->plugin                               // $5
       );
   return GNUNET_OK;
 }
@@ -881,51 +819,41 @@ client_connect_get (struct Session *s)
 static int
 client_connect (struct Session *s)
 {
-
   struct HTTP_Client_Plugin *plugin = s->plugin;
   int res = GNUNET_OK;
 
   /* create url */
-  if (NULL == http_common_plugin_address_to_string (NULL,
-        plugin->protocol, s->address->address, s->address->address_length))
+  if (NULL == http_common_plugin_address_to_string (plugin->protocol,
+          s->address->address, s->address->address_length))
   {
-    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
-                     plugin->name,
-                     "Invalid address peer `%s'\n",
-                     GNUNET_i2s (&s->target));
+    LOG (GNUNET_ERROR_TYPE_DEBUG, "Invalid address peer `%s'\n",
+         GNUNET_i2s (&s->address->peer));
     return GNUNET_SYSERR;
   }
 
   GNUNET_asprintf (&s->url, "%s/%s;%u",
-		   http_common_plugin_address_to_url (NULL, s->address->address,
-		       s->address->address_length),
-		   GNUNET_i2s_full (plugin->env->my_identity),
-		   plugin->last_tag);
+      http_common_plugin_address_to_url (NULL, s->address->address,
+          s->address->address_length),
+      GNUNET_i2s_full (plugin->env->my_identity), plugin->last_tag);
 
   plugin->last_tag++;
 
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                   "Initiating outbound session peer `%s' using address `%s'\n",
-                   GNUNET_i2s (&s->target), s->url);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Initiating outbound session peer `%s' using address `%s'\n",
+       GNUNET_i2s (&s->address->peer), s->url);
 
   if (GNUNET_SYSERR == client_connect_get (s))
-  {
-    GNUNET_break (0);
     return GNUNET_SYSERR;
-  }
 
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
-                   plugin->name,
-                   "Session %p: connected with connection GET %p\n",
-                   s, s->client_get);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Session %p: connected with connection GET %d\n",
+       s, s->get);
 
   /* Perform connect */
-  plugin->cur_connections += 2;
   GNUNET_STATISTICS_set (plugin->env->stats,
                          HTTP_STAT_STR_CONNECTIONS,
                          plugin->cur_connections,
                          GNUNET_NO);
-
   return res;
 }
 
@@ -938,8 +866,8 @@ client_connect (struct Session *s)
  * @return the network type
  */
 static enum GNUNET_ATS_Network_Type
-http_client_get_network (void *cls,
-			 struct Session *session)
+http_client_plugin_get_network (void *cls,
+                                struct Session *session)
 {
   return ntohl (session->ats_address_network_type);
 }
@@ -956,17 +884,31 @@ client_session_timeout (void *cls,
                         const struct GNUNET_SCHEDULER_TaskContext *tc)
 {
   struct Session *s = cls;
+  struct GNUNET_TIME_Relative left;
 
   s->timeout_task = GNUNET_SCHEDULER_NO_TASK;
-  GNUNET_log (TIMEOUT_LOG,
-              "Session %p was idle for %s, disconnecting\n",
-              s,
-	      GNUNET_STRINGS_relative_time_to_string (HTTP_CLIENT_SESSION_TIMEOUT,
-						      GNUNET_YES));
+  left = GNUNET_TIME_absolute_get_remaining (s->timeout);
+  if (0 != left.rel_value_us)
+  {
+    /* not actually our turn yet, but let's at least update
+       the monitor, it may think we're about to die ... */
+    notify_session_monitor (s->plugin,
+                            s,
+                            GNUNET_TRANSPORT_SS_UP);
+    s->timeout_task = GNUNET_SCHEDULER_add_delayed (left,
+                                                    &client_session_timeout,
+                                                    s);
+    return;
+  }
+  LOG (TIMEOUT_LOG,
+       "Session %p was idle for %s, disconnecting\n",
+       s,
+	     GNUNET_STRINGS_relative_time_to_string (HTTP_CLIENT_SESSION_TIMEOUT,
+                                               GNUNET_YES));
 
-  /* call session destroy function */
-  GNUNET_assert (GNUNET_OK == http_client_session_disconnect (s->plugin,
-                                                              s));
+  GNUNET_assert (GNUNET_OK ==
+                 http_client_plugin_session_disconnect (s->plugin,
+                                                 s));
 }
 
 
@@ -983,26 +925,26 @@ http_client_plugin_get_session (void *cls,
                                 const struct GNUNET_HELLO_Address *address)
 {
   struct HTTP_Client_Plugin *plugin = cls;
-  struct Session * s = NULL;
+  struct Session *s;
   struct sockaddr *sa;
   struct GNUNET_ATS_Information ats;
   size_t salen = 0;
   int res;
 
-  GNUNET_assert (address->address != NULL);
+  GNUNET_assert (NULL != address->address);
 
   /* find existing session */
   s = client_lookup_session (plugin, address);
-  if (s != NULL)
+  if (NULL != s)
     return s;
 
   if (plugin->max_connections <= plugin->cur_connections)
   {
-    GNUNET_log_from (GNUNET_ERROR_TYPE_WARNING, plugin->name,
-                     "Maximum number of connections (%u) reached: "
-                     "cannot connect to peer `%s'\n",
-                     plugin->max_connections,
-                     GNUNET_i2s (&address->peer));
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Maximum number of connections (%u) reached: "
+         "cannot connect to peer `%s'\n",
+         plugin->max_connections,
+         GNUNET_i2s (&address->peer));
     return NULL;
   }
 
@@ -1011,10 +953,8 @@ http_client_plugin_get_session (void *cls,
   ats.value = htonl (GNUNET_ATS_NET_UNSPECIFIED);
   sa = http_common_socket_from_address (address->address, address->address_length, &res);
   if (GNUNET_SYSERR == res)
-  {
     return NULL;
-  }
-  else if (GNUNET_YES == res)
+  if (GNUNET_YES == res)
   {
     GNUNET_assert (NULL != sa);
     if (AF_INET == sa->sa_family)
@@ -1026,7 +966,6 @@ http_client_plugin_get_session (void *cls,
       salen = sizeof (struct sockaddr_in6);
     }
     ats = plugin->env->get_address_type (plugin->env->cls, sa, salen);
-    //fprintf (stderr, "Address %s is in %s\n", GNUNET_a2s (sa,salen), GNUNET_ATS_print_network_type(ntohl(ats.value)));
     GNUNET_free (sa);
   }
   else if (GNUNET_NO == res)
@@ -1041,60 +980,46 @@ http_client_plugin_get_session (void *cls,
   }
 
   s = GNUNET_new (struct Session);
-  s->target = address->peer;
   s->plugin = plugin;
   s->address = GNUNET_HELLO_address_copy (address);
   s->ats_address_network_type = ats.value;
   s->put_paused = GNUNET_NO;
   s->put_tmp_disconnecting = GNUNET_NO;
   s->put_tmp_disconnected = GNUNET_NO;
+  s->timeout = GNUNET_TIME_relative_to_absolute (HTTP_CLIENT_SESSION_TIMEOUT);
   s->timeout_task =  GNUNET_SCHEDULER_add_delayed (HTTP_CLIENT_SESSION_TIMEOUT,
                                                    &client_session_timeout,
                                                    s);
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                   "Created new session %p for `%s' address `%s''\n",
-                   s, http_common_plugin_address_to_string (NULL,
-                       plugin->protocol, s->address->address,
-                       s->address->address_length),
-                   GNUNET_i2s (&s->target));
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Created new session %p for `%s' address `%s''\n",
+       s,
+       http_common_plugin_address_to_string (plugin->protocol,
+                                             s->address->address,
+                                             s->address->address_length),
+       GNUNET_i2s (&s->address->peer));
 
   /* add new session */
-  GNUNET_CONTAINER_DLL_insert (plugin->head, plugin->tail, s);
+  (void) GNUNET_CONTAINER_multipeermap_put (plugin->sessions,
+                                            &s->address->peer,
+                                            s,
+                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
 
   /* initiate new connection */
   if (GNUNET_SYSERR == client_connect (s))
   {
-    GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR, plugin->name,
-                     "Cannot connect to peer `%s' address `%s''\n",
-                     http_common_plugin_address_to_string (NULL,
-                                            plugin->protocol, s->address->address,
-                                            s->address->address_length),
-                     GNUNET_i2s (&s->target));
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Cannot connect to peer `%s' address `%s''\n",
+         http_common_plugin_address_to_string (plugin->protocol,
+                                               s->address->address,
+                                               s->address->address_length),
+         GNUNET_i2s (&s->address->peer));
     client_delete_session (s);
     return NULL;
   }
+  notify_session_monitor (plugin,
+                          s,
+                          GNUNET_TRANSPORT_SS_UP); /* or handshake? */
   return s;
-}
-
-
-/**
- * Increment session timeout due to activity for session s
- *
- * param s the session
- */
-static void
-client_reschedule_session_timeout (struct Session *s)
-{
-  GNUNET_assert (GNUNET_SCHEDULER_NO_TASK != s->timeout_task);
-  GNUNET_SCHEDULER_cancel (s->timeout_task);
-  s->timeout_task =  GNUNET_SCHEDULER_add_delayed (HTTP_CLIENT_SESSION_TIMEOUT,
-                                                   &client_session_timeout,
-                                                   s);
-  GNUNET_log (TIMEOUT_LOG,
-              "Timeout rescheduled for session %p set to %s\n",
-              s,
-              GNUNET_STRINGS_relative_time_to_string (HTTP_CLIENT_SESSION_TIMEOUT,
-                                                      GNUNET_YES));
 }
 
 
@@ -1115,8 +1040,6 @@ http_client_plugin_address_suggested (void *cls,
                                       const void *addr,
                                       size_t addrlen)
 {
-  /* struct Plugin *plugin = cls; */
-
   /* A HTTP/S client does not have any valid address so:*/
   return GNUNET_NO;
 }
@@ -1133,8 +1056,6 @@ LIBGNUNET_PLUGIN_TRANSPORT_DONE (void *cls)
 {
   struct GNUNET_TRANSPORT_PluginFunctions *api = cls;
   struct HTTP_Client_Plugin *plugin = api->cls;
-  struct Session *pos;
-  struct Session *next;
 
   if (NULL == api->cls)
   {
@@ -1142,23 +1063,16 @@ LIBGNUNET_PLUGIN_TRANSPORT_DONE (void *cls)
     GNUNET_free (api);
     return NULL;
   }
-
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                   _("Shutting down plugin `%s'\n"),
-                   plugin->name);
-
-
-  next = plugin->head;
-  while (NULL != (pos = next))
-  {
-    next = pos->next;
-    http_client_session_disconnect (plugin, pos);
-  }
-
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                   _("Shutdown for plugin `%s' complete\n"),
-                   plugin->name);
-
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       _("Shutting down plugin `%s'\n"),
+       plugin->name);
+  GNUNET_CONTAINER_multipeermap_iterate (plugin->sessions,
+                                         &destroy_session_cb,
+                                         plugin);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       _("Shutdown for plugin `%s' complete\n"),
+       plugin->name);
+  GNUNET_CONTAINER_multipeermap_destroy (plugin->sessions);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;
@@ -1183,37 +1097,143 @@ client_configure_plugin (struct HTTP_Client_Plugin *plugin)
     max_connections = 128;
   plugin->max_connections = max_connections;
 
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG, plugin->name,
-                   _("Maximum number of connections is %u\n"),
-                   plugin->max_connections);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       _("Maximum number of connections is %u\n"),
+       plugin->max_connections);
   return GNUNET_OK;
 }
 
 
+/**
+ * Function called by the pretty printer for the resolved address for
+ * each human-readable address obtained.  The callback can be called
+ * several times. The last invocation must be with a @a address of
+ * NULL and a @a res of #GNUNET_OK.  Thus, to indicate conversion
+ * errors, the callback might be called first with @a address NULL and
+ * @a res being #GNUNET_SYSERR.  In that case, there must still be a
+ * subsequent call later with @a address NULL and @a res #GNUNET_OK.
+ *
+ * @param cls closure
+ * @param address one of the names for the host, NULL on last callback
+ * @param res #GNUNET_OK if conversion was successful, #GNUNET_SYSERR on failure,
+ *      #GNUNET_OK on last callback
+ */
 static const char *
-http_plugin_address_to_string (void *cls,
-                               const void *addr,
-                               size_t addrlen)
+http_client_plugin_address_to_string (void *cls,
+                                      const void *addr,
+                                      size_t addrlen)
 {
-  return http_common_plugin_address_to_string (cls, PLUGIN_NAME, addr, addrlen);
+  return http_common_plugin_address_to_string (PLUGIN_NAME,
+                                               addr,
+                                               addrlen);
 }
 
 
+/**
+ * Function that will be called whenever the transport service wants to
+ * notify the plugin that a session is still active and in use and
+ * therefore the session timeout for this session has to be updated
+ *
+ * @param cls closure
+ * @param peer which peer was the session for
+ * @param session which session is being updated
+ */
 static void
 http_client_plugin_update_session_timeout (void *cls,
-                                  const struct GNUNET_PeerIdentity *peer,
-                                  struct Session *session)
+                                           const struct GNUNET_PeerIdentity *peer,
+                                           struct Session *session)
+{
+  client_reschedule_session_timeout (session);
+}
+
+
+/**
+ * Function that will be called whenever the transport service wants to
+ * notify the plugin that the inbound quota changed and that the plugin
+ * should update it's delay for the next receive value
+ *
+ * @param cls closure
+ * @param peer which peer was the session for
+ * @param session which session is being updated
+ * @param delay new delay to use for receiving
+ */
+static void
+http_client_plugin_update_inbound_delay (void *cls,
+                                         const struct GNUNET_PeerIdentity *peer,
+                                         struct Session *s,
+                                         struct GNUNET_TIME_Relative delay)
+{
+  s->next_receive = GNUNET_TIME_relative_to_absolute (delay);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "New inbound delay %s\n",
+       GNUNET_STRINGS_relative_time_to_string (delay,
+                                               GNUNET_NO));
+  if (s->recv_wakeup_task != GNUNET_SCHEDULER_NO_TASK)
+  {
+    GNUNET_SCHEDULER_cancel (s->recv_wakeup_task);
+    s->recv_wakeup_task
+      = GNUNET_SCHEDULER_add_delayed (delay,
+                                      &client_wake_up,
+                                      s);
+  }
+}
+
+
+/**
+ * Return information about the given session to the
+ * monitor callback.
+ *
+ * @param cls the `struct Plugin` with the monitor callback (`sic`)
+ * @param peer peer we send information about
+ * @param value our `struct Session` to send information about
+ * @return #GNUNET_OK (continue to iterate)
+ */
+static int
+send_session_info_iter (void *cls,
+                        const struct GNUNET_PeerIdentity *peer,
+                        void *value)
+{
+  struct HTTP_Client_Plugin *plugin = cls;
+  struct Session *session = value;
+
+  notify_session_monitor (plugin,
+                          session,
+                          GNUNET_TRANSPORT_SS_UP);
+  return GNUNET_OK;
+}
+
+
+/**
+ * Begin monitoring sessions of a plugin.  There can only
+ * be one active monitor per plugin (i.e. if there are
+ * multiple monitors, the transport service needs to
+ * multiplex the generated events over all of them).
+ *
+ * @param cls closure of the plugin
+ * @param sic callback to invoke, NULL to disable monitor;
+ *            plugin will being by iterating over all active
+ *            sessions immediately and then enter monitor mode
+ * @param sic_cls closure for @a sic
+ */
+static void
+http_client_plugin_setup_monitor (void *cls,
+                                  GNUNET_TRANSPORT_SessionInfoCallback sic,
+                                  void *sic_cls)
 {
   struct HTTP_Client_Plugin *plugin = cls;
 
-  /* lookup if session is really existing */
-  if (GNUNET_YES != client_exist_session (plugin, session))
+  plugin->sic = sic;
+  plugin->sic_cls = sic_cls;
+  if (NULL != sic)
   {
-    GNUNET_break (0);
-    return;
+    GNUNET_CONTAINER_multipeermap_iterate (plugin->sessions,
+                                           &send_session_info_iter,
+                                           plugin);
+    /* signal end of first iteration */
+    sic (sic_cls, NULL, NULL);
   }
-  client_reschedule_session_timeout (session);
 }
+
 
 /**
  * Entry point for the plugin.
@@ -1231,7 +1251,7 @@ LIBGNUNET_PLUGIN_TRANSPORT_INIT (void *cls)
        initialze the plugin or the API */
     api = GNUNET_new (struct GNUNET_TRANSPORT_PluginFunctions);
     api->cls = NULL;
-    api->address_to_string = &http_plugin_address_to_string;
+    api->address_to_string = &http_client_plugin_address_to_string;
     api->string_to_address = &http_common_plugin_string_to_address;
     api->address_pretty_printer = &http_common_plugin_address_pretty_printer;
     return api;
@@ -1239,20 +1259,23 @@ LIBGNUNET_PLUGIN_TRANSPORT_INIT (void *cls)
 
   plugin = GNUNET_new (struct HTTP_Client_Plugin);
   plugin->env = env;
+  plugin->sessions = GNUNET_CONTAINER_multipeermap_create (128,
+                                                           GNUNET_YES);
   api = GNUNET_new (struct GNUNET_TRANSPORT_PluginFunctions);
   api->cls = plugin;
   api->send = &http_client_plugin_send;
-  api->disconnect_session = &http_client_session_disconnect;
+  api->disconnect_session = &http_client_plugin_session_disconnect;
   api->query_keepalive_factor = &http_client_query_keepalive_factor;
-  api->disconnect_peer = &http_client_peer_disconnect;
+  api->disconnect_peer = &http_client_plugin_peer_disconnect;
   api->check_address = &http_client_plugin_address_suggested;
   api->get_session = &http_client_plugin_get_session;
-  api->address_to_string = &http_plugin_address_to_string;
+  api->address_to_string = &http_client_plugin_address_to_string;
   api->string_to_address = &http_common_plugin_string_to_address;
   api->address_pretty_printer = &http_common_plugin_address_pretty_printer;
-  api->get_network = &http_client_get_network;
+  api->get_network = &http_client_plugin_get_network;
   api->update_session_timeout = &http_client_plugin_update_session_timeout;
-
+  api->update_inbound_delay = &http_client_plugin_update_inbound_delay;
+  api->setup_monitor = &http_client_plugin_setup_monitor;
 #if BUILD_HTTPS
   plugin->name = "transport-https_client";
   plugin->protocol = "https";
@@ -1261,7 +1284,6 @@ LIBGNUNET_PLUGIN_TRANSPORT_INIT (void *cls)
   plugin->protocol = "http";
 #endif
   plugin->last_tag = 1;
-  plugin->options = 0; /* Setup options */
 
   if (GNUNET_SYSERR == client_configure_plugin (plugin))
   {
