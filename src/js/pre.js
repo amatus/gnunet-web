@@ -23,21 +23,19 @@ function flush_worker_message_queue(f) {
 }
 gnunet_prerun = function() {
   ENV.GNUNET_PREFIX = "/.";
-  if (ENVIRONMENT_IS_WORKER) {
-    Module['print'] = function(x) { WorkerMessageQueue.push(x); };
-    Module['printErr'] = function(x) { Module.print(x); };
-    [
-      'ats_proportional',
-      'block_dht',
-      'block_fs',
-      'datacache_heap',
-      'datastore_heap',
-      'transport_http_client',
-    ].map(function(plugin) {
-      FS.createPreloadedFile('/', 'libgnunet_plugin_' + plugin + '.js',
-          'libgnunet_plugin_' + plugin + '.js', true, false);
-    });
-  }
+  Module['print'] = function(x) { WorkerMessageQueue.push(x); };
+  Module['printErr'] = function(x) { Module.print(x); };
+  [
+    'ats_proportional',
+    'block_dht',
+    'block_fs',
+    'datacache_heap',
+    'datastore_heap',
+    'transport_http_client',
+  ].map(function(plugin) {
+    FS.createPreloadedFile('/', 'libgnunet_plugin_' + plugin + '.js',
+        'libgnunet_plugin_' + plugin + '.js', true, false);
+  });
   var id = FS.makedev(1, 8);
   FS.registerDevice(id, {
     read: function(stream, buffer, offset, length, pos) {
