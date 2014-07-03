@@ -76,6 +76,9 @@ mergeInto(LibraryManager.library, {
       MAX_CADET_CLIENTS: 128,
       RESPECT: '/fs/credit/',
     },
+    peerinfo: {
+      HOSTS: '/hosts/',
+    },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_get_value: function(section, option) {

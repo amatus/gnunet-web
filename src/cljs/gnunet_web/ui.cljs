@@ -29,7 +29,6 @@
                            (str (.-textContent output) string)))))
 ;;(set! *print-fn* #(.log js/console %))
 
-(start-peerinfo)
 (def topology-worker (start-worker "topology" "js/gnunet-daemon-topology.js"))
 (def fs-worker (start-worker "fs" "js/gnunet-service-fs.js"))
 

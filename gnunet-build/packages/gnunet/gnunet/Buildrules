@@ -59,6 +59,28 @@ pkg_compile() {
 		"${S}/src/fs/libgnunet_plugin_block_fs.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
+	# Peerinfo
+	#
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/peerinfo/gnunet-service-peerinfo.js" \
+		"${S}/src/peerinfo/gnunet-service-peerinfo.o" \
+		"${S}/src/hello/libgnunethello.la" \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		-lz \
+		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/scheduler.js" \
+		--js-library "${BUILDROOT}/src/js/server.js" \
+		--js-library "${BUILDROOT}/src/js/service.js" \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp "${S}/src/peerinfo/.libs/gnunet-service-peerinfo.js" \
+		"${D}/var/lib/gnunet/js/"
+	#
 	# libdatacache plugin
 	#
 	./libtool --tag=CC --mode=link \

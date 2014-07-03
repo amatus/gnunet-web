@@ -139,6 +139,11 @@ mergeInto(LibraryManager.library, {
   GNUNET_SERVER_resume: function(server) {
     // TODO: see GNUNET_SERVER_suspend
   },
+  GNUNET_SERVER_client_mark_monitor: function(client) {
+    // Mark the client as a 'monitor' so we don't wait for it to disconnect
+    // when we are shutting down.
+    // Since we don't handle shutdown this is a noop for now.
+  },
 });
 
 // vim: set expandtab ts=2 sw=2:

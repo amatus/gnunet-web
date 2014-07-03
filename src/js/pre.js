@@ -52,6 +52,14 @@ gnunet_prerun = function() {
 //  addRunDependency("randomness")
 //  <gather randomness>
 //  removeRunDependency("randomness")
+  FS.mkdir('/hosts');
+  FS.mount(IDBFS, {}, '/hosts');
+  addRunDependency('syncfs');
+  FS.syncfs(true, function() { removeRunDependency('syncfs'); });
+  var sync_callback = function() {
+    setTimeout(function() { FS.syncfs(false, sync_callback); }, 5000);
+  };
+  sync_callback();
 }
 if (typeof(Module) === "undefined") Module = { preRun: [] };
 Module.preRun.push(gnunet_prerun);
