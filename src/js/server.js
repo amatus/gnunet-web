@@ -112,7 +112,8 @@ mergeInto(LibraryManager.library, {
       var buffer = Runtime.stackAlloc(size);
       var ret = Runtime.dynCall('iiii', callback, [callback_cls, size, buffer]);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
-      SERVER.clients[client].port.postMessage(view);
+      // See http://code.google.com/p/chromium/issues/detail?id=169705
+      SERVER.clients[client].port.postMessage(new Uint8Array(view));
       Runtime.stackRestore(stack);
     }, 0);
     return 1; // opaque GNUNET_SERVER_TransmitHandle*
