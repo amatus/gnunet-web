@@ -7,11 +7,12 @@ communication.
 Roadmap
 -------
 * Compile GNUnet using [emscripten].
+    * gnunet-service-peerinfo.js - Done.
     * gnunet-service-transport.js - Done, with HTTP(S) transport.
     * gnunet-service-ats.js - Done.
     * gnunet-daemon-topology.js - Done.
     * gnunet-service-core.js - Done.
-    * gnunet-service-nse.js - Done, PoW not persistent yet.
+    * gnunet-service-nse.js - Done.
     * gnunet-service-dht.js - Done.
     * gnunet-service-cadet.js - Done.
     * gnunet-service-datastore.js - Building with heap backend plugin.
@@ -52,8 +53,7 @@ the services to schedule tasks, communicate with each other, and load plugins
 are implemented as emscripten js libraries.
 
 To debug a shared worker in chrome open chrome://inspect and click the
-"inspect" link next to the http://localhost:3000/js/gnunet-service-transport.js
-shared worker.
+"inspect" link next to an entry in the shared workers list.
 
   [gnunet]: https://gnunet.org
   [webrtc]: http://www.webrtc.org

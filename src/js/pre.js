@@ -32,7 +32,7 @@ gnunet_prerun = function() {
     'datacache_heap',
     'datastore_heap',
     'transport_http_client',
-  ].map(function(plugin) {
+  ].forEach(function(plugin) {
     FS.createPreloadedFile('/', 'libgnunet_plugin_' + plugin + '.js',
         'libgnunet_plugin_' + plugin + '.js', true, false);
   });
@@ -52,14 +52,24 @@ gnunet_prerun = function() {
 //  addRunDependency("randomness")
 //  <gather randomness>
 //  removeRunDependency("randomness")
-  FS.mkdir('/hosts');
-  FS.mount(IDBFS, {}, '/hosts');
-  addRunDependency('syncfs');
-  FS.syncfs(true, function() { removeRunDependency('syncfs'); });
-  var sync_callback = function() {
-    setTimeout(function() { FS.syncfs(false, sync_callback); }, 5000);
-  };
-  sync_callback();
+
+  //  Mount IDBFS for services that use it
+  var match;
+  if (match = location.pathname.match('gnunet-service-(.*).js')) {
+    var service = match[1];
+    var mounts = {peerinfo: true, fs: true, nse: true};
+    if (mounts[service]) {
+      var mount = '/' + service;
+      FS.mkdir(mount);
+      FS.mount(IDBFS, {}, mount);
+      addRunDependency('syncfs');
+      FS.syncfs(true, function() { removeRunDependency('syncfs'); });
+      var sync_callback = function() {
+        setTimeout(function() { FS.syncfs(false, sync_callback); }, 5000);
+      };
+      sync_callback();
+    }
+  }
 }
 if (typeof(Module) === "undefined") Module = { preRun: [] };
 Module.preRun.push(gnunet_prerun);

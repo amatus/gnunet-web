@@ -53,8 +53,7 @@ mergeInto(LibraryManager.library, {
       DISABLE_BF: true,
     },
     nse: {
-      // disable NSE for now
-      //PROOFFILE: '/proof.dat',
+      PROOFFILE: '/nse/proof.dat',
       WORKDELAY: '5 ms',
       INTERVAL: '1 h',
       WORKBITS: 22,
@@ -74,10 +73,10 @@ mergeInto(LibraryManager.library, {
       CONTENT_CACHING: true,
       CONTENT_PUSHING: true,
       MAX_CADET_CLIENTS: 128,
-      RESPECT: '/fs/credit/',
+      RESPECT: '/fs/credit',
     },
     peerinfo: {
-      HOSTS: '/hosts/',
+      HOSTS: '/peerinfo/hosts',
     },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
