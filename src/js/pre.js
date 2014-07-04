@@ -54,8 +54,8 @@ gnunet_prerun = function() {
 //  removeRunDependency("randomness")
 
   //  Mount IDBFS for services that use it
-  var match;
-  if (match = location.pathname.match('gnunet-service-(.*).js')) {
+  var match = location.pathname.match('gnunet-service-(.*).js');
+  if (match) {
     var service = match[1];
     var mounts = {peerinfo: true, fs: true, nse: true};
     if (mounts[service]) {
@@ -64,8 +64,12 @@ gnunet_prerun = function() {
       FS.mount(IDBFS, {}, mount);
       addRunDependency('syncfs');
       FS.syncfs(true, function() { removeRunDependency('syncfs'); });
+      var syncfs_task;
       var sync_callback = function() {
-        setTimeout(function() { FS.syncfs(false, sync_callback); }, 5000);
+        clearTimeout(syncfs_task);
+        syncfs_task = setTimeout(function() {
+          FS.syncfs(false, sync_callback);
+        }, 5000);
       };
       sync_callback();
     }
