@@ -344,44 +344,6 @@ Index: gnunet-svn-33905/src/transport/Makefile.am
  libgnunet_plugin_transport_http_client_la_LIBADD = \
    $(top_builddir)/src/hello/libgnunethello.la \
    $(top_builddir)/src/statistics/libgnunetstatistics.la \
-Index: gnunet-svn-33905/src/transport/gnunet-service-transport_neighbours.c
-===================================================================
---- gnunet-svn-33905/src/transport/gnunet-service-transport_neighbours.c	(revision 33905)
-+++ gnunet-svn-33905/src/transport/gnunet-service-transport_neighbours.c	(working copy)
-@@ -46,7 +46,7 @@
-  * Time we give plugin to transmit DISCONNECT message before the
-  * neighbour entry self-destructs.
-  */
--#define DISCONNECT_SENT_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, 500)
-+#define DISCONNECT_SENT_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
- 
- /**
-  * How often must a peer violate bandwidth quotas before we start
-@@ -57,13 +57,13 @@
- /**
-  * How long are we willing to wait for a response from ATS before timing out?
-  */
--#define ATS_RESPONSE_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, 5000)
-+#define ATS_RESPONSE_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
- 
- /**
-  * How long are we willing to wait for an ACK from the other peer before
-  * giving up on our connect operation?
-  */
--#define SETUP_CONNECTION_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 15)
-+#define SETUP_CONNECTION_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 60)
- 
- /**
-  * How long are we willing to wait for a successful reconnect if
-@@ -71,7 +71,7 @@
-  * usual SETUP_CONNECTION_TIMEOUT as we do not inform the
-  * higher layers about the disconnect during this period.
-  */
--#define FAST_RECONNECT_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
-+#define FAST_RECONNECT_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
- 
- /**
-  * How long are we willing to wait for a response from the blacklist
 Index: gnunet-svn-33905/src/util/Makefile.am
 ===================================================================
 --- gnunet-svn-33905/src/util/Makefile.am	(revision 33905)
