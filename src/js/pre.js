@@ -100,11 +100,14 @@ function do_to_window(fn) {
 
 function get_message(ev) {
   if ('init' == ev.data.type) {
-    var channel = new MessageChannel();
-    Module['print'] = function(x) { channel.port1.postMessage(x); };
+    var stdout = new MessageChannel();
+    var stderr = new MessageChannel();
+    Module['print'] = function(x) { stdout.port1.postMessage(x); };
+    Module['printErr'] = function(x) { stderr.port1.postMessage(x); };
     flush_worker_message_queue(Module.print);
-    ev.target.postMessage({type: 'stdout', port: channel.port2},
-                          [channel.port2]);
+    ev.target.postMessage(
+      {type: 'init', stdout: stdout.port2, stderr: stderr.port2},
+      [stdout.port2, stderr.port2]);
     FS.writeFile('/private_key', ev.data['private-key'], {encoding: 'binary'});
     removeRunDependency('window-init');
   } else if ('connect' == ev.data.type) {
@@ -115,9 +118,10 @@ function get_message(ev) {
 // Ask a window to connect us to a service
 function client_connect(service_name, message_port) {
   do_to_window(function(w) {
-    w.postMessage({'type': 'client_connect',
-      'service_name': service_name,
-      'message_port': message_port}, [message_port]);
+    w.postMessage({
+      type: 'client_connect',
+      service_name: service_name,
+      message_port: message_port}, [message_port]);
   });
 }
 

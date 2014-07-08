@@ -48,9 +48,13 @@
           (fn [event]
             (let [data (.-data event)]
               (condp = (.-type data)
-                "stdout" (set! (.-onmessage (.-port data))
+                "init" (do
+                         (set! (.-onmessage (.-stdout data))
                                (fn [event]
                                  (println worker-name ":" (.-data event))))
+                         (set! (.-onmessage (.-stderr data))
+                               (fn [event]
+                                 (println worker-name " err:" (.-data event)))))
                 "client_connect" (client-connect (.-service_name data)
                                                  (.-message_port data))
                 (println worker-name ":" (js/JSON.stringify data))))))
