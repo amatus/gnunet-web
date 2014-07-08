@@ -39,7 +39,9 @@
 (defn start-worker
   [worker-name uri]
   (let [worker (js/SharedWorker. uri)
-        port (.-port worker)]
+        port (.-port worker)
+        random-bytes (js/Uint8Array. 4080)
+        _ (js/window.crypto.getRandomValues random-bytes)]
     (set! (.-onerror worker)
           (fn [event]
             (println worker-name ":" (.-filename event) ":" (.-lineno event)
@@ -60,7 +62,8 @@
                 (println worker-name ":" (js/JSON.stringify data))))))
     (.start port)
     (.postMessage port (clj->js {:type "init"
-                                 :private-key private-key}))
+                                 :private-key private-key
+                                 :random-bytes random-bytes}))
     worker))
 
 (defn client-connect

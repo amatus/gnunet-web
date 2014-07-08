@@ -21,6 +21,9 @@ function flush_worker_message_queue(f) {
   WorkerMessageQueue.forEach(f);
   WorkerMessageQueue = [];
 }
+var dev_urandom_bytes = 0;
+var random_bytes = [];
+var random_offset = 0;
 gnunet_prerun = function() {
   ENV.GNUNET_PREFIX = "/.";
   Module['print'] = function(x) { WorkerMessageQueue.push(x); };
@@ -36,22 +39,22 @@ gnunet_prerun = function() {
     FS.createPreloadedFile('/', 'libgnunet_plugin_' + plugin + '.js',
         'libgnunet_plugin_' + plugin + '.js', true, false);
   });
-  var id = FS.makedev(1, 8);
+
+  // Create /dev/urandom
+  var id = FS.makedev(1, 9);
   FS.registerDevice(id, {
     read: function(stream, buffer, offset, length, pos) {
-      //var buf = new Uint8Array(length);
-      //window.crypto.getRandomValues(buf);
-      for (var i = 0; i < length; i++) {
-        buffer[offset+i] = Math.floor(Math.random() * 256);
+      dev_urandom_bytes += length;
+      for (var i = 0; i < length && random_offset < random_bytes.length; i++) {
+        buffer[offset+i] = random_bytes[random_offset];
+        random_bytes[random_offset++] = 0;
       }
-      return length;
+      if (i < length)
+        Module.printErr('Random bytes exausted!');
+      return i;
     },
   });
-  FS.mkdev('/dev/random', id);
   FS.mkdev('/dev/urandom', id);
-//  addRunDependency("randomness")
-//  <gather randomness>
-//  removeRunDependency("randomness")
 
   //  Mount IDBFS for services that use it
   var match = location.pathname.match('gnunet-service-(.*).js');
@@ -109,6 +112,8 @@ function get_message(ev) {
       {type: 'init', stdout: stdout.port2, stderr: stderr.port2},
       [stdout.port2, stderr.port2]);
     FS.writeFile('/private_key', ev.data['private-key'], {encoding: 'binary'});
+    random_bytes = ev.data['random-bytes'];
+    random_offset = 0;
     removeRunDependency('window-init');
   } else if ('connect' == ev.data.type) {
     SERVER.connect(ev.data.port);
