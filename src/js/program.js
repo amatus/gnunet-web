@@ -23,9 +23,7 @@ mergeInto(LibraryManager.library, {
       [binaryName, 'DEBUG', 0]);
     var cfgfile = 0; // const char *
     var cfg = 1; // opaque non-null pointer
-    worker_setup(function() {
-      Runtime.dynCall('viiii', task, [task_cls, argv, cfgfile, cfg]);
-    });
+    Runtime.dynCall('viiii', task, [task_cls, argv, cfgfile, cfg]);
     throw 'SimulateInfiniteLoop';
   }
 });

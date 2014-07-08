@@ -74,20 +74,10 @@ gnunet_prerun = function() {
       sync_callback();
     }
   }
+  addRunDependency('window-init');
 }
 if (typeof(Module) === "undefined") Module = { preRun: [] };
 Module.preRun.push(gnunet_prerun);
-
-var init_continuation;
-
-// Called by GNUNET_SERVICE_run and GNUNET_PROGRAM_run to perform
-// asynchronous setup tasks. Calls continuation when finished.
-worker_setup = function(continuation) {
-  if (init_continuation === 'now')
-    continuation();
-  else
-    init_continuation = continuation;
-};
 
 // a map of window index to port
 var windows = {};
@@ -116,10 +106,7 @@ function get_message(ev) {
     ev.target.postMessage({type: 'stdout', port: channel.port2},
                           [channel.port2]);
     FS.writeFile('/private_key', ev.data['private-key'], {encoding: 'binary'});
-    if (typeof (init_continuation) === 'undefined')
-      init_continuation = 'now';
-    else
-      init_continuation();
+    removeRunDependency('window-init');
   } else if ('connect' == ev.data.type) {
     SERVER.connect(ev.data.port);
   }

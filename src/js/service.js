@@ -23,9 +23,7 @@ mergeInto(LibraryManager.library, {
       [service_name, 'DEBUG', 0]);
     var server = 1; // opaque non-null pointer
     var cfg = 2; // same
-    worker_setup(function() {
-      Runtime.dynCall('viii', task, [task_cls, server, cfg]);
-    });
+    Runtime.dynCall('viii', task, [task_cls, server, cfg]);
     throw 'SimulateInfiniteLoop';
   }
 });
