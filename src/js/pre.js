@@ -40,6 +40,11 @@ gnunet_prerun = function() {
         'libgnunet_plugin_' + plugin + '.js', true, false);
   });
 
+  // Create /dev/random but it doesn't need to do anything
+  var id = FS.makedev(1, 8);
+  FS.registerDevice(id, {});
+  FS.mkdev('/dev/random', id);
+
   // Create /dev/urandom
   var id = FS.makedev(1, 9);
   FS.registerDevice(id, {
