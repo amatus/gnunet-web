@@ -121,16 +121,19 @@ function get_message(ev) {
     random_offset = 0;
     removeRunDependency('window-init');
   } else if ('connect' == ev.data.type) {
-    SERVER.connect(ev.data.port);
+    SERVER.connect(ev.data.port, ev.data['client-name']);
   }
 }
 
 // Ask a window to connect us to a service
 function client_connect(service_name, message_port) {
+  //Module.print('I want to connect to ' + service_name);
   do_to_window(function(w) {
+    //Module.print('I am now connecting to ' + service_name);
     w.postMessage({
       type: 'client_connect',
       service_name: service_name,
+      client_name: location.pathname,
       message_port: message_port}, [message_port]);
   });
 }

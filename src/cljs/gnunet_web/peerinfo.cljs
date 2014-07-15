@@ -69,7 +69,7 @@
   (encode-message {:message-type message-type-peerinfo-info-end}))
 
 (def peerinfo-message-channel (js/MessageChannel.))
-(client-connect "peerinfo" (.-port2 peerinfo-message-channel))
+(client-connect "peerinfo" "web page" (.-port2 peerinfo-message-channel))
 
 (defn process-hello
   [hello]

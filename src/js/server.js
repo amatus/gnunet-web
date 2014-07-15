@@ -17,15 +17,18 @@
 mergeInto(LibraryManager.library, {
   $SERVER: {
     handlers: {},
+    handlers_initialized: false,
     connect_notify_list: [],
     disconnect_notify_list: [],
     clients: {},
     next_client: 1,
-    connect: function(port) {
+    connect: function(port, client_name) {
+      Module.print('Got a connection from ' + client_name);
       port.onmessage = SERVER.client_get_message;
       port._name = SERVER.next_client++;
       SERVER.clients[port._name] = {
         port: port,
+        name: client_name,
         ref_count: 0,
         shtudown_now: false,
       };
@@ -35,21 +38,27 @@ mergeInto(LibraryManager.library, {
           [notify.callback_cls, port._name]);
       });
     },
+    message_queue: [],
     client_get_message: function(ev) {
       var size = ev.data[0] << 8 | ev.data[1];
       var type = ev.data[2] << 8 | ev.data[3];
+      Module.print('Got message of type ' + type + ' size ' + size + ' from '
+          + SERVER.clients[ev.target._name].name);
+      if (!SERVER.handlers_initialized) {
+        Module.print('And I\'m queueing it for later');
+        SERVER.message_queue.push(ev);
+        return;
+      }
       var handler = SERVER.handlers[type];
-      //Module.print("Got message of type " + type + " size " + size + " from "
-      //    + ev.target._name);
       if (typeof handler === 'undefined') {
-        //Module.print("But I don't know what to do with it");
+        Module.print("But I don't know what to do with it");
       } else {
         if (handler.expected_size == 0 || handler.expected_size == size) {
           ccallFunc(Runtime.getFuncWrapper(handler.callback, 'viii'), 'void',
               ['number', 'number', 'array'],
               [handler.callback_cls, ev.target._name, ev.data]);
         } else {
-          //Module.print("But I was expecting size " + handler.expected_size);
+          Module.print("But I was expecting size " + handler.expected_size);
         }
       }
     }
@@ -70,6 +79,13 @@ mergeInto(LibraryManager.library, {
         'expected_size': expected_size
       };
     }
+    setTimeout(function() {
+      var queue = SERVER.message_queue;
+      SERVER.message_queue = [];
+      SERVER.handlers_initialized = true;
+      Module.print('Processing ' + queue.length + ' queued messages');
+      queue.forEach(SERVER.client_get_message);
+    }, 0);
   },
   GNUNET_SERVER_receive_done__deps: [
     '$SERVER',
@@ -107,13 +123,17 @@ mergeInto(LibraryManager.library, {
   GNUNET_SERVER_notify_transmit_ready: function(client, size, timeout, callback,
                                            callback_cls) {
     setTimeout(function() {
-      //Module.print('I want to send ' + size + ' bytes to client ' + client);
+      //Module.print('I want to send ' + size + ' bytes to client '
+      //  + SERVER.clients[client].name);
       var stack = Runtime.stackSave();
       var buffer = Runtime.stackAlloc(size);
       var ret = Runtime.dynCall('iiii', callback, [callback_cls, size, buffer]);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
+      //Module.print('I\'m sending ' + size + ' bytes to client '
+      //  + SERVER.clients[client].name);
       // See http://code.google.com/p/chromium/issues/detail?id=169705
-      SERVER.clients[client].port.postMessage(new Uint8Array(view));
+      if (ret > 0)
+        SERVER.clients[client].port.postMessage(new Uint8Array(view));
       Runtime.stackRestore(stack);
     }, 0);
     return 1; // opaque GNUNET_SERVER_TransmitHandle*

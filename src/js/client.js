@@ -23,13 +23,15 @@ mergeInto(LibraryManager.library, {
     var channel = new MessageChannel();
     var port = NEXT_PORT;
     NEXT_PORT = port + 1;
-    CLIENT_PORTS[port] = channel.port1;
+    CLIENT_PORTS[port] = {port: channel.port1, name: service_name};
     client_connect(service_name, channel.port2);
     return port;
   },
   GNUNET_CLIENT_receive__deps: ['$CLIENT_PORTS'],
   GNUNET_CLIENT_receive: function(client, handler, handler_cls, timeout) {
-    CLIENT_PORTS[client].onmessage = function(ev) {
+    CLIENT_PORTS[client].port.onmessage = function(ev) {
+      Module.print('Received ' + ev.data.length + ' bytes from service '
+        + CLIENT_PORTS[client].name);
       ccallFunc(Runtime.getFuncWrapper(handler, 'vii'), 'void',
         ['number', 'array'],
         [handler_cls, ev.data]);
@@ -37,7 +39,7 @@ mergeInto(LibraryManager.library, {
     var delay = getValue(timeout, 'i64');
     if (-1 != delay) {
       setTimeout(function() {
-        CLIENT_PORTS[client].onmessage = null;
+        CLIENT_PORTS[client].port.onmessage = null;
         Runtime.dynCall('vii', handler, [handler_cls, 0]);
       }, delay / 1000);
     }
@@ -48,13 +50,17 @@ mergeInto(LibraryManager.library, {
     // Supposedly we can call notify right now, but the current code never
     // does so let's emulate that.
     setTimeout(function() {
-      //Module.print('I want to send ' + size + ' bytes to service ' + client);
+      //Module.print('I want to send ' + size + ' bytes to service '
+      //  + CLIENT_PORTS[client].name);
       var stack = Runtime.stackSave();
       var buffer = Runtime.stackAlloc(size);
       var ret = Runtime.dynCall('iiii', notify, [notify_cls, size, buffer]);
+      //Module.print('I\'m sending ' + size + ' bytes to service '
+      //          + CLIENT_PORTS[client].name);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
       // See http://code.google.com/p/chromium/issues/detail?id=169705
-      CLIENT_PORTS[client].postMessage(new Uint8Array(view));
+      if (ret > 0)
+        CLIENT_PORTS[client].port.postMessage(new Uint8Array(view));
       Runtime.stackRestore(stack);
     }, 0);
     return 1; // opaque GNUNET_CLIENT_TransmitHandle*

@@ -58,6 +58,7 @@
                                (fn [event]
                                  (println worker-name " err:" (.-data event)))))
                 "client_connect" (client-connect (.-service_name data)
+                                                 (.-client_name data)
                                                  (.-message_port data))
                 (println worker-name ":" (js/JSON.stringify data))))))
     (.start port)
@@ -67,14 +68,15 @@
     worker))
 
 (defn client-connect
-  [service-name message-port]
+  [service-name client-name message-port]
   (let [service (get @services service-name)]
     (if (nil? service)
       (let [worker (start-worker service-name
                                  (str "js/gnunet-service-" service-name ".js"))
             port (.-port worker)]
         (add-service service-name port)
-        (recur service-name message-port))
+        (recur service-name client-name message-port))
       (.postMessage service (clj->js {:type "connect"
+                                      :client-name client-name
                                       :port message-port})
                     (array message-port)))))
