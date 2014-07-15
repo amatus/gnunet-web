@@ -31,6 +31,8 @@ mergeInto(LibraryManager.library, {
         name: client_name,
         ref_count: 0,
         shtudown_now: false,
+        user_context: 0,
+        user_context_size: 0,
       };
       SERVER.connect_notify_list.map(function(notify) {
         ccallFunc(Runtime.getFuncWrapper(notify.callback, 'vii'), 'void',
@@ -164,6 +166,21 @@ mergeInto(LibraryManager.library, {
     // Mark the client as a 'monitor' so we don't wait for it to disconnect
     // when we are shutting down.
     // Since we don't handle shutdown this is a noop for now.
+  },
+  GNUNET_SERVER_client_get_user_context___deps: ['$SERVER'],
+  GNUNET_SERVER_client_get_user_context_: function(client, size) {
+    if (0 == SERVER.clients[client].user_context &&
+        0 == SERVER.clients[client].user_context_size)
+      return 0;
+    assert(size == SERVER.clients[client].user_context_size);
+    return SERVER.clients[client].user_context;
+  },
+  GNUNET_SERVER_client_set_user_context___deps: ['$SERVER'],
+  GNUNET_SERVER_client_set_user_context_: function(client, ptr, size) {
+    if (0 == ptr)
+      size = 0;
+    SERVER.clients[client].user_context = ptr;
+    SERVER.clients[client].user_context_size = size;
   },
 });
 
