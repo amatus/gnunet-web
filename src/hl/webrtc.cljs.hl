@@ -1,0 +1,117 @@
+;; webrtc.cljs.hl - webrtc test website
+;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+(page "webrtc.html")
+
+(def peer-connection
+  (js/webkitRTCPeerConnection.
+    (clj->js {:iceServers [{:url "stun:stun.l.google.com:19302"}]})
+    (clj->js {:optional [{:RtpDataChannels true}]})))
+(def data-channel nil)
+(defc ice-state nil)
+(defc local-description nil)
+(defc remote-description nil)
+(defc message nil)
+
+(defn data-channel-events
+  [data-channel]
+  (set! (.-onmessage data-channel)
+        (fn [message]
+          (js/alert (.-data message)))))
+
+(set! (.-onicecandidate peer-connection)
+      (fn [event]
+        (reset! local-description
+                (.-sdp (.-localDescription peer-connection)))))
+(set! (.-ondatachannel peer-connection)
+      (fn [event]
+        (set! data-channel (.-channel event))
+        (data-channel-events data-channel)))
+(set! (.-oniceconnectionstatechange peer-connection)
+      (fn [event]
+        (reset! ice-state (.-iceConnectionState peer-connection))))
+
+(defn create-offer
+  [event]
+  (let [dc (.createDataChannel peer-connection "gnunet"
+                               (clj->js {:reliable false}))]
+    (data-channel-events dc)
+    (set! data-channel dc)
+    (.createOffer peer-connection
+                  (fn [description]
+                    (.setLocalDescription peer-connection description)))))
+
+(defn create-answer
+  [event]
+  (.createAnswer peer-connection
+                 (fn [description]
+                   (.setLocalDescription peer-connection description))))
+
+(defn as-offer
+  [sdp]
+  (js/RTCSessionDescription. (clj->js {:sdp sdp :type :offer})))
+
+(defn as-answer
+  [sdp]
+  (js/RTCSessionDescription. (clj->js {:sdp sdp :type :answer})))
+
+(defn set-local-offer
+  [event]
+  (.setLocalDescription peer-connection (as-offer @local-description)))
+
+(defn set-local-answer
+  [event]
+  (.setLocalDescription peer-connection (as-answer @local-description)))
+
+(defn set-remote-offer
+  [event]
+  (.setRemoteDescription peer-connection (as-offer @remote-description)))
+
+(defn set-remote-answer
+  [event]
+  (.setRemoteDescription peer-connection (as-answer @remote-description)))
+
+(html
+  (head
+    (link :rel "stylesheet" :type "text/css" :href "css/main.css"))
+  (body
+    (div
+      (text "ICE State: ~{ice-state}") (br)
+      (button :click create-offer
+              "Create Offer") (br)
+      "Local Description:" (br)
+      (textarea :change #(reset! local-description (.-value (.-target %)))
+                :value local-description) (br)
+      (button :click set-local-offer
+              "Set Local Description as Offer")
+      (button :click set-local-answer
+              "Set Local Description as Answer") (br)
+      "Remote Description:" (br)
+      (textarea :change #(reset! remote-description (.-value (.-target %)))
+                :value remote-description) (br)
+      (button :click set-remote-offer
+              "Set Remote Description as Offer")
+      (button :click set-remote-answer
+              "Set Remote Description as Answer") (br)
+      (button :click create-answer
+              "Create Answer"))
+    (div
+      (textarea :change #(reset! message (.-value (.-target %)))
+                :value message) (br)
+      (button :click #(.send data-channel @message)
+              "Send"))))
+
+;; vim: set expandtab ts=2 sw=2 filetype=clojure :

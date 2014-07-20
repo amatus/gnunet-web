@@ -1,4 +1,4 @@
-;; ui.cljs - UI routines for gnunet-web website
+;; index.cljs.hl - The gnunet-web website
 ;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -14,26 +14,25 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(ns gnunet-web.ui
-  (:use [gnunet-web.hostlist :only (fetch-and-process!)]
-        [gnunet-web.peerinfo :only (start-peerinfo)]
-        [gnunet-web.service :only (start-worker)]))
+(page "index.html"
+      (:use [gnunet-web.hostlist :only (fetch-and-process!)]
+            [gnunet-web.service :only (start-worker)]))
 
-(defn by-id
-  [id]
-  (.getElementById js/document (name id)))
+(defc output nil)
 
-(set! *print-fn* (fn [string]
-                   (let [output (by-id :output)]
-                     (set! (.-textContent output)
-                           (str (.-textContent output) string)))))
-;;(set! *print-fn* #(.log js/console %))
+(set! *print-fn* #(swap! output str %))
 
 (def topology-worker (start-worker "topology" "js/gnunet-daemon-topology.js"))
 (def fs-worker (start-worker "fs" "js/gnunet-service-fs.js"))
 
-(.addEventListener
-  (by-id :hostlist)
-  "click"
-  (fn [event]
-    (fetch-and-process!)))
+(html
+  (head
+    (link :rel "stylesheet" :type "text/css" :href "css/main.css"))
+  (body
+    (div
+      (button :click fetch-and-process!
+              "Fetch hostlist"))
+    (pre
+      (text "Loading...~{output}"))))
+
+;; vim: set expandtab ts=2 sw=2 filetype=clojure :

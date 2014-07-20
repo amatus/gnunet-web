@@ -27,9 +27,11 @@ Roadmap
 What You Can Do Now
 -------------------
 
+You will need to install [boot] to follow these instructions.
+
 ### Try out the RTCPeerConnection demo ###
-0. Execute `lein run`
-1. Open two browsers to http://localhost:3000/ (let's call them Alice and Bob).
+0. Execute `boot production`
+1. Open two browsers to resources/public/webrtc.html (let's call them Alice and Bob).
 2. Alice presses "Create Offer" and waits a bit for ICE candidates to be
    collected.
 3. Alice sends the Local Description to Bob.
@@ -45,8 +47,8 @@ What You Can Do Now
 
 ### Compile GNUnet with emscripten ###
 0. Execute `./build-gnunet.sh`
-1. Execute `lein run`
-2. Open http://localhost:3000/gnunet.html
+1. Execute `boot production`
+2. Open resources/public/index.html
 
 Each GNUnet service is running in its own [Web Worker] thread. The APIs used by
 the services to schedule tasks, communicate with each other, and load plugins
@@ -61,4 +63,5 @@ To debug a shared worker in chrome open chrome://inspect and click the
   [rfc3264]: http://www.ietf.org/rfc/rfc3264.txt
   [web worker]: http://www.w3.org/TR/workers/
   [indexeddb]: http://www.w3.org/TR/IndexedDB/
+  [boot]: https://github.com/tailrecursion/boot
 
