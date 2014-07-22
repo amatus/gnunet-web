@@ -1,4 +1,4 @@
-REVISION="33926"
+REVISION="34005"
 VERSION="svn-${REVISION}"
 DESCRIPTION="GNUnet is a framework for secure peer-to-peer networking that does not use any centralized or otherwise trusted services."
 SOURCE_URI="svn://gnunet.org/svn/gnunet@${REVISION}?proto=https&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
@@ -14,6 +14,8 @@ BDEPENDS="${BDEPENDS}
 pkg_compile() {
 	cp "${F}/plugin_transport_http_client_emscripten.c" \
 		"${S}/src/transport/"
+	cp "${F}/plugin_peerstore_emscripten.c" \
+		"${S}/src/peerstore/"
 	BUILDROOT="${BUILDER_TOPDIR}/.."
         export TEMP_DIR="${T}"
 	./bootstrap
