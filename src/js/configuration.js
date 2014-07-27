@@ -78,6 +78,9 @@ mergeInto(LibraryManager.library, {
     peerinfo: {
       HOSTS: '/peerinfo/hosts',
     },
+    peerstore: {
+      DATABASE: 'emscripten',
+    },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_get_value: function(section, option) {

@@ -382,6 +382,44 @@ pkg_compile() {
 	cp "${S}/src/cadet/.libs/gnunet-service-cadet.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
+	# Peerstore
+	#
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-O2 \
+		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+		-s EXPORTED_FUNCTIONS='[
+			"_libgnunet_plugin_peerstore_emscripten_init",
+		]' \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/peerstore/libgnunet_plugin_peerstore_emscripten.js" \
+		"${S}/src/peerstore/plugin_peerstore_emscripten.lo"
+	( echo '['
+	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
+	  echo '"_GNUNET_log_setup",'
+	  echo '"_GNUNET_xstrdup_",'
+          echo '"_main"]' ) > peerstore.exports
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-O2 \
+		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
+		-s EXPORTED_FUNCTIONS=@peerstore.exports \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/peerstore/gnunet-service-peerstore.js" \
+		"${S}/src/peerstore/gnunet_service_peerstore"*.o \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		--js-library "${BUILDROOT}/src/js/configuration.js" \
+		--js-library "${BUILDROOT}/src/js/plugin.js" \
+		--js-library "${BUILDROOT}/src/js/scheduler.js" \
+		--js-library "${BUILDROOT}/src/js/server.js" \
+		--js-library "${BUILDROOT}/src/js/service.js" \
+		--pre-js "${BUILDROOT}/src/js/pre.js"
+	cp "${S}/src/peerstore/.libs/gnunet-service-peerstore.js" \
+		"${S}/src/peerstore/libgnunet_plugin_peerstore_emscripten.js" \
+		"${D}/var/lib/gnunet/js/"
+	#
 	# File Sharing
 	#
 	( echo '['
@@ -404,6 +442,7 @@ pkg_compile() {
 		"${S}/src/datastore/libgnunetdatastore.la" \
 		"${S}/src/dht/libgnunetdht.la" \
 		"${S}/src/fs/libgnunetfs.la" \
+		"${S}/src/peerstore/libgnunetpeerstore.la" \
 		"${S}/src/statistics/libgnunetstatistics.la" \
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \

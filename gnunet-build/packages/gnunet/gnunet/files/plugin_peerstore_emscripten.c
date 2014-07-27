@@ -1,6 +1,6 @@
 /*
  * This file is part of GNUnet
- * (C) 2013 Christian Grothoff (and other contributing authors)
+ * (C) 2013-2014  Christian Grothoff (and other contributing authors)
  *
  * GNUnet is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published
@@ -19,36 +19,25 @@
  */
 
 /**
- * @file peerstore/plugin_peerstore_sqlite.c
- * @brief sqlite-based peerstore backend
+ * @file peerstore/plugin_peerstore_emscripten.c
+ * @brief IndexedDB-based peerstore backend
  * @author Omar Tarabai
+ * @author David Barksdale <amatus@amatus.name>
  */
 
+#include <emscripten.h>
 #include "platform.h"
 #include "gnunet_peerstore_plugin.h"
 #include "gnunet_peerstore_service.h"
 #include "peerstore.h"
 
 /**
- * After how many ms "busy" should a DB operation fail for good?  A
- * low value makes sure that we are more responsive to requests
- * (especially PUTs).  A high value guarantees a higher success rate
- * (SELECTs in iterate can take several seconds despite LIMIT=1).
- *
- * The default value of 1s should ensure that users do not experience
- * huge latencies while at the same time allowing operations to
- * succeed with reasonable probability.
- */
-#define BUSY_TIMEOUT_MS 1000
-
-/**
  * Log an error message at log-level 'level' that indicates
  * a failure of the command 'cmd' on file 'filename'
  * with the message given by strerror(errno).
  */
-#define LOG_SQLITE(db, level, cmd) do { GNUNET_log_from (level, "peerstore-sqlite", _("`%s' failed at %s:%d with error: %s\n"), cmd, __FILE__, __LINE__, sqlite3_errmsg(db->dbh)); } while(0)
-
-#define LOG(kind,...) GNUNET_log_from (kind, "peerstore-sqlite", __VA_ARGS__)
+#define LOG(kind,...) \
+  GNUNET_log_from (kind, "peerstore-emscripten", __VA_ARGS__)
 
 /**
  * Context for all functions in this plugin.
@@ -60,74 +49,7 @@ struct Plugin
    * Configuration handle
    */
   const struct GNUNET_CONFIGURATION_Handle *cfg;
-
-  /**
-   * Database filename.
-   */
-  char *fn;
-
-  /**
-   * Native SQLite database handle.
-   */
-  //XXX sqlite3 *dbh;
-
-  /**
-   * Precompiled SQL for inserting into peerstoredata
-   */
-  //XXX sqlite3_stmt *insert_peerstoredata;
-
-  /**
-   * Precompiled SQL for selecting from peerstoredata
-   */
-  //XXX sqlite3_stmt *select_peerstoredata;
-
-  /**
-   * Precompiled SQL for selecting from peerstoredata
-   */
-  //XXX sqlite3_stmt *select_peerstoredata_by_pid;
-
-  /**
-   * Precompiled SQL for selecting from peerstoredata
-   */
-  //XXX sqlite3_stmt *select_peerstoredata_by_key;
-
-  /**
-   * Precompiled SQL for selecting from peerstoredata
-   */
-  //XXX sqlite3_stmt *select_peerstoredata_by_all;
-
-  /**
-   * Precompiled SQL for deleting expired
-   * records from peerstoredata
-   */
-  //XXX sqlite3_stmt *expire_peerstoredata;
-
-  /**
-   * Precompiled SQL for deleting records
-   * with given key
-   */
-  //XXX sqlite3_stmt *delete_peerstoredata;
-
 };
-
-/**
- * Delete records with the given key
- *
- * @param cls closure (internal context for the plugin)
- * @param sub_system name of sub system
- * @param peer Peer identity (can be NULL)
- * @param key entry key string (can be NULL)
- * @return number of deleted records
- */
-static int
-peerstore_emscripten_delete_records(void *cls,
-    const char *sub_system,
-    const struct GNUNET_PeerIdentity *peer,
-    const char *key)
-{
-  struct Plugin *plugin = cls;
-  return 0;
-}
 
 /**
  * Delete expired records (expiry < now)
@@ -140,7 +62,22 @@ static int
 peerstore_emscripten_expire_records(void *cls,
     struct GNUNET_TIME_Absolute now)
 {
-  struct Plugin *plugin = cls;
+  EM_ASM_ARGS({
+    var now = $0;
+    var store =
+      psdb.transaction(['peerstore'], 'readwrite').objectStore('peerstore');
+    store.index('by_expiry').openKeyCursor(
+        IDBKeyRange.upperBound(now, true)).onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        var request = store.delete(cursor.value);
+        request.onerror = function(e) {
+          Module.print('expiry request failed');
+        };
+        cursor.continue();
+      }
+    };
+  }, (double)now.abs_value_us);
   return 0;
 
 }
@@ -164,7 +101,56 @@ peerstore_emscripten_iterate_records (void *cls,
     const char *key,
     GNUNET_PEERSTORE_Processor iter, void *iter_cls)
 {
-  struct Plugin *plugin = cls;
+  EM_ASM_ARGS({
+    var sub_system = Pointer_stringify($0);
+    var peer = $1 ? Array.apply([], HEAP8.subarray($1, $1 + 32)) : null;
+    var key = $2 ? Pointer_stringify($2) : null;
+    var iter = $3;
+    var iter_cls = $4;
+    var key_range = [sub_system];
+    if (peer) {
+      key_range.push(peer);
+    }
+    if (key) {
+      key_range.push(key);
+    }
+    var store =
+      psdb.transaction(['peerstore'], 'readonly').objectStore('peerstore');
+    var index;
+    if (!peer && !key) {
+      index = store.index('by_subsystem');
+    } else if (!peer) {
+      index = store.index('by_key');
+    } else if (!key) {
+      index = store.index('by_peer');
+    } else {
+      index = store.index('by_all');
+    }
+    index.openCursor(IDBKeyRange.only(key_range)).onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        var stack = Runtime.stackSave();
+        var record = Runtime.stackAlloc(6 * 4);
+        var sub_system = allocate(intArrayFromString(cursor.value.sub_system),
+          'i8', ALLOC_STACK);
+        var peer = allocate(cursor.value.peer, 'i8', ALLOC_STACK);
+        var key = allocate(intArrayFromString(cursor.value.key), 'i8',
+          ALLOC_STACK);
+        var value = allocate(cursor.value.value, 'i8', ALLOC_STACK);
+        var expiry = Runtime.stackAlloc(8);
+        setValue(expiry, cursor.value.expiry, 'i64');
+        setValue(record, sub_system, 'i32');
+        setValue(record + 4, peer, 'i32');
+        setValue(record + 8, key, 'i32');
+        setValue(record + 12, value, 'i32');
+        setValue(record + 16, cursor.value.value.length, 'i32');
+        setValue(record + 20, expiry, 'i32');
+        Runtime.dynCall('viii', iter, [iter_cls, record, 0]);
+        Runtime.stackRestore(stack);
+        cursor.continue();
+      }
+    };
+  }, sub_system, peer, key, iter, iter_cls);
   return GNUNET_OK;
 }
 
@@ -190,7 +176,44 @@ peerstore_emscripten_store_record(void *cls,
     struct GNUNET_TIME_Absolute expiry,
     enum GNUNET_PEERSTORE_StoreOption options)
 {
-  struct Plugin *plugin = cls;
+  EM_ASM_ARGS({
+    var sub_system = Pointer_stringify($0);
+    var peer = Array.apply([], HEAP8.subarray($1, $1 + 32));
+    var key = Pointer_stringify($2);
+    var value = new Uint8Array(HEAP8.subarray($3, $3 + $4));
+    var expiry = $5;
+    var options = $6;
+    var store =
+      psdb.transaction(['peerstore'], 'readwrite').objectStore('peerstore');
+    var put = function() {
+      var request = store.put(
+          {sub_system: sub_system,
+           peer: peer,
+           key: key,
+           value: value,
+           expiry: expiry});
+      request.onerror = function(e) {
+        Module.print('put request failed');
+      };
+    };
+    if (options == 1) {
+      store.index('by_all').openKeyCursor(
+          IDBKeyRange.only([sub_system, peer, key])).onsuccess = function(e) {
+        var cursor = e.target.result;
+        if (cursor) {
+          var request = store.delete(cursor.value);
+          request.onerror = function(e) {
+            Module.print('replace request failed');
+          };
+          cursor.continue();
+        } else {
+          put();
+        }
+      }
+    } else {
+      put();
+    }
+  }, sub_system, peer, key, value, size, (double)expiry.abs_value_us, options);
   return GNUNET_OK;
 }
 
@@ -206,6 +229,24 @@ peerstore_emscripten_store_record(void *cls,
 static int
 database_setup (struct Plugin *plugin)
 {
+  EM_ASM({
+    var request = indexedDB.open('peerstore', 1);
+    request.onsuccess = function(e) {
+      psdb = e.target.result;
+    };
+    request.onerror = function(e) {
+      Module.print('Error opening peerstore database');
+    };
+    request.onupgradeneeded = function(e) {
+      var db = e.target.result;
+      var store = db.createObjectStore('peerstore', {autoIncrement: true});
+      store.createIndex('by_subsystem', 'sub_system');
+      store.createIndex('by_pid', ['sub_system', 'peer_id']);
+      store.createIndex('by_key', ['sub_system', 'key']);
+      store.createIndex('by_all', ['sub_system', 'peer_id', 'key']);
+      store.createIndex('by_expiry', 'expiry');
+    };
+  });
   return GNUNET_OK;
 }
 
@@ -270,4 +311,4 @@ libgnunet_plugin_peerstore_emscripten_done (void *cls)
 
 }
 
-/* end of plugin_peerstore_emscripten.c */
+/* vim: set expandtab ts=2 sw=2: */

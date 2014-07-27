@@ -17,8 +17,7 @@ Roadmap
     * gnunet-service-cadet.js - Done.
     * gnunet-service-datastore.js - Building with heap backend plugin.
         * Needs an [indexedDB] backend plugin.
-    * gnunet-service-peerstore.js - TODO.
-        * Needs an [indexedDB] backend plugin.
+    * gnunet-service-peerstore.js - Done, with [indexedDB] backend plugin.
     * gnunet-service-fs.js - Done.
 * Write a minimal UI that allows publishing, searching, and downloading via the
   file-sharing service.
