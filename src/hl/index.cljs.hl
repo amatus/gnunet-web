@@ -23,12 +23,16 @@
 (def topology-worker (start-worker "topology" "js/gnunet-daemon-topology.js"))
 (def fs-worker (start-worker "fs" "js/gnunet-service-fs.js"))
 
+(defelem ui-button
+         [attr kids]
+         ((div :class "ui button") attr kids))
+
 (html
   (head
-    (link :rel "stylesheet" :type "text/css" :href "css/main.css"))
+    (link :rel "stylesheet" :type "text/css" :href "css/main.css")
+    (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
+    (script :src "js/semantic.min.js"))
   (body
-    (div
-      (button :click fetch-and-process!
-              "Fetch hostlist"))))
+    (ui-button :click fetch-and-process! "Fetch hostlist")))
 
 ;; vim: set expandtab ts=2 sw=2 filetype=clojure :
