@@ -44,8 +44,11 @@
         _ (js/window.crypto.getRandomValues random-bytes)]
     (set! (.-onerror worker)
           (fn [event]
-            (println worker-name ":" (.-filename event) ":" (.-lineno event)
-                     " " (.-message event))))
+            (.error js/console
+                    worker-name
+                    (.-filename event)
+                    (.-lineno event)
+                    (.-message event))))
     (set! (.-onmessage port)
           (fn [event]
             (let [data (.-data event)]
@@ -53,14 +56,18 @@
                 "init" (do
                          (set! (.-onmessage (.-stdout data))
                                (fn [event]
-                                 (println worker-name ":" (.-data event))))
+                                 (.debug js/console
+                                         worker-name
+                                         (.-data event))))
                          (set! (.-onmessage (.-stderr data))
                                (fn [event]
-                                 (println worker-name " err:" (.-data event)))))
+                                 (.debug js/console
+                                         worker-name
+                                         (.-data event)))))
                 "client_connect" (client-connect (.-service_name data)
                                                  (.-client_name data)
                                                  (.-message_port data))
-                (println worker-name ":" (js/JSON.stringify data))))))
+                (.warn js/console worker-name data)))))
     (.start port)
     (.postMessage port (clj->js {:type "init"
                                  :private-key private-key

@@ -18,9 +18,7 @@
       (:use [gnunet-web.hostlist :only (fetch-and-process!)]
             [gnunet-web.service :only (start-worker)]))
 
-(defc output nil)
-
-(set! *print-fn* #(swap! output str %))
+(set! *print-fn* #(.log js/console %))
 
 (def topology-worker (start-worker "topology" "js/gnunet-daemon-topology.js"))
 (def fs-worker (start-worker "fs" "js/gnunet-service-fs.js"))
@@ -31,8 +29,6 @@
   (body
     (div
       (button :click fetch-and-process!
-              "Fetch hostlist"))
-    (pre
-      (text "Loading...~{output}"))))
+              "Fetch hostlist"))))
 
 ;; vim: set expandtab ts=2 sw=2 filetype=clojure :
