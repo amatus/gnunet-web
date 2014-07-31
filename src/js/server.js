@@ -182,6 +182,9 @@ mergeInto(LibraryManager.library, {
     SERVER.clients[client].user_context = ptr;
     SERVER.clients[client].user_context_size = size;
   },
+  GNUNET_SERVER_disable_receive_done_warning: function(client) {
+    // We don't currently have a receive done warning
+  },
 });
 
 // vim: set expandtab ts=2 sw=2:

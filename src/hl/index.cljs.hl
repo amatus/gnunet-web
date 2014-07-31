@@ -16,12 +16,14 @@
 
 (page "index.html"
       (:use [gnunet-web.hostlist :only (fetch-and-process!)]
-            [gnunet-web.service :only (start-worker)]))
+            [gnunet-web.service :only (start-worker)]
+            [gnunet-web.transport :only (monitor-peers)]))
 
 (set! *print-fn* #(.log js/console %))
 
 (def topology-worker (start-worker "topology" "js/gnunet-daemon-topology.js"))
 (def fs-worker (start-worker "fs" "js/gnunet-service-fs.js"))
+(monitor-peers (fn [_]))
 
 (defelem ui-button
          [attr kids]
