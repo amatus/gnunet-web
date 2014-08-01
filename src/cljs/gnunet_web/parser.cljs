@@ -110,4 +110,4 @@
                zero (items 1)]
               (goog.crypt/utf8ByteArrayToString (to-array xs))))
 
-(def parse-date parse-uint64)
+(def parse-absolute-time parse-uint64)

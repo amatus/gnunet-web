@@ -45,4 +45,4 @@
     (goog.crypt/stringToUtf8ByteArray x)
     [0]))
 
-(def encode-date encode-uint64)
+(def encode-absolute-time encode-uint64)

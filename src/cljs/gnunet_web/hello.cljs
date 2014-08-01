@@ -17,10 +17,10 @@
 (ns gnunet-web.hello
   (:use [amatus.datastructures :only (flatten-nested-maps nested-group-by)]
         [clojure.set :only (difference union)]
-        [gnunet-web.encoder :only (encode-date encode-uint16 encode-uint32
-                                   encode-utf8)]
+        [gnunet-web.encoder :only (encode-absolute-time encode-uint16
+                                   encode-uint32 encode-utf8)]
         [gnunet-web.message :only (encode-message parse-peer-identity)]
-        [gnunet-web.parser :only (items none-or-more parser parse-date
+        [gnunet-web.parser :only (items none-or-more parser parse-absolute-time
                                   parse-uint16 parse-uint32 parse-utf8)])
   (:require-macros [monads.macros :as monadic]))
 
@@ -30,7 +30,7 @@
   (monadic/do parser
               [transport parse-utf8
                address-length parse-uint16
-               expiration parse-date
+               expiration parse-absolute-time
                encoded-address (items address-length)]
               {:transport transport
                :expiration expiration
@@ -43,7 +43,7 @@
   (concat
     (encode-utf8 transport)
     (encode-uint16 (count encoded-address))
-    (encode-date expiration)
+    (encode-absolute-time expiration)
     encoded-address))
 
 (defn latest-expiration
