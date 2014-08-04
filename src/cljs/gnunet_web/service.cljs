@@ -54,19 +54,19 @@
             (let [data (.-data event)]
               (condp = (.-type data)
                 "init" (do
-                         (set! (.-onmessage (.-stdout data))
+                         (set! (.-onmessage (aget data "stdout"))
                                (fn [event]
                                  (.debug js/console
                                          worker-name
                                          (.-data event))))
-                         (set! (.-onmessage (.-stderr data))
+                         (set! (.-onmessage (aget data "stderr"))
                                (fn [event]
                                  (.debug js/console
                                          worker-name
                                          (.-data event)))))
-                "client_connect" (client-connect (.-service_name data)
-                                                 (.-client_name data)
-                                                 (.-message_port data))
+                "client_connect" (client-connect (aget data "service_name")
+                                                 (aget data "client_name")
+                                                 (aget data "message_port"))
                 (.warn js/console worker-name data)))))
     (.start port)
     (.postMessage port (clj->js {:type "init"

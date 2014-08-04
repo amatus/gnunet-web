@@ -1,0 +1,1 @@
+window.crypto.getRandomValues = function() {};
