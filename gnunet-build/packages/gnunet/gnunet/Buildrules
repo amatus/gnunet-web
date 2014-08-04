@@ -16,7 +16,6 @@ pkg_compile() {
 		"${S}/src/transport/"
 	cp "${F}/plugin_peerstore_emscripten.c" \
 		"${S}/src/peerstore/"
-	BUILDROOT="${BUILDER_TOPDIR}/.."
         export TEMP_DIR="${T}"
 	./bootstrap
         EMCONFIGURE_JS=1 emconfigure ./configure \
@@ -75,11 +74,11 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--js-library "${F}/service.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/peerinfo/.libs/gnunet-service-peerinfo.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
@@ -129,12 +128,12 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/plugin.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/plugin.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--js-library "${F}/service.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/datastore/.libs/gnunet-service-datastore.js" \
 		"${S}/src/datastore/libgnunet_plugin_datastore_heap.js" \
 		"${D}/var/lib/gnunet/js/"
@@ -172,13 +171,13 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		"${SYSROOT}/usr/lib/libunistring.la" \
-		--js-library "${BUILDROOT}/src/js/client.js" \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/plugin.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/client.js" \
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/plugin.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--js-library "${F}/service.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/ats/.libs/gnunet-service-ats.js" \
 		"${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
 		"${D}/var/lib/gnunet/js/"
@@ -216,13 +215,13 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
-		--js-library "${BUILDROOT}/src/js/client.js" \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/plugin.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/client.js" \
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/plugin.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--js-library "${F}/service.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/transport/.libs/gnunet-service-transport.js" \
 		"${S}/src/transport/libgnunet_plugin_transport_http_client.js" \
 		"${D}/var/lib/gnunet/js/"
@@ -242,12 +241,12 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${BUILDROOT}/src/js/client.js" \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/client.js" \
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--js-library "${F}/service.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/core/.libs/gnunet-service-core.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
@@ -270,12 +269,12 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${BUILDROOT}/src/js/client.js" \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/client.js" \
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--js-library "${F}/service.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/nse/.libs/gnunet-service-nse.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
@@ -309,13 +308,13 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${BUILDROOT}/src/js/client.js" \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/plugin.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/client.js" \
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/plugin.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--js-library "${F}/service.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/dht/.libs/gnunet-service-dht.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
@@ -336,12 +335,12 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
-		--js-library "${BUILDROOT}/src/js/client.js" \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/program.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/client.js" \
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/program.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/topology/.libs/gnunet-daemon-topology.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
@@ -372,13 +371,13 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${BUILDROOT}/src/js/client.js" \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/plugin.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/client.js" \
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/plugin.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--js-library "${F}/service.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/cadet/.libs/gnunet-service-cadet.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
@@ -410,12 +409,12 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/plugin.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/plugin.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--js-library "${F}/service.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/peerstore/.libs/gnunet-service-peerstore.js" \
 		"${S}/src/peerstore/libgnunet_plugin_peerstore_emscripten.js" \
 		"${D}/var/lib/gnunet/js/"
@@ -448,13 +447,13 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${BUILDROOT}/src/js/client.js" \
-		--js-library "${BUILDROOT}/src/js/configuration.js" \
-		--js-library "${BUILDROOT}/src/js/plugin.js" \
-		--js-library "${BUILDROOT}/src/js/scheduler.js" \
-		--js-library "${BUILDROOT}/src/js/server.js" \
-		--js-library "${BUILDROOT}/src/js/service.js" \
-		--pre-js "${BUILDROOT}/src/js/pre.js"
+		--js-library "${F}/client.js" \
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/plugin.js" \
+		--js-library "${F}/scheduler.js" \
+		--js-library "${F}/server.js" \
+		--js-library "${F}/service.js" \
+		--pre-js "${F}/pre.js"
 	cp "${S}/src/fs/.libs/gnunet-service-fs.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
