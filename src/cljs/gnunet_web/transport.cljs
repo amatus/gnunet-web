@@ -48,16 +48,14 @@
                    address-length parse-uint32
                    plugin-length parse-uint32
                    address (items address-length)
-                   plugin-bytes (items plugin-length)
-                   :let [plugin (goog.crypt/utf8ByteArrayToString
-                                  (to-array (.apply js/Array (array)
-                                                    plugin-bytes)))]]
+                   plugin (items plugin-length)]
                   {:peer peer
                    :state-timeout state-timeout
                    :local-address-info local-address-info
                    :state state
                    :address (vec (.apply js/Array (array) address))
-                   :plugin plugin}))
+                   :plugin (goog.crypt/utf8ByteArrayToString
+                             (.apply js/Array (array) plugin))}))
     {:message-type message-type-peer-iterate-reply}))
 
 (defn monitor-peers
@@ -68,7 +66,28 @@
             (let [message (first (.-v ((parse-message-types
                                          #{parse-peer-iterate-reply})
                                          (.-data event))))]
-              (callback message))))
+              (callback (:message message)))))
     (client-connect "transport" "web app" (.-port2 message-channel))
     (.postMessage (.-port1 message-channel)
                   (into-array (encode-monitor-peer-request-message {})))))
+
+(def state-strings
+  {0 "Not connected"
+   1 "Waiting for ATS"
+   2 "Waiting for CONNECT_ACK"
+   3 "Waiting for ATS suggestion"
+   4 "Waiting for SESSION_ACK"
+   5 "Connected"
+   6 "ATS Reconnect"
+   7 "Reconnecting"
+   8 "Switching address"
+   9 "Disconnecting"
+   10 "Disconnect finished"})
+
+(defn state->string
+  [state]
+  (get state-strings state))
+
+(defn addr->string
+  [address]
+  (goog.crypt/utf8ByteArrayToString (to-array (drop 8 address))))

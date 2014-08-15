@@ -15,15 +15,24 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (page "index.html"
-      (:use [gnunet-web.hostlist :only (fetch-and-process!)]
+      (:use [amatus.code :only (base32-crockford)]
+            [gnunet-web.hostlist :only (fetch-and-process!)]
             [gnunet-web.service :only (start-worker)]
-            [gnunet-web.transport :only (monitor-peers)]))
+            [gnunet-web.transport :only (addr->string monitor-peers
+                                         state->string)]))
 
 (set! *print-fn* #(.log js/console %))
 
 (def topology-worker (start-worker "topology" "js/gnunet-daemon-topology.js"))
 (def fs-worker (start-worker "fs" "js/gnunet-service-fs.js"))
-(monitor-peers (fn [_]))
+
+(defc peers {})
+(monitor-peers (fn [message]
+                 (swap! peers assoc (:peer message)
+                        {:state (:state message)
+                         :address (:address message)
+                         :plugin (:plugin message)})))
+(fetch-and-process!)
 
 (defelem ui-button
          [attr kids]
@@ -31,10 +40,32 @@
 
 (html
   (head
-    (link :rel "stylesheet" :type "text/css" :href "css/main.css")
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
     (script :src "js/semantic.min.js"))
   (body
-    (ui-button :click fetch-and-process! "Fetch hostlist")))
+    (table :class "ui table segment"
+           (thead
+             (tr
+               (th :text "Peer ID")
+               (th :text "State")
+               (th :text "Transport")
+               (th :text "Address")))
+           (tbody
+             (loop-tpl :bindings [[peer info] peers]
+                       (tr
+                         (td :width "25%"
+                             :text (cell=
+                                    (apply str
+                                           (concat
+                                             (take 4 (base32-crockford peer))
+                                             "\u2026")))
+                             :title (cell= (base32-crockford peer)))
+                         (td :width "25%"
+                             :text (cell= (state->string (:state info))))
+                         (td :width "25%"
+                             :text (cell= (:plugin info)))
+                         (td :width "25%"
+                             :text (cell= (addr->string (:address info))))))))
+    (div :class "ui active inline loader")))
 
 ;; vim: set expandtab ts=2 sw=2 filetype=clojure :
