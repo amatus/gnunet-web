@@ -16,6 +16,7 @@
 
 (ns gnunet-web.transport
   (:use [gnunet-web.encoder :only (encode-uint32)]
+        [gnunet-web.hello :only (parse-hello)]
         [gnunet-web.message :only (encode-message parse-message-types
                                    parse-peer-identity)]
         [gnunet-web.parser :only (items optional parser parse-absolute-time
@@ -24,8 +25,18 @@
   (:require [goog.crypt])
   (:require-macros [monads.macros :as monadic]))
 
+(def message-type-start 360)
 (def message-type-monitor-peer-request 380)
 (def message-type-peer-iterate-reply 383)
+
+(defn encode-start-message
+  [{:keys [options peer] :or {options 0 peer (repeat 32 0)}}]
+  (encode-message
+    {:message-type message-type-start
+     :message
+     (concat
+       (encode-uint32 options)
+       peer)}))
 
 (defn encode-monitor-peer-request-message
   [{:keys [one-shot peer] :or {one-shot false peer (repeat 32 0)}}]
@@ -57,6 +68,19 @@
                    :plugin (goog.crypt/utf8ByteArrayToString
                              (.apply js/Array (array) plugin))}))
     {:message-type message-type-peer-iterate-reply}))
+
+(defn monitor
+  [callback]
+  (let [message-channel (js/MessageChannel.)]
+    (set! (.-onmessage (.-port1 message-channel))
+          (fn [event]
+            (let [message (first (.-v ((parse-message-types
+                                         #{parse-hello})
+                                         (.-data event))))]
+              (callback (:message message)))))
+    (client-connect "transport" "web app" (.-port2 message-channel))
+    (.postMessage (.-port1 message-channel)
+                  (into-array (encode-start-message {})))))
 
 (defn monitor-peers
   [callback]

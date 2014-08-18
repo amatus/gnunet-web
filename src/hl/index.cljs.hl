@@ -18,7 +18,7 @@
       (:use [amatus.code :only (base32-crockford)]
             [gnunet-web.hostlist :only (fetch-and-process!)]
             [gnunet-web.service :only (start-worker)]
-            [gnunet-web.transport :only (addr->string monitor-peers
+            [gnunet-web.transport :only (addr->string monitor monitor-peers
                                          state->string)]))
 
 (set! *print-fn* #(.log js/console %))
@@ -26,6 +26,9 @@
 (def topology-worker (start-worker "topology" "js/gnunet-daemon-topology.js"))
 (def fs-worker (start-worker "fs" "js/gnunet-service-fs.js"))
 
+(defc my-id [])
+(monitor (fn [message]
+           (reset! my-id (:public-key message))))
 (defc peers {})
 (monitor-peers (fn [message]
                  (swap! peers assoc (:peer message)
@@ -43,6 +46,12 @@
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
     (script :src "js/semantic.min.js"))
   (body
+    (div :class "ui header"
+         :text (cell=
+                 (apply str
+                        (concat "My Peer ID: " (take 4 (base32-crockford my-id))
+                                "\u2026")))
+         :title (cell= (base32-crockford my-id)))
     (table :class "ui table segment"
            (thead
              (tr
