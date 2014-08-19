@@ -27,8 +27,7 @@
 (def fs-worker (start-worker "fs" "js/gnunet-service-fs.js"))
 
 (defc my-id [])
-(monitor (fn [message]
-           (reset! my-id (:public-key message))))
+(monitor (fn [message] (reset! my-id (:public-key message))))
 (defc peers {})
 (monitor-peers (fn [message]
                  (swap! peers assoc (:peer message)
