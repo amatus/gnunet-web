@@ -15,26 +15,36 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (page "index.html"
-      (:use [amatus.code :only (base32-crockford)]
-            [gnunet-web.hostlist :only (fetch-and-process!)]
-            [gnunet-web.service :only (start-worker)]
-            [gnunet-web.transport :only (addr->string monitor monitor-peers
-                                         state->string)]))
+      (:require [amatus.code :as code]
+                [gnunet-web.core :as core]
+                [gnunet-web.hostlist :as hostlist]
+                [gnunet-web.service :as service]
+                [gnunet-web.transport :as transport]))
 
 (set! *print-fn* #(.log js/console %))
 
-(def topology-worker (start-worker "topology" "js/gnunet-daemon-topology.js"))
-(def fs-worker (start-worker "fs" "js/gnunet-service-fs.js"))
+(def topology-worker (service/start-worker "topology"
+                                           "js/gnunet-daemon-topology.js"))
+(def fs-worker (service/start-worker "fs" "js/gnunet-service-fs.js"))
 
 (defc my-id [])
-(monitor (fn [message] (reset! my-id (:public-key message))))
+(transport/monitor (fn [message] (reset! my-id (:public-key message))))
 (defc peers {})
-(monitor-peers (fn [message]
-                 (swap! peers assoc (:peer message)
-                        {:state (:state message)
-                         :address (:address message)
-                         :plugin (:plugin message)})))
-(fetch-and-process!)
+(transport/monitor-peers (fn [message]
+                           (swap! peers
+                                  #(-> %
+                                    (assoc-in [(:peer message) :transport-state]
+                                              (:state message))
+                                    (assoc-in [(:peer message) :address]
+                                              (:address message))
+                                    (assoc-in [(:peer message) :plugin]
+                                              (:plugin message))))))
+(core/monitor-peers (fn [message]
+                      (if (not (= 6 (:state message)))
+                        (swap! peers assoc-in [(:peer message) :core-state]
+                               (:state message)))))
+
+(hostlist/fetch-and-process!)
 
 (defelem ui-button
          [attr kids]
@@ -48,15 +58,16 @@
     (div :class "ui header"
          :text (cell=
                  (apply str
-                        (concat "My Peer ID: " (take 4 (base32-crockford my-id))
+                        (concat "My Peer ID: "
+                                (take 4 (code/base32-crockford my-id))
                                 "\u2026")))
-         :title (cell= (base32-crockford my-id)))
+         :title (cell= (code/base32-crockford my-id)))
     (table :class "ui table segment"
            (thead
              (tr
                (th :text "Peer ID")
-               (th :text "State")
-               (th :text "Transport")
+               (th :text "Transport State")
+               (th :text "Core State")
                (th :text "Address")))
            (tbody
              (loop-tpl :bindings [[peer info] peers]
@@ -65,15 +76,19 @@
                              :text (cell=
                                     (apply str
                                            (concat
-                                             (take 4 (base32-crockford peer))
+                                             (take 4
+                                                   (code/base32-crockford peer))
                                              "\u2026")))
-                             :title (cell= (base32-crockford peer)))
+                             :title (cell= (code/base32-crockford peer)))
                          (td :width "25%"
-                             :text (cell= (state->string (:state info))))
+                             :text (cell= (transport/state->string
+                                            (:transport-state info))))
                          (td :width "25%"
-                             :text (cell= (:plugin info)))
+                             :text (cell= (core/state->string
+                                            (:core-state info))))
                          (td :width "25%"
-                             :text (cell= (addr->string (:address info))))))))
+                             :text (cell= (transport/addr->string
+                                            (:address info))))))))
     (div :class "ui active inline loader")))
 
 ;; vim: set expandtab ts=2 sw=2 filetype=clojure :
