@@ -23,6 +23,10 @@
 
 (set! *print-fn* #(.log js/console %))
 
+(defn peer-id-short
+  [peer]
+  (.substr (code/base32-crockford peer) 0 4))
+
 (def topology-worker (service/start-worker "topology"
                                            "js/gnunet-daemon-topology.js"))
 (def fs-worker (service/start-worker "fs" "js/gnunet-service-fs.js"))
@@ -56,12 +60,8 @@
     (script :src "js/semantic.min.js"))
   (body
     (div :class "ui header"
-         :text (cell=
-                 (apply str
-                        (concat "My Peer ID: "
-                                (take 4 (code/base32-crockford my-id))
-                                "\u2026")))
-         :title (cell= (code/base32-crockford my-id)))
+         :title (cell= (code/base32-crockford my-id))
+         (text "My Peer ID: ~(peer-id-short my-id)\u2026"))
     (table :class "ui table segment"
            (thead
              (tr
@@ -73,13 +73,8 @@
              (loop-tpl :bindings [[peer info] peers]
                        (tr
                          (td :width "25%"
-                             :text (cell=
-                                    (apply str
-                                           (concat
-                                             (take 4
-                                                   (code/base32-crockford peer))
-                                             "\u2026")))
-                             :title (cell= (code/base32-crockford peer)))
+                             :title (cell= (code/base32-crockford peer))
+                             (text "~(peer-id-short peer)\u2026"))
                          (td :width "25%"
                              :text (cell= (transport/state->string
                                             (:transport-state info))))
