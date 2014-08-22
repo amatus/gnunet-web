@@ -8,7 +8,7 @@
   :dependencies '[[net.clojure/monads        "1.0.2"]
                   [org.clojure/core.async    "0.1.303.0-886421-alpha"]
                   [tailrecursion/boot.task   "2.2.1"]
-                  [tailrecursion/hoplon      "5.10.12"]]
+                  [tailrecursion/hoplon      "5.10.22"]]
   :out-path     "resources/public"
   :src-paths    #{"src"})
 
