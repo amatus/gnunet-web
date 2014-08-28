@@ -50,6 +50,8 @@ mergeInto(LibraryManager.library, {
     entries.map(function(entry) {
       if (entry.lastIndexOf(prefix, 0) !== 0)
         return;
+      // Remove .js suffix
+      entry = entry.substr(0, entry.length - 3);
       var rc = ccallFunc(_GNUNET_PLUGIN_load, 'number',
           ['string', 'number'],
           [entry, arg]);
