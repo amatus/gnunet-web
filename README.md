@@ -28,11 +28,24 @@ Roadmap
 What You Can Do Now
 -------------------
 
-You will need to install [boot] to follow these instructions.
+You will need to install [boot] to follow these instructions. Currently
+gnunet-web only works in Chromium or Google Chrome.
+
+### Try gnunet-web pre-alpha ###
+0. Execute `./build-gnunet.sh`
+1. Execute `boot development`
+2. Open http://localhost:8000/
+
+Each GNUnet service is running in its own [Web Worker] thread. The APIs used by
+the services to schedule tasks, communicate with each other, and load plugins
+are implemented as emscripten js libraries.
+
+To debug a shared worker in chrome open chrome://inspect and click the
+"inspect" link next to an entry in the shared workers list.
 
 ### Try out the RTCPeerConnection demo ###
-0. Execute `boot production`
-1. Open two browsers to resources/public/webrtc.html (let's call them Alice and Bob).
+0. Execute `boot development`
+1. Open two browsers to http://localhost:8000/webrtc.html (let's call them Alice and Bob).
 2. Alice presses "Create Offer" and waits a bit for ICE candidates to be
    collected.
 3. Alice sends the Local Description to Bob.
@@ -45,18 +58,6 @@ You will need to install [boot] to follow these instructions.
    "Set Remote Description as Answer".
 8. Alice and Bob wait for the ICE State to be connected.
 9. Alice and Bob can send messages with the input box at the bottom of the page.
-
-### Compile GNUnet with emscripten ###
-0. Execute `./build-gnunet.sh`
-1. Execute `boot production`
-2. Open resources/public/index.html
-
-Each GNUnet service is running in its own [Web Worker] thread. The APIs used by
-the services to schedule tasks, communicate with each other, and load plugins
-are implemented as emscripten js libraries.
-
-To debug a shared worker in chrome open chrome://inspect and click the
-"inspect" link next to an entry in the shared workers list.
 
   [gnunet]: https://gnunet.org
   [webrtc]: http://www.webrtc.org
