@@ -145,11 +145,6 @@ struct Session
   GNUNET_SCHEDULER_TaskIdentifier timeout_task;
 
   /**
-   * Task to wake up client receive handle when receiving is allowed again
-   */
-  GNUNET_SCHEDULER_TaskIdentifier recv_wakeup_task;
-
-  /**
    * Absolute time when to receive data again
    * Used for receive throttling
    */
@@ -175,11 +170,6 @@ struct Session
    * ATS network type in NBO
    */
   uint32_t ats_address_network_type;
-
-  /**
-   * Is the client PUT handle currently paused?
-   */
-  int put_paused;
 
   /**
    * Is the client PUT handle disconnect in progress?
@@ -315,16 +305,6 @@ client_delete_session (struct Session *s)
     s->timeout_task = GNUNET_SCHEDULER_NO_TASK;
     s->timeout = GNUNET_TIME_UNIT_ZERO_ABS;
   }
-  /*XXX if (GNUNET_SCHEDULER_NO_TASK != s->put_disconnect_task)
-  {
-    GNUNET_SCHEDULER_cancel (s->put_disconnect_task);
-    s->put_disconnect_task = GNUNET_SCHEDULER_NO_TASK;
-  }*/
-  if (GNUNET_SCHEDULER_NO_TASK != s->recv_wakeup_task)
-  {
-    GNUNET_SCHEDULER_cancel (s->recv_wakeup_task);
-    s->recv_wakeup_task = GNUNET_SCHEDULER_NO_TASK;
-  }
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONTAINER_multipeermap_remove (plugin->sessions,
                                                        &s->address->peer,
@@ -337,6 +317,10 @@ client_delete_session (struct Session *s)
          GNUNET_i2s (&s->address->peer));
     GNUNET_assert (plugin->cur_connections > 0);
     plugin->cur_connections--;
+    EM_ASM_INT({
+      Module.print('Aborting xhr: ' + $0);
+      xhrs[$0].abort();
+    }, s->get);
     s->get = 0;
   }
   GNUNET_STATISTICS_set (plugin->env->stats,
@@ -598,34 +582,6 @@ client_lookup_session (struct HTTP_Client_Plugin *plugin,
 
 
 /**
- * Wake up a curl handle which was suspended
- *
- * @param cls the session
- * @param tc task context
- */
-static void
-client_wake_up (void *cls,
-                const struct GNUNET_SCHEDULER_TaskContext *tc)
-{
-  struct Session *s = cls;
-
-  s->recv_wakeup_task = GNUNET_SCHEDULER_NO_TASK;
-  if (0 != (tc->reason & GNUNET_SCHEDULER_REASON_SHUTDOWN))
-    return;
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Session %p/connection %d: Waking up GET handle\n",
-       s, s->get);
-  if (GNUNET_YES == s->put_paused)
-  {
-    /* PUT connection was paused, unpause */
-    s->put_paused = GNUNET_NO;
-  }
-  if (s->get)
-    ; //XXX curl_easy_pause (s->get.easyhandle, CURLPAUSE_CONT);
-}
-
-
-/**
  * Callback for message stream tokenizer
  *
  * @param cls the session
@@ -720,15 +676,6 @@ client_receive (void *stream,
          s->get,
 		     GNUNET_STRINGS_relative_time_to_string (delta,
                                                  GNUNET_YES));
-    if (s->recv_wakeup_task != GNUNET_SCHEDULER_NO_TASK)
-    {
-      GNUNET_SCHEDULER_cancel (s->recv_wakeup_task);
-      s->recv_wakeup_task = GNUNET_SCHEDULER_NO_TASK;
-    }
-    s->recv_wakeup_task
-      = GNUNET_SCHEDULER_add_delayed (delta,
-                                      &client_wake_up,
-                                      s);
     return 0;
   }
   if (NULL == s->msg_tk)
@@ -796,6 +743,7 @@ client_connect_get (struct Session *s)
     };
     xhr.ontimeout = function() {
       Module.print('xhr' + $0 + ' timedout');
+      xhr.resend();
     };
     xhr.resend();
   },
@@ -983,7 +931,6 @@ http_client_plugin_get_session (void *cls,
   s->plugin = plugin;
   s->address = GNUNET_HELLO_address_copy (address);
   s->ats_address_network_type = ats.value;
-  s->put_paused = GNUNET_NO;
   s->put_tmp_disconnecting = GNUNET_NO;
   s->put_tmp_disconnected = GNUNET_NO;
   s->timeout = GNUNET_TIME_relative_to_absolute (HTTP_CLIENT_SESSION_TIMEOUT);
@@ -1168,14 +1115,6 @@ http_client_plugin_update_inbound_delay (void *cls,
        "New inbound delay %s\n",
        GNUNET_STRINGS_relative_time_to_string (delay,
                                                GNUNET_NO));
-  if (s->recv_wakeup_task != GNUNET_SCHEDULER_NO_TASK)
-  {
-    GNUNET_SCHEDULER_cancel (s->recv_wakeup_task);
-    s->recv_wakeup_task
-      = GNUNET_SCHEDULER_add_delayed (delay,
-                                      &client_wake_up,
-                                      s);
-  }
 }
 
 
