@@ -1,0 +1,438 @@
+Index: gnunet-svn-34285/configure.ac
+===================================================================
+--- gnunet-svn-34285/configure.ac	(revision 34285)
++++ gnunet-svn-34285/configure.ac	(working copy)
+@@ -602,7 +602,7 @@
+     AC_CHECK_HEADERS(ltdl.h,
+      AC_CHECK_LIB([ltdl], [lt_dlopenext],
+       ltdl=1))])
+-if test x$ltdl = x1
++if true
+ then
+  AC_MSG_RESULT([libltdl found])
+ else
+Index: gnunet-svn-34285/src/Makefile.am
+===================================================================
+--- gnunet-svn-34285/src/Makefile.am	(revision 34285)
++++ gnunet-svn-34285/src/Makefile.am	(working copy)
+@@ -69,10 +69,8 @@
+   peerinfo-tool \
+   core \
+   $(TESTBED) \
+-  ats-tests \
+   nse \
+   dht \
+-  hostlist \
+   topology \
+   regex \
+   cadet \
+@@ -83,12 +81,7 @@
+   gnsrecord \
+   namecache \
+   namestore \
+-  vpn \
+-  gns \
+   $(CONVERSATION_DIR) \
+   peerstore \
+   fs \
+-  exit \
+-  pt \
+-  integration-tests \
+   $(EXP_DIR)
+Index: gnunet-svn-34285/src/arm/gnunet-service-arm.c
+===================================================================
+--- gnunet-svn-34285/src/arm/gnunet-service-arm.c	(revision 34285)
++++ gnunet-svn-34285/src/arm/gnunet-service-arm.c	(working copy)
+@@ -1561,19 +1561,5 @@
+ }
+ 
+ 
+-#ifdef LINUX
+-#include <malloc.h>
+ 
+-/**
+- * MINIMIZE heap size (way below 128k) since this process doesn't need much.
+- */
+-void __attribute__ ((constructor)) GNUNET_ARM_memory_init ()
+-{
+-  mallopt (M_TRIM_THRESHOLD, 4 * 1024);
+-  mallopt (M_TOP_PAD, 1 * 1024);
+-  malloc_trim (0);
+-}
+-#endif
+-
+-
+ /* end of gnunet-service-arm.c */
+Index: gnunet-svn-34285/src/dht/Makefile.am
+===================================================================
+--- gnunet-svn-34285/src/dht/Makefile.am	(revision 34285)
++++ gnunet-svn-34285/src/dht/Makefile.am	(working copy)
+@@ -52,12 +52,6 @@
+  gnunet-service-dht \
+  gnunet-service-dht-xvine
+ 
+-noinst_PROGRAMS = \
+- gnunet-dht-monitor \
+- gnunet-dht-get \
+- gnunet-dht-put \
+- gnunet-dht-profiler
+-
+ gnunet_service_dht_SOURCES = \
+  gnunet-service-dht.c gnunet-service-dht.h \
+  gnunet-service-dht_clients.c gnunet-service-dht_clients.h \
+Index: gnunet-svn-34285/src/dht/gnunet-service-dht_neighbours.c
+===================================================================
+--- gnunet-svn-34285/src/dht/gnunet-service-dht_neighbours.c	(revision 34285)
++++ gnunet-svn-34285/src/dht/gnunet-service-dht_neighbours.c	(working copy)
+@@ -46,7 +46,6 @@
+ #include "gnunet-service-dht_neighbours.h"
+ #include "gnunet-service-dht_nse.h"
+ #include "gnunet-service-dht_routing.h"
+-#include <fenv.h>
+ #include "dht.h"
+ 
+ #define LOG_TRAFFIC(kind,...) GNUNET_log_from (kind, "dht-traffic",__VA_ARGS__)
+Index: gnunet-svn-34285/src/dns/Makefile.am
+===================================================================
+--- gnunet-svn-34285/src/dns/Makefile.am	(revision 34285)
++++ gnunet-svn-34285/src/dns/Makefile.am	(working copy)
+@@ -17,14 +17,6 @@
+ pkgcfg_DATA = \
+   dns.conf
+ 
+-if LINUX
+-HIJACKBIN = gnunet-helper-dns
+-install-exec-hook:
+-	$(top_srcdir)/src/dns/install-dns-helper.sh $(libexecdir) $(GNUNETDNS_GROUP) $(SUDO_BINARY) || true
+-else
+-install-exec-hook:
+-endif
+-
+ lib_LTLIBRARIES = \
+   libgnunetdnsparser.la \
+   libgnunetdnsstub.la \
+Index: gnunet-svn-34285/src/nat/Makefile.am
+===================================================================
+--- gnunet-svn-34285/src/nat/Makefile.am	(revision 34285)
++++ gnunet-svn-34285/src/nat/Makefile.am	(working copy)
+@@ -14,24 +14,6 @@
+ dist_pkgcfg_DATA = \
+   nat.conf
+ 
+-if LINUX
+-  NATBIN = gnunet-helper-nat-server gnunet-helper-nat-client
+-  NATSERVER = gnunet-helper-nat-server.c
+-  NATCLIENT = gnunet-helper-nat-client.c
+-install-exec-hook:
+-	$(top_srcdir)/src/nat/install-nat-helper.sh $(libexecdir) $(SUDO_BINARY) || true
+-else
+-if XFREEBSD
+-  NATBIN = gnunet-helper-nat-server gnunet-helper-nat-client
+-  NATSERVER = gnunet-helper-nat-server.c
+-  NATCLIENT = gnunet-helper-nat-client.c
+-install-exec-hook:
+-	$(top_srcdir)/src/nat/install-nat-helper.sh $(libexecdir) $(SUDO_BINARY) || true
+-endif
+-else
+-install-exec-hook:
+-endif
+-
+ bin_PROGRAMS = \
+  gnunet-nat-server 
+ 
+Index: gnunet-svn-34285/src/nse/gnunet-service-nse.c
+===================================================================
+--- gnunet-svn-34285/src/nse/gnunet-service-nse.c	(revision 34285)
++++ gnunet-svn-34285/src/nse/gnunet-service-nse.c	(working copy)
+@@ -1609,21 +1609,7 @@
+ }
+ 
+ 
+-#ifdef LINUX
+-#include <malloc.h>
+ 
+-/**
+- * MINIMIZE heap size (way below 128k) since this process doesn't need much.
+- */
+-void __attribute__ ((constructor))
+-GNUNET_ARM_memory_init ()
+-{
+-  mallopt (M_TRIM_THRESHOLD, 4 * 1024);
+-  mallopt (M_TOP_PAD, 1 * 1024);
+-  malloc_trim (0);
+-}
+-#endif
+ 
+ 
+-
+ /* end of gnunet-service-nse.c */
+Index: gnunet-svn-34285/src/peerstore/Makefile.am
+===================================================================
+--- gnunet-svn-34285/src/peerstore/Makefile.am	(revision 34285)
++++ gnunet-svn-34285/src/peerstore/Makefile.am	(working copy)
+@@ -50,7 +50,7 @@
+   $(GN_LIB_LDFLAGS)
+ 
+ plugin_LTLIBRARIES = \
+-  libgnunet_plugin_peerstore_sqlite.la
++  libgnunet_plugin_peerstore_emscripten.la
+   
+ libgnunet_plugin_peerstore_sqlite_la_SOURCES = \
+   plugin_peerstore_sqlite.c
+@@ -64,6 +64,18 @@
+   $(top_builddir)/src/util/libgnunetutil.la \
+   libgnunetpeerstore.la
+ 
++libgnunet_plugin_peerstore_emscripten_la_SOURCES = \
++  plugin_peerstore_emscripten.c
++libgnunet_plugin_peerstore_emscripten_la_LIBADD = \
++  $(top_builddir)/src/peerstore/libgnunetpeerstore.la  \
++  $(top_builddir)/src/util/libgnunetutil.la \
++  $(LTLIBINTL)
++libgnunet_plugin_peerstore_emscripten_la_LDFLAGS = \
++ $(GN_PLUGIN_LDFLAGS)
++libgnunet_plugin_peerstore_emscripten_la_DEPENDENCIES = \
++  $(top_builddir)/src/util/libgnunetutil.la \
++  libgnunetpeerstore.la
++
+ check_PROGRAMS = \
+  test_peerstore_api_store \
+  test_peerstore_api_iterate \
+Index: gnunet-svn-34285/src/regex/gnunet-daemon-regexprofiler.c
+===================================================================
+--- gnunet-svn-34285/src/regex/gnunet-daemon-regexprofiler.c	(revision 34285)
++++ gnunet-svn-34285/src/regex/gnunet-daemon-regexprofiler.c	(working copy)
+@@ -382,19 +382,6 @@
+ }
+ 
+ 
+-#ifdef LINUX
+-#include <malloc.h>
+ 
+-/**
+- * MINIMIZE heap size (way below 128k) since this process doesn't need much.
+- */
+-void __attribute__ ((constructor)) GNUNET_ARM_memory_init ()
+-{
+-  mallopt (M_TRIM_THRESHOLD, 4 * 1024);
+-  mallopt (M_TOP_PAD, 1 * 1024);
+-  malloc_trim (0);
+-}
+-#endif
+ 
+-
+ /* end of gnunet-daemon-regexprofiler.c */
+Index: gnunet-svn-34285/src/revocation/gnunet-service-revocation.c
+===================================================================
+--- gnunet-svn-34285/src/revocation/gnunet-service-revocation.c	(revision 34285)
++++ gnunet-svn-34285/src/revocation/gnunet-service-revocation.c	(working copy)
+@@ -901,21 +901,7 @@
+ }
+ 
+ 
+-#ifdef LINUX
+-#include <malloc.h>
+ 
+-/**
+- * MINIMIZE heap size (way below 128k) since this process doesn't need much.
+- */
+-void __attribute__ ((constructor))
+-GNUNET_ARM_memory_init ()
+-{
+-  mallopt (M_TRIM_THRESHOLD, 4 * 1024);
+-  mallopt (M_TOP_PAD, 1 * 1024);
+-  malloc_trim (0);
+-}
+-#endif
+ 
+ 
+-
+ /* end of gnunet-service-revocation.c */
+Index: gnunet-svn-34285/src/set/Makefile.am
+===================================================================
+--- gnunet-svn-34285/src/set/Makefile.am	(revision 34285)
++++ gnunet-svn-34285/src/set/Makefile.am	(working copy)
+@@ -24,24 +24,6 @@
+ lib_LTLIBRARIES = \
+   libgnunetset.la
+ 
+-gnunet_set_profiler_SOURCES = \
+- gnunet-set-profiler.c
+-gnunet_set_profiler_LDADD = \
+-  $(top_builddir)/src/util/libgnunetutil.la \
+-  $(top_builddir)/src/set/libgnunetset.la \
+-  $(top_builddir)/src/testing/libgnunettesting.la \
+-  $(GN_LIBINTL)
+-gnunet_set_profiler_DEPENDENCIES = \
+-  libgnunetset.la
+-
+-
+-gnunet_set_ibf_profiler_SOURCES = \
+- gnunet-set-ibf-profiler.c \
+- ibf.c
+-gnunet_set_ibf_profiler_LDADD = \
+-  $(top_builddir)/src/util/libgnunetutil.la \
+-  $(GN_LIBINTL)
+-
+ gnunet_service_set_SOURCES = \
+  gnunet-service-set.c gnunet-service-set.h \
+  gnunet-service-set_union.c \
+Index: gnunet-svn-34285/src/statistics/gnunet-service-statistics.c
+===================================================================
+--- gnunet-svn-34285/src/statistics/gnunet-service-statistics.c	(revision 34285)
++++ gnunet-svn-34285/src/statistics/gnunet-service-statistics.c	(working copy)
+@@ -861,19 +861,6 @@
+                               GNUNET_SERVICE_OPTION_SOFT_SHUTDOWN, &run, NULL)) ? 0 : 1;
+ }
+ 
+-#ifdef LINUX
+-#include <malloc.h>
+ 
+-/**
+- * MINIMIZE heap size (way below 128k) since this process doesn't need much.
+- */
+-void __attribute__ ((constructor)) GNUNET_ARM_memory_init ()
+-{
+-  mallopt (M_TRIM_THRESHOLD, 4 * 1024);
+-  mallopt (M_TOP_PAD, 1 * 1024);
+-  malloc_trim (0);
+-}
+-#endif
+ 
+-
+ /* end of gnunet-service-statistics.c */
+Index: gnunet-svn-34285/src/topology/gnunet-daemon-topology.c
+===================================================================
+--- gnunet-svn-34285/src/topology/gnunet-daemon-topology.c	(revision 34285)
++++ gnunet-svn-34285/src/topology/gnunet-daemon-topology.c	(working copy)
+@@ -1327,18 +1327,5 @@
+ }
+ 
+ 
+-#ifdef LINUX
+-#include <malloc.h>
+ 
+-/**
+- * MINIMIZE heap size (way below 128k) since this process doesn't need much.
+- */
+-void __attribute__ ((constructor)) GNUNET_ARM_memory_init ()
+-{
+-  mallopt (M_TRIM_THRESHOLD, 4 * 1024);
+-  mallopt (M_TOP_PAD, 1 * 1024);
+-  malloc_trim (0);
+-}
+-#endif
+-
+ /* end of gnunet-daemon-topology.c */
+Index: gnunet-svn-34285/src/transport/Makefile.am
+===================================================================
+--- gnunet-svn-34285/src/transport/Makefile.am	(revision 34285)
++++ gnunet-svn-34285/src/transport/Makefile.am	(working copy)
+@@ -79,20 +79,6 @@
+ endif
+ 
+ if LINUX
+- WLAN_BIN = gnunet-helper-transport-wlan
+- WLAN_BIN_DUMMY = gnunet-helper-transport-wlan-dummy
+- WLAN_BIN_SENDER = gnunet-transport-wlan-sender
+- WLAN_BIN_RECEIVER = gnunet-transport-wlan-receiver
+- WLAN_PLUGIN_LA = libgnunet_plugin_transport_wlan.la
+- WLAN_PLUGIN_TEST = test_plugin_wlan
+- WLAN_API_TEST = test_transport_api_wlan
+- WLAN_TIMEOUT_TEST = test_transport_api_timeout_wlan
+- WLAN_REL_TEST = test_transport_api_reliability_wlan
+- WLAN_QUOTA_TEST = test_quota_compliance_wlan \
+-		test_quota_compliance_wlan_asymmetric
+-endif
+-
+-if LINUX
+ install-exec-hook:
+ 	$(top_srcdir)/src/transport/install-wlan-helper.sh $(libexecdir) $(SUDO_BINARY) || true
+ if HAVE_LIBBLUETOOTH	
+@@ -273,17 +259,7 @@
+   $(CFLAGS)
+ # -DANALYZE
+ 
+-plugin_LTLIBRARIES = \
+-  libgnunet_plugin_transport_tcp.la \
+-  libgnunet_plugin_transport_udp.la \
+-  $(UNIX_PLUGIN_LA) \
+-  $(HTTP_CLIENT_PLUGIN_LA) \
+-  $(HTTPS_CLIENT_PLUGIN_LA) \
+-  $(HTTP_SERVER_PLUGIN_LA) \
+-  $(HTTPS_SERVER_PLUGIN_LA) \
+-  $(WLAN_PLUGIN_LA) \
+-  $(BT_PLUGIN_LA) \
+-  libgnunet_plugin_transport_template.la
++plugin_LTLIBRARIES = libgnunet_plugin_transport_http_client.la
+ 
+ libgnunet_plugin_transport_tcp_la_SOURCES = \
+   plugin_transport_tcp.c
+@@ -358,7 +334,7 @@
+ 
+ 
+ libgnunet_plugin_transport_http_client_la_SOURCES = \
+-  plugin_transport_http_client.c plugin_transport_http_common.c plugin_transport_http_common.h
++  plugin_transport_http_client_emscripten.c plugin_transport_http_common.c plugin_transport_http_common.h
+ libgnunet_plugin_transport_http_client_la_LIBADD = \
+   $(top_builddir)/src/hello/libgnunethello.la \
+   $(top_builddir)/src/statistics/libgnunetstatistics.la \
+Index: gnunet-svn-34285/src/util/Makefile.am
+===================================================================
+--- gnunet-svn-34285/src/util/Makefile.am	(revision 34285)
++++ gnunet-svn-34285/src/util/Makefile.am	(working copy)
+@@ -72,13 +72,10 @@
+ libgnunetutil_la_SOURCES = \
+   bandwidth.c \
+   bio.c \
+-  client.c \
+   client_manager.c \
+   common_allocation.c \
+   common_endian.c \
+   common_logging.c \
+-  configuration.c \
+-  connection.c \
+   container_bloomfilter.c \
+   container_heap.c \
+   container_meta_data.c \
+@@ -107,15 +104,10 @@
+   os_network.c \
+   os_priority.c \
+   peer.c \
+-  plugin.c \
+-  program.c \
+   resolver_api.c resolver.h \
+-  scheduler.c \
+-  server.c \
+   server_mst.c \
+   server_nc.c \
+   server_tc.c \
+-  service.c \
+   signal.c \
+   strings.c \
+   time.c \
+Index: gnunet-svn-34285/src/util/gnunet-service-resolver.c
+===================================================================
+--- gnunet-svn-34285/src/util/gnunet-service-resolver.c	(revision 34285)
++++ gnunet-svn-34285/src/util/gnunet-service-resolver.c	(working copy)
+@@ -603,20 +603,6 @@
+   return ret;
+ }
+ 
+-#ifdef LINUX
+-#include <malloc.h>
+ 
+-/**
+- * MINIMIZE heap size (way below 128k) since this process doesn't need much.
+- */
+-void __attribute__ ((constructor))
+-GNUNET_ARM_memory_init ()
+-{
+-  mallopt (M_TRIM_THRESHOLD, 4 * 1024);
+-  mallopt (M_TOP_PAD, 1 * 1024);
+-  malloc_trim (0);
+-}
+-#endif
+ 
+-
+ /* end of gnunet-service-resolver.c */

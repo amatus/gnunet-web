@@ -101,9 +101,9 @@
 (def state-strings
   {0 "Not connected"
    1 "Waiting for ATS"
-   2 "Waiting for CONNECT_ACK"
+   2 "Waiting for SYN_ACK"
    3 "Waiting for ATS suggestion"
-   4 "Waiting for SESSION_ACK"
+   4 "Waiting for ACK"
    5 "Connected"
    6 "ATS Reconnect"
    7 "Reconnecting"
