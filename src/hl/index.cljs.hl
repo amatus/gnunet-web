@@ -17,6 +17,7 @@
 (page "index.html"
       (:require [amatus.code :as code]
                 [gnunet-web.core :as core]
+                [gnunet-web.filesharing :as filesharing]
                 [gnunet-web.hostlist :as hostlist]
                 [gnunet-web.service :as service]
                 [gnunet-web.transport :as transport]))
@@ -26,10 +27,6 @@
 (defn peer-id-short
   [peer]
   (.substr (code/base32-crockford peer) 0 4))
-
-(def topology-worker (service/start-worker "topology"
-                                           "js/gnunet-daemon-topology.js"))
-(def fs-worker (service/start-worker "fs" "js/gnunet-service-fs.js"))
 
 (defc my-id [])
 (transport/monitor (fn [message] (reset! my-id (:public-key message))))
@@ -48,6 +45,22 @@
                         (swap! peers assoc-in [(:peer message) :core-state]
                                (:state message)))))
 
+(defc search-results [])
+
+(defn handle-search-result
+  [message]
+  (let [u-block (:u-block message)
+        data (js/Uint8Array. (into-array (filesharing/decrypt (:data u-block))))
+        data (.-v (filesharing/parse-encrypted-u-block data))]
+    (js/console.warn (clj->js data))
+    (if (coll? data)
+      (swap! search-results conj (:uri (first data))))))
+
+
+(def topology-worker (service/start-worker "topology"
+                                           "js/gnunet-daemon-topology.js"))
+(def fs-worker (service/start-worker "fs" "js/gnunet-service-fs.js"))
+
 (hostlist/fetch-and-process!)
 
 (defelem ui-button
@@ -58,7 +71,27 @@
   (head
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
     (script :src "js/semantic.min.js"))
+    ;(script :src "js/cryptojs.js"))
+    ;(script :src "js/rollups/aes.js")
+    ;(script :src "js/components/mode-cfb-min.js")
+    ;(script :src "js/components/lib-typedarrays-min.js")
+    ;(script :src "js/twofish.js"))
   (body
+    (ui-button :click (partial filesharing/search
+                               {:callback handle-search-result
+                                :type 9
+                                :query [ 53 121  14 108 192  19   9 179
+                                         77   1 248  77 167 241 208  83
+                                        233  78 200 212 162 207 229 193
+                                         41 182  99 190 234 253 228   4
+                                         24 187 100 174  69 187  14  23
+                                         37 148 251  75 163  18  33 137
+                                         88  69  38 120  84  62 172  78
+                                        117  36 196   3  27 231  33  45]})
+               "Search `test'")
+    (ul
+      (loop-tpl :bindings [result search-results]
+                (li :text result)))
     (div :class "ui header"
          :title (cell= (code/base32-crockford my-id))
          (text "My Peer ID: ~(peer-id-short my-id)\u2026"))

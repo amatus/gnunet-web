@@ -51,8 +51,15 @@
               (cons x xs)))
 
 ;; Parsing Typed Arrays
+(def tail
+  "A parser which returns the current input"
+  (monadic/do parser
+              [array (m/get-state)]
+              array))
+
 (defn items
-  "Produces a parser which consumes n items from the input."
+  "Produces a parser which consumes n items from the input.
+  Input must be a Uint8Array."
   [n]
   (monadic/do parser
               [array (m/get-state)
