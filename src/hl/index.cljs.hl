@@ -61,8 +61,6 @@
                                            "js/gnunet-daemon-topology.js"))
 (def fs-worker (service/start-worker "fs" "js/gnunet-service-fs.js"))
 
-(hostlist/fetch-and-process!)
-
 (defelem ui-button
          [attr kids]
          ((div :class "ui button") attr kids))
@@ -71,12 +69,8 @@
   (head
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
     (script :src "js/semantic.min.js"))
-    ;(script :src "js/cryptojs.js"))
-    ;(script :src "js/rollups/aes.js")
-    ;(script :src "js/components/mode-cfb-min.js")
-    ;(script :src "js/components/lib-typedarrays-min.js")
-    ;(script :src "js/twofish.js"))
   (body
+    (ui-button :click hostlist/fetch-and-process! "Fetch hostlist")
     (ui-button :click (partial filesharing/search
                                {:callback handle-search-result
                                 :type 9
