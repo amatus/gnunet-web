@@ -23,25 +23,46 @@ mergeInto(LibraryManager.library, {
     var channel = new MessageChannel();
     var port = NEXT_PORT;
     NEXT_PORT = port + 1;
-    CLIENT_PORTS[port] = {port: channel.port1, name: service_name};
+    var client = {
+      port: channel.port1,
+      name: service_name,
+      queue: [],
+      handler: null};
+    client.port.onmessage = function(ev) {
+      if (client.handler) {
+        var handler = client.handler;
+        client.handler = null;
+        handler(ev);
+      } else
+        client.queue.push(ev);
+    };
+    CLIENT_PORTS[port] = client;
     client_connect(service_name, channel.port2);
     return port;
   },
   GNUNET_CLIENT_receive__deps: ['$CLIENT_PORTS'],
   GNUNET_CLIENT_receive: function(client, handler, handler_cls, timeout) {
-    CLIENT_PORTS[client].port.onmessage = function(ev) {
+    var fn = function(ev) {
       Module.print('Received ' + ev.data.length + ' bytes from service '
         + CLIENT_PORTS[client].name);
       ccallFunc(Runtime.getFuncWrapper(handler, 'vii'), 'void',
         ['number', 'array'],
         [handler_cls, ev.data]);
     };
-    var delay = getValue(timeout, 'i64');
-    if (-1 != delay) {
-      setTimeout(function() {
-        CLIENT_PORTS[client].port.onmessage = null;
-        Runtime.dynCall('vii', handler, [handler_cls, 0]);
-      }, delay / 1000);
+    var queue = CLIENT_PORTS[client].queue;
+    if (queue.length) {
+      var ev = queue[0];
+      setTimeout(function() { fn(ev); }, 0);
+      CLIENT_PORTS[client].queue = queue.slice(1);
+    } else {
+      CLIENT_PORTS[client].handler = fn;
+      var delay = getValue(timeout, 'i64');
+      if (-1 != delay) {
+        setTimeout(function() {
+          CLIENT_PORTS[client].handler = null;
+          Runtime.dynCall('vii', handler, [handler_cls, 0]);
+        }, delay / 1000);
+      }
     }
   },
   GNUNET_CLIENT_notify_transmit_ready__deps: ['$CLIENT_PORTS'],
