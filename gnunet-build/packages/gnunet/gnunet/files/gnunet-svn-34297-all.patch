@@ -198,6 +198,18 @@ Index: gnunet-svn-34297/src/peerstore/Makefile.am
  check_PROGRAMS = \
   test_peerstore_api_store \
   test_peerstore_api_iterate \
+Index: gnunet-svn-34297/src/peerstore/peerstore_api.c
+===================================================================
+--- gnunet-svn-34297/src/peerstore/peerstore_api.c	(revision 34297)
++++ gnunet-svn-34297/src/peerstore/peerstore_api.c	(working copy)
+@@ -651,6 +651,7 @@
+   if (GNUNET_MESSAGE_TYPE_PEERSTORE_ITERATE_END == msg_type)
+   {
+     ic->iterating = GNUNET_NO;
++    ic->ev = NULL;
+     GNUNET_PEERSTORE_iterate_cancel (ic);
+     if (NULL != callback)
+       callback (callback_cls, NULL, NULL);
 Index: gnunet-svn-34297/src/regex/gnunet-daemon-regexprofiler.c
 ===================================================================
 --- gnunet-svn-34297/src/regex/gnunet-daemon-regexprofiler.c	(revision 34297)
