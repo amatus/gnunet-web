@@ -19,8 +19,6 @@
             [monads.core :as m])
   (:require-macros [monads.macros :as monadic]))
 
-(def parser (m/state-t m/maybe))
-
 (extend-type monads.core/state-transformer
   IMeta
   (-meta [x] (.-meta x))
@@ -30,17 +28,41 @@
     (set! (.-meta x) meta)
     x))
 
+(def parser (m/state-t m/maybe))
+
+(defn m-until
+  "While (p x) is false, replace x by the value returned by the
+   monadic computation (f x). Return (parser x) for the first
+   x for which (p x) is true."
+  [p f x]
+  (letfn [(until [p f x s]
+            (if (p x)
+              (m/bind (m/set-state s) (fn [_] (parser x)))
+              (let [y ((f x) s)]
+                (if (= y (m/zero y))
+                  (m/zero (parser nil))
+                  (let [[x s] (m/join y)]
+                    (recur p f x s))))))]
+    (m/bind (parser nil)
+      (fn [_] (m/bind (m/get-state) (fn [s] (until p f x s)))))))
+
 (defn optional
   "Makes a parser optional."
   [mv]
-  (m/plus [mv (parser. nil)]))
-
-(def one-or-more)
+  (m/plus [mv (parser nil)]))
 
 (defn none-or-more
   "Makes a parser repeat none or more times."
   [mv]
-  (optional (one-or-more mv)))
+  (m/bind
+    (m-until
+      first
+      (fn [[_ xs]]
+        (m/plus
+          [(m/bind mv (fn [x] (parser [false (conj xs x)])))
+           (parser [true xs])]))
+      [false []])
+    (comp parser second)))
 
 (defn one-or-more
   "Makes a parser repeat one or more times."
