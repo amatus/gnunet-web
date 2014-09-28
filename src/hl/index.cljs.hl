@@ -51,7 +51,7 @@
   [message]
   (let [u-block (:u-block message)
         data (js/Uint8Array. (into-array (filesharing/decrypt (:data u-block))))
-        data (.-v (filesharing/parse-encrypted-u-block data))]
+        data @(filesharing/parse-encrypted-u-block data)]
     (js/console.warn (clj->js data))
     (if (coll? data)
       (swap! search-results conj (:uri (first data))))))

@@ -109,7 +109,7 @@
                    :respect-offered respect-offered}
                   (condp = type
                     block-type-u
-                    {:u-block (let [u-block (.-v (parse-u-block data))]
+                    {:u-block (let [u-block @(parse-u-block data)]
                                 (if (coll? u-block)
                                   (first u-block)))}
                     {:data data})))
@@ -120,9 +120,8 @@
   (let [message-channel (js/MessageChannel.)]
     (set! (.-onmessage (.-port1 message-channel))
           (fn [event]
-            (let [message (.-v ((parse-message-types
-                                  #{parse-fs-put})
-                                  (.-data event)))]
+            (let [message @((parse-message-types #{parse-fs-put})
+                              (.-data event))]
               (if (coll? message)
                 (callback (:message (first message)))))))
     (client-connect "fs" "web app (search)"

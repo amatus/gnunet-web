@@ -74,8 +74,8 @@
   (let [message-channel (js/MessageChannel.)]
     (set! (.-onmessage (.-port1 message-channel))
           (fn [event]
-            (let [message (.-v ((parse-message-types #{parse-hello})
-                                  (.-data event)))]
+            (let [message @((parse-message-types #{parse-hello})
+                              (.-data event))]
               (if (coll? message)
                        (callback (:message (first message)))))))
     (client-connect "transport" "web app (monitor)"
@@ -88,9 +88,8 @@
   (let [message-channel (js/MessageChannel.)]
     (set! (.-onmessage (.-port1 message-channel))
           (fn [event]
-            (let [message (.-v ((parse-message-types
-                                  #{parse-peer-iterate-reply})
-                                  (.-data event)))]
+            (let [message @((parse-message-types #{parse-peer-iterate-reply})
+                              (.-data event))]
               (if (coll? message)
                 (callback (:message (first message)))))))
     (client-connect "transport" "web app (monitor-peers)"

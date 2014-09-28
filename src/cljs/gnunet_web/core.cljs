@@ -47,9 +47,9 @@
   (let [message-channel (js/MessageChannel.)]
     (set! (.-onmessage (.-port1 message-channel))
           (fn [event]
-            (let [message (.-v ((parse-message-types
-                                  #{parse-monitor-notify-message})
-                                  (.-data event)))]
+            (let [message @((parse-message-types
+                              #{parse-monitor-notify-message})
+                              (.-data event))]
               (if (coll? message)
                 (callback (:message (first message)))))))
     (client-connect "core" "web app (monitor-peers)"
