@@ -15,11 +15,11 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.hostlist
-  (:use [gnunet-web.http :only (GET)]
-        [gnunet-web.parser :only (none-or-more parser)]
-        [gnunet-web.peerinfo :only (process-hello)]
-        [gnunet-web.hello :only (parse-hello)]
-        [gnunet-web.message :only (parse-message-types)])
+  (:require [gnunet-web.http :refer (GET)]
+            [gnunet-web.parser :refer (none-or-more parser)]
+            [gnunet-web.peerinfo :refer (process-hello)]
+            [gnunet-web.hello :refer (parse-hello)]
+            [gnunet-web.message :refer (parse-message-types)])
   (:require-macros [cljs.core.async.macros :refer [go]]
                    [monads.macros :as monadic]))
 

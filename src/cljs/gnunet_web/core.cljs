@@ -15,12 +15,11 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.core
-  (:use [gnunet-web.hello :only (parse-hello)]
-        [gnunet-web.message :only (encode-message parse-message-types
-                                   parse-peer-identity)]
-        [gnunet-web.parser :only (parser parse-absolute-time parse-uint32)]
-        [gnunet-web.service :only (client-connect)])
-  (:require [goog.crypt])
+  (:require [gnunet-web.hello :refer (parse-hello)]
+            [gnunet-web.message :refer (encode-message parse-message-types
+                                        parse-peer-identity)]
+            [gnunet-web.parser :refer (parser parse-absolute-time parse-uint32)]
+            [gnunet-web.service :refer (client-connect)])
   (:require-macros [monads.macros :as monadic]))
 
 (def message-type-monitor-peers 78)

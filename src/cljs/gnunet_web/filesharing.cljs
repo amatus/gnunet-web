@@ -15,12 +15,11 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.filesharing
-  (:use [gnunet-web.encoder :only (encode-uint32)]
-        [gnunet-web.message :only (encode-message parse-message-types)]
-        [gnunet-web.parser :only (items parser parse-absolute-time parse-uint32
-                                  parse-utf8 tail)]
-        [gnunet-web.service :only (client-connect)])
-  (:require [goog.crypt])
+  (:require [gnunet-web.encoder :refer (encode-uint32)]
+            [gnunet-web.message :refer (encode-message parse-message-types)]
+            [gnunet-web.parser :refer (items parser parse-absolute-time
+                                       parse-uint32 parse-utf8 tail)]
+            [gnunet-web.service :refer (client-connect)])
   (:require-macros [monads.macros :as monadic]))
 
 (def message-type-start-search 136)

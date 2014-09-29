@@ -15,14 +15,14 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.transport
-  (:use [gnunet-web.encoder :only (encode-uint32)]
-        [gnunet-web.hello :only (parse-hello)]
-        [gnunet-web.message :only (encode-message parse-message-types
-                                   parse-peer-identity)]
-        [gnunet-web.parser :only (items optional parser parse-absolute-time
-                                  parse-uint32)]
-        [gnunet-web.service :only (client-connect)])
-  (:require [goog.crypt])
+  (:require [gnunet-web.encoder :refer (encode-uint32)]
+            [gnunet-web.hello :refer (parse-hello)]
+            [gnunet-web.message :refer (encode-message parse-message-types
+                                        parse-peer-identity)]
+            [gnunet-web.parser :refer (items optional parser parse-absolute-time
+                                       parse-uint32)]
+            [gnunet-web.service :refer (client-connect)]
+            [goog.crypt :refer (utf8ByteArrayToString)])
   (:require-macros [monads.macros :as monadic]))
 
 (def message-type-start 360)
@@ -65,7 +65,7 @@
                    :local-address-info local-address-info
                    :state state
                    :address (vec (.apply js/Array (array) address))
-                   :plugin (goog.crypt/utf8ByteArrayToString
+                   :plugin (utf8ByteArrayToString
                              (.apply js/Array (array) plugin))}))
     {:message-type message-type-peer-iterate-reply}))
 
@@ -116,4 +116,4 @@
 
 (defn addr->string
   [address]
-  (goog.crypt/utf8ByteArrayToString (to-array (drop 8 address))))
+  (utf8ByteArrayToString (to-array (drop 8 address))))

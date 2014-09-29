@@ -16,24 +16,22 @@
 
 (ns gnunet-web.http
   (:require [goog.net.XhrIo]
-            [goog.net.XhrIo.ResponseType]
-            [goog.events]
-            [goog.net.EventType]
-            [cljs.core.async :as async :refer [chan close!]])
+            [goog.net.XhrIo.ResponseType :as ResponseType]
+            [goog.events :as events]
+            [goog.net.EventType :as EventType]
+            [cljs.core.async :refer [chan close!]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn GET
   [url]
   (let [ch (chan 1)
         xhr (goog.net.XhrIo.)]
-    (goog.events/listen xhr goog.net.EventType.COMPLETE
-                        (fn [event]
-                          (let [res (.getResponse xhr)]
-                            (go (>! ch res)
-                                (close! ch)))))
-    (goog.events/listen xhr goog.net.EventType.READY
-                        (fn []
-                          (.dispose xhr)))
-    (.setResponseType xhr goog.net.XhrIo.ResponseType/ARRAY_BUFFER)
+    (events/listen xhr EventType/COMPLETE
+            (fn [event]
+              (let [res (.getResponse xhr)]
+                (go (>! ch res)
+                    (close! ch)))))
+    (events/listen xhr EventType/READY #(.dispose xhr))
+    (.setResponseType xhr ResponseType/ARRAY_BUFFER)
     (.send xhr url)
     ch))

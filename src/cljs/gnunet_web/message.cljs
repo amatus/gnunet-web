@@ -15,9 +15,8 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.message
-  (:use [gnunet-web.encoder :only (encode-uint16)]
-        [gnunet-web.parser :only (items parser parse-uint16)])
-  (:require [monads.core :as m])
+  (:require [gnunet-web.encoder :refer (encode-uint16)]
+            [gnunet-web.parser :refer (items parser parse-uint16)])
   (:require-macros [monads.macros :as monadic]))
 
 (def parse-header

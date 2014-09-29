@@ -15,8 +15,9 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.parser
-  (:require [goog.crypt]
-            [monads.core :as m])
+  (:require [goog.crypt :refer (utf8ByteArrayToString)]
+            [monads.core :refer (bind get-state join maybe plus set-state
+                                 state-t zero)])
   (:require-macros [monads.macros :as monadic]))
 
 (extend-type monads.core/state-transformer
@@ -28,7 +29,7 @@
     (set! (.-meta x) meta)
     x))
 
-(def parser (m/state-t m/maybe))
+(def parser (state-t maybe))
 
 (defn m-until
   "While (p x) is false, replace x by the value returned by the
@@ -37,29 +38,29 @@
   [p f x]
   (letfn [(until [p f x s]
             (if (p x)
-              (m/bind (m/set-state s) (fn [_] (parser x)))
+              (bind (set-state s) (fn [_] (parser x)))
               (let [y ((f x) s)]
-                (if (= y (m/zero y))
-                  (m/zero (parser nil))
-                  (let [[x s] (m/join y)]
+                (if (= y (zero y))
+                  (zero (parser nil))
+                  (let [[x s] (join y)]
                     (recur p f x s))))))]
-    (m/bind (parser nil)
-      (fn [_] (m/bind (m/get-state) (fn [s] (until p f x s)))))))
+    (bind (parser nil)
+      (fn [_] (bind (get-state) (fn [s] (until p f x s)))))))
 
 (defn optional
   "Makes a parser optional."
   [mv]
-  (m/plus [mv (parser nil)]))
+  (plus [mv (parser nil)]))
 
 (defn none-or-more
   "Makes a parser repeat none or more times."
   [mv]
-  (m/bind
+  (bind
     (m-until
       first
       (fn [[_ xs]]
-        (m/plus
-          [(m/bind mv (fn [x] (parser [false (conj xs x)])))
+        (plus
+          [(bind mv (fn [x] (parser [false (conj xs x)])))
            (parser [true xs])]))
       [false []])
     (comp parser second)))
@@ -73,20 +74,16 @@
               (cons x xs)))
 
 ;; Parsing Typed Arrays
-(def tail
-  "A parser which returns the current input"
-  (monadic/do parser
-              [array (m/get-state)]
-              array))
+(def tail (get-state))
 
 (defn items
   "Produces a parser which consumes n items from the input.
   Input must be a Uint8Array."
   [n]
   (monadic/do parser
-              [array (m/get-state)
+              [array (get-state)
                :when (<= n (.-length array))
-               _ (m/set-state (.subarray array n))]
+               _ (set-state (.subarray array n))]
               (.subarray array 0 n)))
 
 (defn satisfy
@@ -102,9 +99,9 @@
   "Parse an unsigned 8-bit integer.
    Input must be a Uint8Array."
   (monadic/do parser
-              [array (m/get-state)
+              [array (get-state)
                :when (<= 1 (.-length array))
-               _ (m/set-state (.subarray array 1))]
+               _ (set-state (.subarray array 1))]
               (aget array 0)))
 
 (def parse-uint16
@@ -136,7 +133,7 @@
 (def parse-utf8
   (monadic/do parser
               [xs (none-or-more (satisfy #(not (== 0 %))))
-               zero (items 1)]
-              (goog.crypt/utf8ByteArrayToString (to-array xs))))
+               _ (items 1)]
+              (utf8ByteArrayToString (to-array xs))))
 
 (def parse-absolute-time parse-uint64)

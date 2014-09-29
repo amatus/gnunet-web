@@ -15,7 +15,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.encoder
-  (:require [goog.crypt]))
+  (:require [goog.crypt :refer (stringToUtf8ByteArray)]))
 
 (defn encode-uint8
   [x]
@@ -42,7 +42,7 @@
 (defn encode-utf8
   [x]
   (concat
-    (goog.crypt/stringToUtf8ByteArray x)
+    (stringToUtf8ByteArray x)
     [0]))
 
 (def encode-absolute-time encode-uint64)
