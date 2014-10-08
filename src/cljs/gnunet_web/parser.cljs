@@ -73,6 +73,14 @@
                xs (none-or-more mv)]
               (cons x xs)))
 
+(defn repeat
+  "Makes a parser repeat exactly n times."
+  [mv n]
+  (m-until
+    #(= n (count %))
+    #(bind mv (fn [x] (parser (conj % x))))
+    []))
+
 ;; Parsing Typed Arrays
 (def tail (get-state))
 
