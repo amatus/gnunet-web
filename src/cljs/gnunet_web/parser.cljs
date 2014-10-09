@@ -16,8 +16,8 @@
 
 (ns gnunet-web.parser
   (:require [goog.crypt :refer (utf8ByteArrayToString)]
-            [monads.core :refer (bind get-state join maybe plus set-state
-                                 state-t zero)])
+            [monads.core :as m :refer (bind get-state join maybe plus set-state
+                                       state-t zero)])
   (:require-macros [monads.macros :as monadic]))
 
 (extend-type monads.core/state-transformer
@@ -75,11 +75,8 @@
 
 (defn repeat
   "Makes a parser repeat exactly n times."
-  [mv n]
-  (m-until
-    #(= n (count %))
-    #(bind mv (fn [x] (parser (conj % x))))
-    []))
+  [n mv]
+  (m/seq (clojure.core/repeat n mv)))
 
 ;; Parsing Typed Arrays
 (def tail (get-state))
@@ -90,7 +87,7 @@
   [n]
   (monadic/do parser
               [array (get-state)
-               :when (<= n (.-length array))
+               :when (<= 0 n (.-length array))
                _ (set-state (.subarray array n))]
               (.subarray array 0 n)))
 
@@ -140,7 +137,7 @@
 
 (def parse-utf8
   (monadic/do parser
-              [xs (none-or-more (satisfy #(not (== 0 %))))
+              [xs (none-or-more (satisfy (comp not zero?)))
                _ (items 1)]
               (utf8ByteArrayToString (to-array xs))))
 

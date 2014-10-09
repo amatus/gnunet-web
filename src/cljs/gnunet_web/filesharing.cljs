@@ -17,6 +17,7 @@
 (ns gnunet-web.filesharing
   (:require [gnunet-web.encoder :refer (encode-uint32)]
             [gnunet-web.message :refer (encode-message parse-message-types)]
+            [gnunet-web.metadata :refer (parse-metadata)]
             [gnunet-web.parser :refer (items parser parse-absolute-time
                                        parse-uint32 parse-utf8 tail)]
             [gnunet-web.service :refer (client-connect)])
@@ -56,7 +57,7 @@
   (monadic/do parser
               [update-identifier parse-utf8
                uri parse-utf8
-               metadata tail]
+               metadata parse-metadata]
               {:update-identifier update-identifier
                :uri uri
                :metadata metadata}))
@@ -99,19 +100,15 @@
                  last-transmission parse-absolute-time
                  transmission-count parse-uint32
                  respect-offered parse-uint32
-                 data tail]
-                (conj
-                  {:type type
-                   :expiration expiration
-                   :last-transmission last-transmission
-                   :transmission-count transmission-count
-                   :respect-offered respect-offered}
-                  (condp = type
-                    block-type-u
-                    {:u-block (let [u-block @(parse-u-block data)]
-                                (if (coll? u-block)
-                                  (first u-block)))}
-                    {:data data})))
+                 data (condp = type
+                        block-type-u parse-u-block
+                        tail)]
+                {:type type
+                 :expiration expiration
+                 :last-transmission last-transmission
+                 :transmission-count transmission-count
+                 :respect-offered respect-offered
+                 :data data})
     {:message-type message-type-fs-put}))
 
 (defn search
@@ -122,7 +119,8 @@
             (let [message @((parse-message-types #{parse-fs-put})
                               (.-data event))]
               (if (coll? message)
-                (callback (:message (first message)))))))
+                (callback (:message (first message)))
+                (js/console.warn "Failed to parse:" (.-data event))))))
     (client-connect "fs" "web app (search)"
                     (.-port2 message-channel))
     (.postMessage (.-port1 message-channel)

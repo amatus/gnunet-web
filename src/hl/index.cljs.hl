@@ -49,13 +49,14 @@
 
 (defn handle-search-result
   [message]
-  (let [u-block (:u-block message)
+  (let [u-block (:data message)
         data (js/Uint8Array. (into-array (filesharing/decrypt (:data u-block))))
-        data @(filesharing/parse-encrypted-u-block data)]
-    (js/console.warn (clj->js data))
-    (if (coll? data)
-      (swap! search-results conj (:uri (first data))))))
-
+        u-block @(filesharing/parse-encrypted-u-block data)]
+    (if (coll? u-block)
+      (do
+        (js/console.warn (clj->js u-block))
+        (swap! search-results conj (:uri (first u-block))))
+      (js/console.warn "Failed to parse u-block:" data))))
 
 (def topology-worker (service/start-worker "topology"
                                            "js/gnunet-daemon-topology.js"))
