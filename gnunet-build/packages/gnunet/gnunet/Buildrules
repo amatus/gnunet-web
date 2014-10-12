@@ -160,7 +160,6 @@ pkg_compile() {
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s ALLOW_MEMORY_GROWTH=1 \
 		-s EXPORTED_FUNCTIONS=@ats.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/gnunet-service-ats.js" \
@@ -290,8 +289,8 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
+		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s ALLOW_MEMORY_GROWTH=1 \
 		-s EXPORTED_FUNCTIONS=@dht.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/dht/gnunet-service-dht.js" \
@@ -430,8 +429,8 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		-O2 \
+		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s ALLOW_MEMORY_GROWTH=1 \
 		-s EXPORTED_FUNCTIONS=@fs.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/fs/gnunet-service-fs.js" \
