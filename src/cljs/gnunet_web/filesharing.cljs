@@ -78,18 +78,20 @@
                        {:ciphertext (js/CryptoJS.lib.WordArray.create data)}))
         twofish-key (js/CryptoJS.enc.Hex.parse "9A89B29A3896E200279ADC010D7F70F7F9A0582190881A17825B87754CA95B81")
         twofish-iv (js/CryptoJS.enc.Hex.parse "9E71233934B556C9D9E97609CD22FBC1")
-        plaintext (js/CryptoJS.TwoFish.decrypt ciphertext twofish-key
-                                               (clj->js
-                                                 {:iv twofish-iv
-                                                  :mode js/CryptoJS.mode.CFB}))
+        plaintext (js/CryptoJS.TwoFish.decrypt
+                    ciphertext twofish-key
+                    (clj->js {:iv twofish-iv
+                              :mode js/CryptoJS.mode.CFB
+                              :padding js/CryptoJS.pad.NoPadding}))
         ciphertext (js/CryptoJS.lib.CipherParams.create
                      (clj->js {:ciphertext plaintext}))
         aes-key (js/CryptoJS.enc.Hex.parse "8D2E569BB26A7F45A933941996DC43C2F2C141F055AD2C863EE9A66379D59B61")
         aes-iv (js/CryptoJS.enc.Hex.parse "FBE06BD519F62556BE465A67B80777EC")
-        plaintext (js/CryptoJS.AES.decrypt ciphertext aes-key
-                                           (clj->js
-                                             {:iv aes-iv
-                                              :mode js/CryptoJS.mode.CFB}))]
+        plaintext (js/CryptoJS.AES.decrypt
+                    ciphertext aes-key
+                    (clj->js {:iv aes-iv
+                              :mode js/CryptoJS.mode.CFB
+                              :padding js/CryptoJS.pad.NoPadding}))]
     (unwords plaintext)))
 
 (def parse-fs-put
