@@ -22,8 +22,7 @@
 
 (defn decompress
   [x]
-  ;; TODO
-  x)
+  (js/pako.inflate x))
 
 (def parse-entry
   (monadic/do parser
