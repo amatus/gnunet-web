@@ -15,7 +15,8 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.metadata
-  (:require [gnunet-web.parser :as p :refer (items parser parse-uint32)]
+  (:require [gnunet-web.extractor :as e :refer (type-descriptions)]
+            [gnunet-web.parser :as p :refer (items parser parse-uint32)]
             [goog.crypt :refer (utf8ByteArrayToString)]
             [monads.core :as m :refer (get-state update-state)])
   (:require-macros [monads.macros :as monadic]))
@@ -74,3 +75,17 @@
                _ (items residue)
                entry-data (m/map parse-entry-data (reverse entries))]
               entry-data))
+
+(defn pretty-print
+  [metadata]
+  (apply str
+         (interpose
+           "\n"
+           (map (fn [{:keys [format type data]}]
+                  (when (or (= e/format-utf8 format)
+                            (= e/format-string format))
+                    (str
+                      (first (get type-descriptions type))
+                      ": "
+                      (utf8ByteArrayToString data))))
+                metadata))))

@@ -19,6 +19,7 @@
                 [gnunet-web.core :as core]
                 [gnunet-web.filesharing :as filesharing]
                 [gnunet-web.hostlist :as hostlist]
+                [gnunet-web.metadata :as metadata]
                 [gnunet-web.service :as service]
                 [gnunet-web.transport :as transport]))
 
@@ -53,9 +54,7 @@
         data (js/Uint8Array. (into-array (filesharing/decrypt (:data u-block))))
         u-block @(filesharing/parse-encrypted-u-block data)]
     (if (coll? u-block)
-      (do
-        (js/console.warn (clj->js u-block))
-        (swap! search-results conj (:uri (first u-block))))
+      (swap! search-results conj (first u-block))
       (js/console.warn "Failed to parse u-block:" data))))
 
 (def topology-worker (service/start-worker "topology"
@@ -84,9 +83,18 @@
                                          88  69  38 120  84  62 172  78
                                         117  36 196   3  27 231  33  45]})
                "Search `test'")
-    (ul
-      (loop-tpl :bindings [result search-results]
-                (li :text result)))
+    (table :class "ui table segment"
+           (thead
+             (tr
+               (th :text "URI")
+               (th :text "Metadata")))
+           (tbody
+             (loop-tpl :bindings [result search-results]
+                       (tr
+                         (td (i :class "url icon"
+                                :title (cell= (:uri result))))
+                         (td (pre :text (cell= (metadata/pretty-print
+                                                 (:metadata result)))))))))
     (div :class "ui header"
          :title (cell= (code/base32-crockford my-id))
          (text "My Peer ID: ~(peer-id-short my-id)\u2026"))
