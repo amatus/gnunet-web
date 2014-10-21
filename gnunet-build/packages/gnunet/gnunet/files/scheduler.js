@@ -48,6 +48,13 @@ mergeInto(LibraryManager.library, {
   GNUNET_SCHEDULER_add_with_priority: function(prio, task, task_cls) {
     return _GNUNET_SCHEDULER_add_delayed_with_priority(0, prio, task, task_cls);
   },
+  GNUNET_SCHEDULER_add_continuation__deps: ['GNUNET_SCHEDULER_add_now'],
+  GNUNET_SCHEDULER_add_continuation: function(task, task_cls, reason) {
+    return _GNUNET_SCHEDULER_add_now(task, task_cls);
+  },
+  GNUNET_SCHEDULER_add_read_file: function(delay, rfd, task, task_cls) {
+    abort();
+  },
   GNUNET_SCHEDULER_cancel__deps: ['$SCHEDULER_TASKS'],
   GNUNET_SCHEDULER_cancel: function(task) {
     clearTimeout(task);

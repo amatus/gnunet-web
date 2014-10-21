@@ -27,7 +27,8 @@ mergeInto(LibraryManager.library, {
       port: channel.port1,
       name: service_name,
       queue: [],
-      handler: null};
+      handler: null,
+      th: null};
     client.port.onmessage = function(ev) {
       if (client.handler) {
         var handler = client.handler;
@@ -37,40 +38,53 @@ mergeInto(LibraryManager.library, {
         client.queue.push(ev);
     };
     CLIENT_PORTS[port] = client;
-    client_connect(service_name, channel.port2);
+    if (typeof client_connect == "function")
+      client_connect(service_name, channel.port2);
+    else
+      gnunet_web.service.client_connect(service_name, "client.js",
+          channel.port2);
     return port;
   },
+  GNUNET_CLIENT_disconnect__deps: ['$CLIENT_PORTS'],
+  GNUNET_CLIENT_disconnect: function(port) {
+    var client = CLIENT_PORTS[port];
+    Module.print('Closing client port to service ' + client.name);
+    client.port.close();
+    delete CLIENT_PORTS[port];
+  },
   GNUNET_CLIENT_receive__deps: ['$CLIENT_PORTS'],
-  GNUNET_CLIENT_receive: function(client, handler, handler_cls, timeout) {
+  GNUNET_CLIENT_receive: function(port, handler, handler_cls, timeout) {
+    var client = CLIENT_PORTS[port];
     var fn = function(ev) {
       Module.print('Received ' + ev.data.length + ' bytes from service '
-        + CLIENT_PORTS[client].name);
+        + client.name);
       ccallFunc(Runtime.getFuncWrapper(handler, 'vii'), 'void',
         ['number', 'array'],
         [handler_cls, ev.data]);
     };
-    var queue = CLIENT_PORTS[client].queue;
-    if (queue.length) {
-      var ev = queue[0];
+    if (client.queue.length) {
+      var ev = client.queue[0];
       setTimeout(function() { fn(ev); }, 0);
-      CLIENT_PORTS[client].queue = queue.slice(1);
+      client.queue = client.queue.slice(1);
     } else {
-      CLIENT_PORTS[client].handler = fn;
+      client.handler = fn;
       var delay = getValue(timeout, 'i64');
       if (-1 != delay) {
         setTimeout(function() {
-          CLIENT_PORTS[client].handler = null;
+          client.handler = null;
           Runtime.dynCall('vii', handler, [handler_cls, 0]);
         }, delay / 1000);
       }
     }
   },
   GNUNET_CLIENT_notify_transmit_ready__deps: ['$CLIENT_PORTS'],
-  GNUNET_CLIENT_notify_transmit_ready: function(client, size, timeout,
+  GNUNET_CLIENT_notify_transmit_ready: function(port, size, timeout,
                                            auto_retry, notify, notify_cls) {
+    var client = CLIENT_PORTS[port];
     // Supposedly we can call notify right now, but the current code never
     // does so let's emulate that.
-    setTimeout(function() {
+    client.th = setTimeout(function() {
+      client.th = null;
       //Module.print('I want to send ' + size + ' bytes to service '
       //  + CLIENT_PORTS[client].name);
       var stack = Runtime.stackSave();
@@ -81,10 +95,33 @@ mergeInto(LibraryManager.library, {
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
       // See http://code.google.com/p/chromium/issues/detail?id=169705
       if (ret > 0)
-        CLIENT_PORTS[client].port.postMessage(new Uint8Array(view));
+        client.port.postMessage(new Uint8Array(view));
       Runtime.stackRestore(stack);
     }, 0);
-    return 1; // opaque GNUNET_CLIENT_TransmitHandle*
+    return port;
+  },
+  GNUNET_CLIENT_notify_transmit_ready_cancel_deps: ['$CLIENT_PORTS'],
+  GNUNET_CLIENT_notify_transmit_ready_cancel: function(port) {
+    var client = CLIENT_PORTS[port];
+    clearTimeout(client.th);
+    client.th = null;
+
+  },
+  GNUNET_CLIENT_transmit_and_get_response__deps: ['$CLIENT_PORTS',
+                                                  'GNUNET_CLIENT_receive'],
+  GNUNET_CLIENT_transmit_and_get_response: function(port, message, timeout,
+                                               auto_retry, handler,
+                                               handler_cls) {
+    var client = CLIENT_PORTS[port];
+    if (client.th !== null)
+      return -1;
+    client.th = setTimeout(function() {
+      var size = getValue(message, 'i8') << 8 | getValue(message + 1, 'i8');
+      var view = {{{ makeHEAPView('U8', 'message', 'message+size') }}};
+      client.port.postMessage(new Uint8Array(view));
+      _GNUNET_CLIENT_receive(port, handler, handler_cls, timeout);
+    }, 0);
+    return 1;
   },
 });
 

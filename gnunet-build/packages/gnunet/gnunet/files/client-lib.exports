@@ -1,0 +1,7 @@
+[
+"_GNUNET_FS_search_start",
+"_GNUNET_FS_search_stop",
+"_GNUNET_FS_start",
+"_GNUNET_FS_uri_destroy",
+"_GNUNET_FS_uri_ksk_create",
+"_GNUNET_free"]

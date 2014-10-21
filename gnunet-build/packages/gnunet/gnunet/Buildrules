@@ -458,6 +458,29 @@ pkg_compile() {
 	cp "${S}/src/fs/.libs/gnunet-service-fs.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
+	# Client Library
+	#
+	./libtool --tag=CC --mode=link \
+		emcc -fno-strict-aliasing -Wall \
+		-O0 \
+		-s EXPORTED_FUNCTIONS=@${F}/client-lib.exports \
+		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
+		-o "${S}/src/client-lib.js" \
+		"${S}/src/datastore/libgnunetdatastore.la" \
+		"${S}/src/fs/libgnunetfs.la" \
+		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/util/libgnunetutil.la" \
+		"${SYSROOT}/usr/lib/libgcrypt.la" \
+		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		"${SYSROOT}/usr/lib/libunistring.la" \
+		-lz \
+		--js-library "${F}/client.js" \
+		--js-library "${F}/configuration.js" \
+		--js-library "${F}/scheduler.js" \
+		--pre-js "${F}/client-pre.js"
+	cp "${S}/src/.libs/client-lib.js" \
+		"${D}/var/lib/gnunet/js/"
+	#
 	# Hostlist
 	#
 	cat "${S}/contrib/hellos/"* > "${D}/var/lib/gnunet/hostlist"
