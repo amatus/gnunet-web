@@ -462,8 +462,9 @@ pkg_compile() {
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O0 \
+		-O2 \
 		-s EXPORTED_FUNCTIONS=@${F}/client-lib.exports \
+		-s RESERVED_FUNCTION_POINTERS=100 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/client-lib.js" \
 		"${S}/src/datastore/libgnunetdatastore.la" \

@@ -93,9 +93,9 @@
 (defn progress-callback
   [cls info-pointer]
   (when-let [info (parse-progress-info info-pointer)]
-    ;; Since this is a function we registered we can call it with
-    ;; non-C-compatible typed arguments and they get passed strait through.
-    (js/Runtime.dynCall "vi" (:cctx info) (array info))
+    ;; Grab the reference to our callback function so we can call it with
+    ;; cljs typed data.
+    ((aget js/Runtime.functionPointers (dec (/ (:cctx info) 2))) info)
     (:cctx info)))
 
 (def fs
