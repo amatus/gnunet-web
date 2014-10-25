@@ -1,7 +1,13 @@
 [
+"_EXTRACTOR_metatype_to_description",
+"_EXTRACTOR_metatype_to_string",
+"_GNUNET_CONTAINER_meta_data_get_by_type",
+"_GNUNET_CONTAINER_meta_data_iterate",
+"_GNUNET_FS_meta_data_test_for_directory",
 "_GNUNET_FS_search_start",
 "_GNUNET_FS_search_stop",
 "_GNUNET_FS_start",
 "_GNUNET_FS_uri_destroy",
 "_GNUNET_FS_uri_ksk_create",
-"_GNUNET_free"]
+"_GNUNET_FS_uri_to_string",
+"_free"]

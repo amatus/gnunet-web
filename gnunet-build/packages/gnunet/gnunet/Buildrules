@@ -473,6 +473,7 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		"${SYSROOT}/usr/lib/libunistring.la" \
+		"${SYSROOT}/usr/lib/libextractor.so" \
 		-lz \
 		--js-library "${F}/client.js" \
 		--js-library "${F}/configuration.js" \
