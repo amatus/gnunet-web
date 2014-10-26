@@ -60,6 +60,7 @@
 
 (def topology-worker (service/start-worker "topology"
                                            "js/gnunet-daemon-topology.js"))
+(hostlist/fetch-and-process!)
 
 (defelem ui-button
          [attr kids]
@@ -116,7 +117,6 @@
                                             (:core-state info))))
                          (td :width "25%"
                              :text (cell= (transport/addr->string
-                                            (:address info))))))))
-    (ui-button :click hostlist/fetch-and-process! "Fetch hostlist")))
+                                            (:address info))))))))))
 
 ;; vim: set expandtab ts=2 sw=2 filetype=clojure :
