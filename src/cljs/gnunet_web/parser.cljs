@@ -15,9 +15,9 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.parser
-  (:require [goog.crypt :refer (utf8ByteArrayToString)]
-            [monads.core :as m :refer (bind get-state join maybe plus set-state
-                                       state-t zero)])
+  (:require [goog.crypt :refer [utf8ByteArrayToString]]
+            [monads.core :as m :refer [bind get-state join maybe plus set-state
+                                       state-t zero]])
   (:require-macros [monads.macros :as monadic]))
 
 (extend-type monads.core/state-transformer

@@ -15,14 +15,14 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.hello
-  (:require [amatus.datastructures :refer (flatten-nested-maps nested-group-by)]
-            [clojure.set :refer (difference union)]
-            [gnunet-web.encoder :refer (encode-absolute-time encode-uint16
-                                        encode-uint32 encode-utf8)]
-            [gnunet-web.message :refer (encode-message parse-peer-identity)]
-            [gnunet-web.parser :refer (items none-or-more parser
+  (:require [amatus.datastructures :refer [flatten-nested-maps nested-group-by]]
+            [clojure.set :refer [difference union]]
+            [gnunet-web.encoder :refer [encode-absolute-time encode-uint16
+                                        encode-uint32 encode-utf8]]
+            [gnunet-web.message :refer [encode-message parse-peer-identity]]
+            [gnunet-web.parser :refer [items none-or-more parser
                                        parse-absolute-time parse-uint16
-                                       parse-uint32 parse-utf8)])
+                                       parse-uint32 parse-utf8]])
   (:require-macros [monads.macros :as monadic]))
 
 (def message-type-hello 17)

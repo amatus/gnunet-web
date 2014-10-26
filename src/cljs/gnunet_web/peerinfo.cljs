@@ -15,15 +15,15 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.peerinfo
-  (:require [gnunet-web.encoder :refer (encode-uint32)]
-            [gnunet-web.hello :refer (encode-hello equals-hello merge-hello
-                                      message-type-hello parse-hello)]
-            [gnunet-web.message :refer (encode-message parse-message-types
-                                        parse-peer-identity)]
-            [gnunet-web.parser :refer (parser parse-uint32)]
-            [gnunet-web.service :refer (client-connect)]
-            [gnunet-web.util :refer (now)]
-            [tailrecursion.cljson :refer (clj->cljson cljson->clj)])
+  (:require [gnunet-web.encoder :refer [encode-uint32]]
+            [gnunet-web.hello :refer [encode-hello equals-hello merge-hello
+                                      message-type-hello parse-hello]]
+            [gnunet-web.message :refer [encode-message parse-message-types
+                                        parse-peer-identity]]
+            [gnunet-web.parser :refer [parser parse-uint32]]
+            [gnunet-web.service :refer [client-connect]]
+            [gnunet-web.util :refer [now]]
+            [tailrecursion.cljson :refer [clj->cljson cljson->clj]])
   (:require-macros [monads.macros :as monadic]))
 
 (def message-type-peerinfo-get 330)

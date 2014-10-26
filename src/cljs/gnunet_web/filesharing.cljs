@@ -15,7 +15,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.filesharing
-  (:require [cljs.core.async :refer (chan close!)]
+  (:require [cljs.core.async :refer [chan close!]]
             [gnunet-web.extractor :as e])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 

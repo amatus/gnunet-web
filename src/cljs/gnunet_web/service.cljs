@@ -15,7 +15,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.service
-  (:require [tailrecursion.cljson :refer (clj->cljson cljson->clj)]))
+  (:require [tailrecursion.cljson :refer [clj->cljson cljson->clj]]))
 
 (def private-key
   ;; XXX This has no synchronization!

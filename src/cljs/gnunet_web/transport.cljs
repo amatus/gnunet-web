@@ -15,14 +15,14 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.transport
-  (:require [gnunet-web.encoder :refer (encode-uint32)]
-            [gnunet-web.hello :refer (parse-hello)]
-            [gnunet-web.message :refer (encode-message parse-message-types
-                                        parse-peer-identity)]
-            [gnunet-web.parser :refer (items optional parser parse-absolute-time
-                                       parse-uint32)]
-            [gnunet-web.service :refer (client-connect)]
-            [goog.crypt :refer (utf8ByteArrayToString)])
+  (:require [gnunet-web.encoder :refer [encode-uint32]]
+            [gnunet-web.hello :refer [parse-hello]]
+            [gnunet-web.message :refer [encode-message parse-message-types
+                                        parse-peer-identity]]
+            [gnunet-web.parser :refer [items optional parser parse-absolute-time
+                                       parse-uint32]]
+            [gnunet-web.service :refer [client-connect]]
+            [goog.crypt :refer [utf8ByteArrayToString]])
   (:require-macros [monads.macros :as monadic]))
 
 (def message-type-start 360)
