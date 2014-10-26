@@ -127,3 +127,15 @@
     (array search))
   (js/Runtime.removeFunction callback-pointer)
   (close! ch))
+
+(defn guess-filename
+  [metadata]
+  (let [preference ["original filename"
+                    "title"
+                    ;; ...
+                    ]]
+    (first
+      (for [type preference
+            x metadata
+            :when (= type (e/metatype-to-string (:type x)))]
+        (:data x)))))

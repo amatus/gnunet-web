@@ -62,18 +62,15 @@
                                            "js/gnunet-daemon-topology.js"))
 (hostlist/fetch-and-process!)
 
-(defelem ui-button
-         [attr kids]
-         ((div :class "ui button") attr kids))
-
 (defelem ui-search
          [attr kids]
          (let [input (input :type "text" :placeholder "Keywords...")]
            (form :class "ui action input"
                  :submit #(start-search (.-value input) 0)
-                input
-                (ui-button :click #(start-search (.-value input) 0)
-                           "Search"))))
+                 input
+                 (div :class "ui icon button"
+                      (i :class "search icon"
+                         :click #(start-search (.-value input) 0))))))
 
 (html
   (head
@@ -88,13 +85,15 @@
            :toggle (cell= (seq search-results))
            (thead
              (tr
-               (th :text "URI")
+               (th :text "File")
                (th :text "Metadata")))
            (tbody
              (loop-tpl :bindings [result search-results]
                        (tr
                          (td (i :class "url icon"
-                                :title (cell= (:uri result))))
+                                :title (cell= (:uri result)))
+                             (text "~(filesharing/guess-filename
+                                      (:metadata result))"))
                          (td (pre :text (cell= (metadata/pretty-print
                                                  (:metadata result)))))))))
     (table :class "ui table segment"
