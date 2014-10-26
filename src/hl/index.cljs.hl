@@ -69,7 +69,8 @@
 (defelem ui-search
          [attr kids]
          (let [input (input :type "text" :placeholder "Keywords...")]
-           (div :class "ui action input"
+           (form :class "ui action input"
+                 :submit #(start-search (.-value input) 0)
                 input
                 (ui-button :click #(start-search (.-value input) 0)
                            "Search"))))
