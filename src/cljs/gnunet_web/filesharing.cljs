@@ -82,12 +82,16 @@
 
 (def status-search-start 17)
 (def status-search-result 21)
+(def status-search-result-stopped 27)
+(def status-search-stopped 29)
 (defn parse-progress-info
   [info-pointer]
   (let [status (js/getValue (+ 112 info-pointer) "i32")]
     (condp = status
       status-search-start (parse-progress-search :search-start info-pointer)
       status-search-result (parse-progress-search :search-result info-pointer)
+      status-search-result-stopped nil
+      status-search-stopped nil
       (js/console.warn "ignored status:" status))))
 
 (defn progress-callback

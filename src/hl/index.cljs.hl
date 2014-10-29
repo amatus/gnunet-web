@@ -47,11 +47,18 @@
                         (swap! peers assoc-in [(:peer message) :core-state]
                                (:state message)))))
 
+(defc active-search nil)
 (defc search-results [])
 (defn start-search
   [query anonymity]
   (go
     (let [search (filesharing/start-search query anonymity)]
+      (swap! active-search
+             (fn [old-search]
+               (when old-search
+                 (filesharing/stop-search old-search))
+               search))
+      (reset! search-results [])
       (loop []
         (when-let [info (<! (:ch search))]
           (when (= :search-result (:status info))
@@ -69,7 +76,9 @@
                  :submit #(start-search (.-value input) 0)
                  input
                  (div :class "ui icon button"
-                      (i :class "search icon"
+                      (i :class (cell= (if active-search
+                                         "loading icon"
+                                         "search icon"))
                          :click #(start-search (.-value input) 0))))))
 
 (html
