@@ -66,13 +66,31 @@
           (recur))))))
 
 (defn start-download
-  [uri filename anonymity]
+  [uri anonymity state-cell progress-cell object-cell]
   (go
-    (let [download (filesharing/start-download uri anonymity)]
-      (js/console.warn (clj->js download))
+    (let [download (filesharing/start-download uri anonymity)
+          buffer (js/Uint8Array. (:size download))]
       (loop []
         (when-let [info (<! (:ch download))]
-          (js/console.warn (clj->js info))
+          (when (= :download-start (:status info))
+            (reset! state-cell :downloading))
+          (when (= :download-completed (:status info))
+            (reset! object-cell
+                    ;; XXX this needs to be revoked when we're finished
+                    (.createObjectURL
+                      js/URL
+                      (js/Blob. (array buffer)
+                                (js-obj "type" "application/octet-stream"))))
+            (reset! state-cell :complete))
+          (when (zero? (:depth info))
+            (let [offset (:offset info)
+                  dst (.subarray buffer
+                                 offset
+                                 (+ offset (.-length (:data info))))]
+              (.set dst (:data info))))
+          (reset! progress-cell (if (zero? (:size info))
+                                  0
+                                  (/ (:completed info) (:size info))))
           (recur))))))
 
 (def topology-worker (service/start-worker "topology"
@@ -110,13 +128,37 @@
              (loop-tpl :bindings [result search-results]
                        (let [uri (cell= (:uri result))
                              filename (cell= (filesharing/guess-filename
-                                               (:metadata result)))]
+                                               (:metadata result)))
+                             download-state (cell :inactive)
+                             download-progress (cell 0)
+                             download-object (cell nil)]
                          (tr
-                           (td (a :href uri
-                                  :click #(do
-                                            (start-download @uri @filename 0)
-                                            false)
-                                  :text filename))
+                           (td
+                             (div :class "ui compact menu"
+                                  (a :class "item"
+                                     :href uri
+                                     :click #(do
+                                               (start-download @uri 0
+                                                               download-state
+                                                               download-progress
+                                                               download-object)
+                                               false)
+                                     (i :class "download icon")
+                                     (text "~{filename}")))
+                             (div :class "ui progress"
+                                  :toggle (cell= (not (= :inactive
+                                                         download-state)))
+                                  (div :class "bar"
+                                       :css (cell=
+                                              {:width
+                                               (str (* 100 download-progress)
+                                                    "%")})))
+                             (a :href download-object
+                                :download filename
+                                :toggle (cell= (= :complete
+                                                  download-state))
+                                (div :class "ui icon button"
+                                     (i :class "save icon"))))
                            (td (pre :text (cell= (metadata/pretty-print
                                                    (:metadata result))))))))))
     (table :class "ui table segment"

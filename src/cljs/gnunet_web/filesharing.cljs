@@ -220,5 +220,6 @@
                    0)] ; parent
     (js/_GNUNET_FS_uri_destroy uri-pointer)
     {:download download
+     :size length-lw ;; XXX length truncated for now
      :ch ch
      :callback-key callback-key}))
