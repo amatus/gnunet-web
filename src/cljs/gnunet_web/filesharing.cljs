@@ -19,7 +19,27 @@
             [gnunet-web.extractor :as e])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defn -uri-ksk-create
+(def callbacks (atom {:next 0}))
+
+(defn register-callback
+  [f]
+  (swap! callbacks
+         (fn [{:keys [next] :as callbacks}]
+           (conj callbacks
+                 {next f
+                  :next (inc next)})))
+  ;; This would normally be cheating
+  (dec (:next @callbacks)))
+
+(defn unregister-callback
+  [callback]
+  (swap! callbacks dissoc callback))
+
+(defn get-callback
+  [callback]
+  (get @callbacks callback))
+
+(defn uri-ksk-create
   [query]
   (js/ccallFunc
     js/_GNUNET_FS_uri_ksk_create
@@ -27,28 +47,20 @@
     (array "string" "number")
     (array query 0)))
 
-(defn -uri-destroy
-  [uri]
-  (js/ccallFunc
-    js/_GNUNET_FS_uri_destroy
-    "void"
-    (array "number")
-    (array uri)))
-
-(defn -start-search
-  [ctx uri anonymity options cctx]
-  (js/ccallFunc
-    js/_GNUNET_FS_search_start
-    "number"
-    (array "number" "number" "number" "number" "number")
-    (array ctx uri anonymity options cctx)))
-
 (defn uri-pointer-to-string
   [uri-pointer]
   (let [uri-string-pointer (js/_GNUNET_FS_uri_to_string uri-pointer)
         uri-string (js/Pointer_stringify uri-string-pointer)]
     (js/_free uri-string-pointer)
     uri-string))
+
+(defn string-to-uri-pointer
+  [uri]
+  (js/ccallFunc
+    js/_GNUNET_FS_uri_parse
+    "number"
+    (array "string" "number")
+    (array uri 0)))
 
 (defn metadata-iterator
   [metadata cls plugin-name type format mime-type data data-size]
@@ -80,6 +92,33 @@
                         :metadata @metadata})
       nil)))
 
+(defn parse-progress-download
+  [status info-pointer]
+  (conj
+    {:status status
+     :cctx (js/getValue (+ 4 info-pointer) "i32")
+     :size (js/getValue (+ 24 info-pointer) "i64")
+     :completed (js/getValue (+ 48 info-pointer) "i64")}
+    (condp = status
+      :download-progress (let [data-pointer (js/getValue (+ 64 info-pointer)
+                                                         "i32")
+                               offset (js/getValue (+ 72 info-pointer) "i64")
+                               data-len (js/getValue (+ 80 info-pointer) "i64")
+                               depth (js/getValue (+ 96 info-pointer) "i32")
+                               data (js/Uint8Array.
+                                      (js/HEAPU8.subarray data-pointer
+                                                          (+ data-pointer
+                                                             data-len)))]
+                           {:data data
+                            :offset offset
+                            :depth depth})
+      nil)))
+
+(def status-download-start 7)
+(def status-download-progress 10)
+(def status-download-completed 12)
+(def status-download-active 14)
+(def status-download-inactive 15)
 (def status-search-start 17)
 (def status-search-result 21)
 (def status-search-result-stopped 27)
@@ -88,6 +127,16 @@
   [info-pointer]
   (let [status (js/getValue (+ 112 info-pointer) "i32")]
     (condp = status
+      status-download-start (parse-progress-download :download-start
+                                                     info-pointer)
+      status-download-progress (parse-progress-download :download-progress
+                                                        info-pointer)
+      status-download-completed (parse-progress-download :download-completed
+                                                         info-pointer)
+      status-download-active (parse-progress-download :download-active
+                                                      info-pointer)
+      status-download-inactive (parse-progress-download :download-inactive
+                                                        info-pointer)
       status-search-start (parse-progress-search :search-start info-pointer)
       status-search-result (parse-progress-search :search-result info-pointer)
       status-search-result-stopped nil
@@ -97,9 +146,7 @@
 (defn progress-callback
   [cls info-pointer]
   (when-let [info (parse-progress-info info-pointer)]
-    ;; Grab the reference to our callback function so we can call it with
-    ;; cljs typed data.
-    ((aget js/Runtime.functionPointers (dec (/ (:cctx info) 2))) info)
+    ((get-callback (:cctx info)) info)
     (:cctx info)))
 
 (def fs
@@ -112,24 +159,29 @@
 
 (defn start-search
   [query anonymity]
-  (let [uri (-uri-ksk-create query)
+  (let [uri-pointer (uri-ksk-create query)
         ch (chan 1)
         callback (fn [info] (go (>! ch info)))
-        callback-pointer (js/Runtime.addFunction callback)
-        search (-start-search fs uri anonymity 0 callback-pointer)]
-    (-uri-destroy uri)
+        callback-key (register-callback callback)
+        search (js/_GNUNET_FS_search_start
+                 fs
+                 uri-pointer
+                 anonymity
+                 0
+                 callback-key)]
+    (js/_GNUNET_FS_uri_destroy uri-pointer)
     {:ch ch
-     :callback-pointer callback-pointer
+     :callback-key callback-key
      :search search}))
 
 (defn stop-search
-  [{:keys [ch callback-pointer search]}]
+  [{:keys [ch callback-key search]}]
   (js/ccallFunc
     js/_GNUNET_FS_search_stop
     "void"
     (array "number")
     (array search))
-  (js/Runtime.removeFunction callback-pointer)
+  (unregister-callback callback-key)
   (close! ch))
 
 (defn guess-filename
@@ -143,3 +195,30 @@
             x metadata
             :when (= type (e/metatype-to-string (:type x)))]
         (:data x)))))
+
+(defn start-download
+  [uri anonymity]
+  (let [uri-pointer (string-to-uri-pointer uri)
+        length-lw (js/_GNUNET_FS_uri_chk_get_file_size uri-pointer)
+        length-hw js/tempRet0
+        ch (chan 1)
+        callback (fn [info] (go (>! ch info)))
+        callback-key (register-callback callback)
+        download (js/_GNUNET_FS_download_start
+                   fs
+                   uri-pointer
+                   0 ; meta
+                   0 ; filename
+                   0 ; tempname
+                   0 ; offset-lw
+                   0 ; offset-hw
+                   length-lw
+                   length-hw
+                   anonymity
+                   0 ; options
+                   callback-key
+                   0)] ; parent
+    (js/_GNUNET_FS_uri_destroy uri-pointer)
+    {:download download
+     :ch ch
+     :callback-key callback-key}))
