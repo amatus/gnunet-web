@@ -19,25 +19,25 @@
             [gnunet-web.extractor :as e])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(def callbacks (atom {:next 0}))
+(def objects (atom {:next 0}))
 
-(defn register-callback
-  [f]
-  (swap! callbacks
-         (fn [{:keys [next] :as callbacks}]
-           (conj callbacks
-                 {next f
+(defn register-object
+  [object]
+  (swap! objects
+         (fn [{:keys [next] :as objects}]
+           (conj objects
+                 {next object
                   :next (inc next)})))
   ;; This would normally be cheating
-  (dec (:next @callbacks)))
+  (dec (:next @objects)))
 
-(defn unregister-callback
-  [callback]
-  (swap! callbacks dissoc callback))
+(defn unregister-object
+  [object-key]
+  (swap! objects dissoc object-key))
 
-(defn get-callback
-  [callback]
-  (get @callbacks callback))
+(defn get-object
+  [object-key]
+  (get @objects object-key))
 
 (defn uri-ksk-create
   [query]
@@ -146,7 +146,7 @@
 (defn progress-callback
   [cls info-pointer]
   (when-let [info (parse-progress-info info-pointer)]
-    ((get-callback (:cctx info)) info)
+    ((get-object (:cctx info)) info)
     (:cctx info)))
 
 (def fs
@@ -162,7 +162,7 @@
   (let [uri-pointer (uri-ksk-create query)
         ch (chan 1)
         callback (fn [info] (go (>! ch info)))
-        callback-key (register-callback callback)
+        callback-key (register-object callback)
         search (js/_GNUNET_FS_search_start
                  fs
                  uri-pointer
@@ -181,7 +181,7 @@
     "void"
     (array "number")
     (array search))
-  (unregister-callback callback-key)
+  (unregister-object callback-key)
   (close! ch))
 
 (defn guess-filename
@@ -203,7 +203,7 @@
         length-hw js/tempRet0
         ch (chan 1)
         callback (fn [info] (go (>! ch info)))
-        callback-key (register-callback callback)
+        callback-key (register-object callback)
         download (js/_GNUNET_FS_download_start
                    fs
                    uri-pointer
@@ -223,3 +223,39 @@
      :size length-lw ;; XXX length truncated for now
      :ch ch
      :callback-key callback-key}))
+
+(defn publish-reader-callback
+  []
+  )
+
+(def publish-reader-callback-key
+  (js/Runtime.addFunction publish-reader-callback))
+
+(defn start-publish
+  [file keywords anonymity]
+  (let [file-key (register-object file)
+        length (.-size file)
+        length-lw (bit-shift-right length 0)
+        length-hw (Math/min 4294967295.0 (Math/floor (/ length 4294967296.0)))
+        ch (chan 1)
+        callback (fn [info] (go (>! ch info)))
+        callback-key (register-object callback)
+        fi (js/_GNUNET_FS_file_information_create_from_reader
+             fs
+             callback-key ; void *client_info
+             length-lw length-hw ; uint64_t length
+             publish-reader-callback-key ; GNUNET_FS_DataReader reader
+             file-key ; void *reader_cls
+             0 ; struct GNUNET_FS_Uri *keywords
+             0 ; struct GNUNET_CONTAINER_MetaData *meta
+             0 ; int do_index
+             0); struct GNUNET_FS_BlockOptions *bo
+        publish (js/_GNUNET_FS_publish_start
+                  fs
+                  fi
+                  0 ; ns
+                  0 ; nid
+                  0 ; nuid
+                  0)] ; options
+    publish))
+
