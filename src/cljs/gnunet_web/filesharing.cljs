@@ -16,28 +16,10 @@
 
 (ns gnunet-web.filesharing
   (:require [cljs.core.async :refer [chan close!]]
-            [gnunet-web.extractor :as e])
+            [gnunet-web.extractor :as e]
+            [gnunet-web.util :refer [get-object i64-to-real real-to-i64
+                                     register-object unregister-object]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
-
-(def objects (atom {:next 0}))
-
-(defn register-object
-  [object]
-  (swap! objects
-         (fn [{:keys [next] :as objects}]
-           (conj objects
-                 {next object
-                  :next (inc next)})))
-  ;; This would normally be cheating
-  (dec (:next @objects)))
-
-(defn unregister-object
-  [object-key]
-  (swap! objects dissoc object-key))
-
-(defn get-object
-  [object-key]
-  (get @objects object-key))
 
 (defn uri-ksk-create
   [query]
@@ -220,7 +202,7 @@
                    0)] ; parent
     (js/_GNUNET_FS_uri_destroy uri-pointer)
     {:download download
-     :size length-lw ;; XXX length truncated for now
+     :size (i64-to-real [length-lw length-hw])
      :ch ch
      :callback-key callback-key}))
 
@@ -228,23 +210,21 @@
   []
   )
 
-(def publish-reader-callback-key
+(def publish-reader-callback-pointer
   (js/Runtime.addFunction publish-reader-callback))
 
 (defn start-publish
   [file keywords anonymity]
   (let [file-key (register-object file)
-        length (.-size file)
-        length-lw (bit-shift-right length 0)
-        length-hw (Math/min 4294967295.0 (Math/floor (/ length 4294967296.0)))
+        length (real-to-i64 (.-size file))
         ch (chan 1)
         callback (fn [info] (go (>! ch info)))
         callback-key (register-object callback)
         fi (js/_GNUNET_FS_file_information_create_from_reader
              fs
              callback-key ; void *client_info
-             length-lw length-hw ; uint64_t length
-             publish-reader-callback-key ; GNUNET_FS_DataReader reader
+             (first length) (second length) ; uint64_t length
+             publish-reader-callback-pointer ; GNUNET_FS_DataReader reader
              file-key ; void *reader_cls
              0 ; struct GNUNET_FS_Uri *keywords
              0 ; struct GNUNET_CONTAINER_MetaData *meta

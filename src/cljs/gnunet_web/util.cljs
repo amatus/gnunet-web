@@ -19,3 +19,32 @@
 (defn now
   []
   (-> (js/Date.) (.valueOf) (* 1000)))
+
+(def objects (atom {:next 0}))
+
+(defn register-object
+  [object]
+  (swap! objects
+         (fn [{:keys [next] :as objects}]
+           (conj objects
+                 {next object
+                  :next (inc next)})))
+  ;; This would normally be cheating
+  (dec (:next @objects)))
+
+(defn unregister-object
+  [object-key]
+  (swap! objects dissoc object-key))
+
+(defn get-object
+  [object-key]
+  (get @objects object-key))
+
+(defn real-to-i64
+  [x]
+  [(unsigned-bit-shift-right x 0)
+   (Math/min 4294967295 (Math/floor (/ x 4294967296)))])
+
+(defn i64-to-real
+  [[lw hw]]
+  (+ lw (* 4294967296 hw)))
