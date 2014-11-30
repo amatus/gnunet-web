@@ -56,6 +56,20 @@
                   (js/Pointer_stringify data)
                   (.subarray js/HEAP8 data data-size))}))
 
+(defn parse-progress-publish
+  [status info-pointer]
+  (conj
+    {:status status
+     :cctx (js/_GNUNET_FS_ProgressInfo_get_publish_cctx info-pointer)
+     :size (js/_GNUNET_FS_ProgressInfo_get_publish_size info-pointer)
+     :completed (js/_GNUNET_FS_ProgressInfo_get_publish_completed info-pointer)}
+    (condp = status
+      :publish-completed
+      {:uri (uri-pointer-to-string
+              (js/_GNUNET_FS_ProgressInfo_get_publish_completed_chk_uri
+                info-pointer))}
+      nil)))
+
 (defn parse-progress-search
   [status info-pointer]
   (conj
@@ -96,6 +110,9 @@
                             :depth depth})
       nil)))
 
+(def status-publish-start 0)
+(def status-publish-progress 3)
+(def status-publish-completed 5)
 (def status-download-start 7)
 (def status-download-progress 10)
 (def status-download-completed 12)
@@ -109,6 +126,11 @@
   [info-pointer]
   (let [status (js/getValue (+ 112 info-pointer) "i32")]
     (condp = status
+      status-publish-start (parse-progress-publish :publish-start info-pointer)
+      status-publish-progress (parse-progress-publish :publish-progress
+                                                      info-pointer)
+      status-publish-completed (parse-progress-publish :publish-completed
+                                                       info-pointer)
       status-download-start (parse-progress-download :download-start
                                                      info-pointer)
       status-download-progress (parse-progress-download :download-progress
@@ -207,29 +229,46 @@
      :callback-key callback-key}))
 
 (defn publish-reader-callback
-  []
-  )
+  [cls offset-lw offset-hw size buf emsg]
+  (if (zero? size)
+    (do (unregister-object cls) 0)
+    (let [file (get-object cls)
+          offset (i64-to-real [offset-lw offset-hw])
+          file-array (js/Uint8Array. file offset size)]
+      (js/writeArrayToMemory file-array buf)
+      size)))
 
 (def publish-reader-callback-pointer
   (js/Runtime.addFunction publish-reader-callback))
 
+(defn new-block-options
+  [{:keys [expiration anonymity priority replication]}]
+  (let [pointer (js/_malloc 20)]
+    (js/setValue pointer expiration "i64")
+    (js/setValue (+ 8 pointer) anonymity "i32")
+    (js/setValue (+ 12 pointer) priority "i32")
+    (js/setValue (+ 16 pointer) replication "i32")
+    pointer))
+
 (defn start-publish
-  [file keywords anonymity]
+  [file keywords block-options]
   (let [file-key (register-object file)
-        length (real-to-i64 (.-size file))
+        length (real-to-i64 (.-byteLength file))
         ch (chan 1)
         callback (fn [info] (go (>! ch info)))
         callback-key (register-object callback)
+        uri-pointer (uri-ksk-create keywords)
+        bo-pointer (new-block-options block-options)
         fi (js/_GNUNET_FS_file_information_create_from_reader
              fs
              callback-key ; void *client_info
              (first length) (second length) ; uint64_t length
              publish-reader-callback-pointer ; GNUNET_FS_DataReader reader
              file-key ; void *reader_cls
-             0 ; struct GNUNET_FS_Uri *keywords
+             uri-pointer ; struct GNUNET_FS_Uri *keywords
              0 ; struct GNUNET_CONTAINER_MetaData *meta
              0 ; int do_index
-             0); struct GNUNET_FS_BlockOptions *bo
+             bo-pointer); struct GNUNET_FS_BlockOptions *bo
         publish (js/_GNUNET_FS_publish_start
                   fs
                   fi
@@ -237,5 +276,9 @@
                   0 ; nid
                   0 ; nuid
                   0)] ; options
-    publish))
+    (js/_GNUNET_FS_uri_destroy uri-pointer)
+    (js/_free bo-pointer)
+    {:publish publish
+     :ch ch
+     :callback-key callback-key}))
 

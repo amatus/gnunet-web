@@ -21,7 +21,8 @@
                 [gnunet-web.hostlist :as hostlist]
                 [gnunet-web.metadata :as metadata]
                 [gnunet-web.service :as service]
-                [gnunet-web.transport :as transport])
+                [gnunet-web.transport :as transport]
+                [gnunet-web.util :refer [now]])
       (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (set! *print-fn* #(.log js/console %))
@@ -93,6 +94,34 @@
                                   (/ (:completed info) (:size info))))
           (recur))))))
 
+(defn start-publish
+  [keywords file state-cell progress-cell uri-cell]
+  (let [reader (js/FileReader.)]
+    (set!
+      (.-onload reader)
+      (fn [e]
+        (go
+          (let [publish (filesharing/start-publish
+                          (.-result (.-target e))
+                          keywords
+                          {:expiration (+ (* 2 356.24 24 60 60 1000 1000) (now))
+                           :anonymity 0
+                           :priority 365
+                           :replication 1})]
+            (loop []
+              (when-let [info (<! (:ch publish))]
+                (when (= :publish-start (:status info))
+                  (reset! state-cell :active))
+                (when (= :publish-progress (:status info))
+                  (reset! progress-cell (if (zero? (:size info))
+                                          0
+                                          (/ (:completed info) (:size info)))))
+                (when (= :publish-completed (:status info))
+                  (reset! uri-cell (:uri info))
+                  (reset! state-cell :complete))
+                (recur)))))))
+    (.readAsArrayBuffer reader file)))
+
 (def topology-worker (service/start-worker "topology"
                                            "js/gnunet-daemon-topology.js"))
 (hostlist/fetch-and-process!)
@@ -109,6 +138,35 @@
                                          "search icon"))
                          :click #(start-search (.-value input) 0))))))
 
+(defelem ui-publish
+         [attr kids]
+         (let [keywords (input :type "text" :placeholder "Keywords...")
+               file (input :type "file")
+               publish-state (cell :inactive)
+               publish-progress (cell 0)
+               publish-uri (cell nil)]
+           (div :class "ui form segment"
+                file
+                keywords
+                (div :class "ui icon button"
+                     :title "Publish"
+                     :click #(start-publish (.-value keywords)
+                                            (aget (.-files file) 0)
+                                            publish-state
+                                            publish-progress
+                                            publish-uri)
+                     (i :class "upload icon large"))
+                (div :class "ui progress"
+                     :toggle (cell= (not (= :inactive publish-state)))
+                     (div :class "bar"
+                          :css (cell= {:width (str (* 100 publish-progress)
+                                                   "%")})))
+                (a :class "item"
+                   :href publish-uri
+                   :toggle (cell= (= :complete publish-state))
+                   :click #(do false)
+                   (i :class "url icon")))))
+
 (html
   (head
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
@@ -117,6 +175,7 @@
     (div :class "ui header"
          :title (cell= (code/base32-crockford my-id))
          (text "My Peer ID: ~(peer-id-short my-id)\u2026"))
+    (ui-publish)
     (ui-search)
     (table :class "ui table segment"
            :toggle (cell= (seq search-results))

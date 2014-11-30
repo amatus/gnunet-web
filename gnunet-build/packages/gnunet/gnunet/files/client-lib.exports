@@ -3,6 +3,10 @@
 "_EXTRACTOR_metatype_to_string",
 "_GNUNET_CONTAINER_meta_data_get_by_type",
 "_GNUNET_CONTAINER_meta_data_iterate",
+"_GNUNET_FS_ProgressInfo_get_publish_cctx",
+"_GNUNET_FS_ProgressInfo_get_publish_completed",
+"_GNUNET_FS_ProgressInfo_get_publish_completed_chk_uri",
+"_GNUNET_FS_ProgressInfo_get_publish_size",
 "_GNUNET_FS_download_start",
 "_GNUNET_FS_file_information_create_from_reader",
 "_GNUNET_FS_meta_data_test_for_directory",
@@ -15,4 +19,5 @@
 "_GNUNET_FS_uri_ksk_create",
 "_GNUNET_FS_uri_parse",
 "_GNUNET_FS_uri_to_string",
+"_GNUNET_xstrdup_",
 "_free"]
