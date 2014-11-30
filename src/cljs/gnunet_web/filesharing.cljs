@@ -70,44 +70,49 @@
                 info-pointer))}
       nil)))
 
+(defn parse-progress-download
+  [status info-pointer]
+  (conj
+    {:status status
+     :cctx (js/_GNUNET_FS_ProgressInfo_get_download_cctx info-pointer)
+     :size (js/_GNUNET_FS_ProgressInfo_get_download_size info-pointer)
+     :completed (js/_GNUNET_FS_ProgressInfo_get_download_completed
+                  info-pointer)}
+    (condp = status
+      :download-progress
+      (let [data-pointer (js/_GNUNET_FS_ProgressInfo_get_download_progress_data
+                           info-pointer)
+            offset (js/_GNUNET_FS_ProgressInfo_get_download_progress_offset
+                     info-pointer)
+            data-len (js/_GNUNET_FS_ProgressInfo_get_download_progress_data_len
+                       info-pointer)
+            depth (js/_GNUNET_FS_ProgressInfo_get_download_progress_depth
+                    info-pointer)
+            data (js/Uint8Array.
+                   (js/HEAPU8.subarray data-pointer (+ data-pointer data-len)))]
+        {:data data
+         :offset offset
+         :depth depth})
+      nil)))
+
 (defn parse-progress-search
   [status info-pointer]
   (conj
     {:status status
-     :cctx (js/getValue (+ 4 info-pointer) "i32")}
+     :cctx (js/_GNUNET_FS_ProgressInfo_get_search_cctx info-pointer)}
     (condp = status
       :search-result (let [metadata (atom [])
                            callback (partial metadata-iterator metadata)
                            callback-pointer (js/Runtime.addFunction callback)]
                        (js/_GNUNET_CONTAINER_meta_data_iterate
-                         (js/getValue (+ 32 info-pointer) "i32")
+                         (js/_GNUNET_FS_ProgressInfo_get_search_result_meta
+                           info-pointer)
                          callback-pointer)
                        (js/Runtime.removeFunction callback-pointer)
                        {:uri (uri-pointer-to-string
-                               (js/getValue (+ 36 info-pointer) "i32"))
+                               (js/_GNUNET_FS_ProgressInfo_get_search_result_uri
+                                 info-pointer))
                         :metadata @metadata})
-      nil)))
-
-(defn parse-progress-download
-  [status info-pointer]
-  (conj
-    {:status status
-     :cctx (js/getValue (+ 4 info-pointer) "i32")
-     :size (js/getValue (+ 24 info-pointer) "i64")
-     :completed (js/getValue (+ 48 info-pointer) "i64")}
-    (condp = status
-      :download-progress (let [data-pointer (js/getValue (+ 64 info-pointer)
-                                                         "i32")
-                               offset (js/getValue (+ 72 info-pointer) "i64")
-                               data-len (js/getValue (+ 80 info-pointer) "i64")
-                               depth (js/getValue (+ 96 info-pointer) "i32")
-                               data (js/Uint8Array.
-                                      (js/HEAPU8.subarray data-pointer
-                                                          (+ data-pointer
-                                                             data-len)))]
-                           {:data data
-                            :offset offset
-                            :depth depth})
       nil)))
 
 (def status-publish-start 0)
@@ -124,7 +129,7 @@
 (def status-search-stopped 29)
 (defn parse-progress-info
   [info-pointer]
-  (let [status (js/getValue (+ 112 info-pointer) "i32")]
+  (let [status (js/_GNUNET_FS_ProgressInfo_get_status info-pointer)]
     (condp = status
       status-publish-start (parse-progress-publish :publish-start info-pointer)
       status-publish-progress (parse-progress-publish :publish-progress
@@ -203,28 +208,15 @@
 (defn start-download
   [uri anonymity]
   (let [uri-pointer (string-to-uri-pointer uri)
-        length-lw (js/_GNUNET_FS_uri_chk_get_file_size uri-pointer)
-        length-hw js/tempRet0
+        length (js/_GNUNET_FS_uri_chk_get_file_size2 uri-pointer)
         ch (chan 1)
         callback (fn [info] (go (>! ch info)))
         callback-key (register-object callback)
-        download (js/_GNUNET_FS_download_start
-                   fs
-                   uri-pointer
-                   0 ; meta
-                   0 ; filename
-                   0 ; tempname
-                   0 ; offset-lw
-                   0 ; offset-hw
-                   length-lw
-                   length-hw
-                   anonymity
-                   0 ; options
-                   callback-key
-                   0)] ; parent
+        download (js/_GNUNET_FS_download_start_simple fs uri-pointer anonymity
+                                                      callback-key)]
     (js/_GNUNET_FS_uri_destroy uri-pointer)
     {:download download
-     :size (i64-to-real [length-lw length-hw])
+     :size length
      :ch ch
      :callback-key callback-key}))
 
@@ -243,12 +235,7 @@
 
 (defn new-block-options
   [{:keys [expiration anonymity priority replication]}]
-  (let [pointer (js/_malloc 20)]
-    (js/setValue pointer expiration "i64")
-    (js/setValue (+ 8 pointer) anonymity "i32")
-    (js/setValue (+ 12 pointer) priority "i32")
-    (js/setValue (+ 16 pointer) replication "i32")
-    pointer))
+  (js/_GNUNET_FS_BlockOptions_new expiration anonymity priority replication))
 
 (defn start-publish
   [file keywords block-options]
