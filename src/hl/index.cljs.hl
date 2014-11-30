@@ -17,6 +17,7 @@
 (page "index.html"
       (:require [amatus.code :as code]
                 [gnunet-web.core :as core]
+                [gnunet-web.extractor :as extractor]
                 [gnunet-web.filesharing :as filesharing]
                 [gnunet-web.hostlist :as hostlist]
                 [gnunet-web.metadata :as metadata]
@@ -95,7 +96,7 @@
           (recur))))))
 
 (defn start-publish
-  [keywords file state-cell progress-cell uri-cell]
+  [keywords metadata file state-cell progress-cell uri-cell]
   (let [reader (js/FileReader.)]
     (set!
       (.-onload reader)
@@ -104,6 +105,7 @@
           (let [publish (filesharing/start-publish
                           (.-result (.-target e))
                           keywords
+                          metadata
                           {:expiration (+ (* 2 356.24 24 60 60 1000 1000) (now))
                            :anonymity 0
                            :priority 365
@@ -140,17 +142,37 @@
 
 (defelem ui-publish
          [attr kids]
-         (let [keywords (input :type "text" :placeholder "Keywords...")
-               file (input :type "file")
+         (let [file-chosen (cell false)
                publish-state (cell :inactive)
                publish-progress (cell 0)
-               publish-uri (cell nil)]
+               publish-uri (cell nil)
+               metadata (atom nil)
+               keywords (input :type "text")
+               file (input :type "file"
+                           :change
+                           (fn [e]
+                             (swap! metadata
+                                    (fn [metadata]
+                                      (extractor/metadata-destroy metadata)
+                                      (extractor/metadata-extract
+                                        (aget (.-files (.-target e)) 0))))
+                             (set! (.-value keywords)
+                                   (filesharing/keywords-from-metadata
+                                     @metadata))
+                             (reset! file-chosen true)))]
            (div :class "ui form segment"
-                file
-                keywords
+                (div :class "ui labeled input"
+                     (div :class "ui label" "Choose a file to publish")
+                     file)
+                (div :class "ui labeled input"
+                     :toggle file-chosen
+                     (div :class "ui label" "Keywords")
+                     keywords)
                 (div :class "ui icon button"
                      :title "Publish"
+                     :toggle file-chosen
                      :click #(start-publish (.-value keywords)
+                                            @metadata
                                             (aget (.-files file) 0)
                                             publish-state
                                             publish-progress
@@ -186,7 +208,7 @@
            (tbody
              (loop-tpl :bindings [result search-results]
                        (let [uri (cell= (:uri result))
-                             filename (cell= (filesharing/guess-filename
+                             filename (cell= (extractor/guess-filename
                                                (:metadata result)))
                              download-state (cell :inactive)
                              download-progress (cell 0)

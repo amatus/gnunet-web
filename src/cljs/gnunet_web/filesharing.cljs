@@ -44,6 +44,15 @@
     (array "string" "number")
     (array uri 0)))
 
+(defn keywords-from-metadata
+  [metadata]
+  (let [uri-pointer (js/_GNUNET_FS_uri_ksk_create_from_meta_data metadata)
+        keywords-pointer (js/_GNUNET_FS_uri_ksk_to_string_fancy uri-pointer)
+        keywords (js/Pointer_stringify keywords-pointer)]
+    (js/_free keywords-pointer)
+    (js/_GNUNET_FS_uri_destroy uri-pointer)
+    keywords))
+
 (defn metadata-iterator
   [metadata cls plugin-name type format mime-type data data-size]
   (swap! metadata conj
@@ -189,18 +198,6 @@
   (unregister-object callback-key)
   (close! ch))
 
-(defn guess-filename
-  [metadata]
-  (let [preference ["original filename"
-                    "title"
-                    ;; ...
-                    ]]
-    (first
-      (for [type preference
-            x metadata
-            :when (= type (e/metatype-to-string (:type x)))]
-        (:data x)))))
-
 (defn start-download
   [uri anonymity]
   (let [uri-pointer (string-to-uri-pointer uri)
@@ -234,7 +231,7 @@
   (js/_GNUNET_FS_BlockOptions_new expiration anonymity priority replication))
 
 (defn start-publish
-  [file keywords block-options]
+  [file keywords metadata block-options]
   (let [file-key (register-object file)
         length (real-to-i64 (.-byteLength file))
         ch (chan 1)
@@ -249,7 +246,7 @@
              publish-reader-callback-pointer ; GNUNET_FS_DataReader reader
              file-key ; void *reader_cls
              uri-pointer ; struct GNUNET_FS_Uri *keywords
-             0 ; struct GNUNET_CONTAINER_MetaData *meta
+             metadata ; struct GNUNET_CONTAINER_MetaData *meta
              0 ; int do_index
              bo-pointer); struct GNUNET_FS_BlockOptions *bo
         publish (js/_GNUNET_FS_publish_start

@@ -21,6 +21,11 @@
 (def format-data 2)
 (def format-string 3) ; unknown character encoding
 
+(def metatype-mimetype 1)
+(def metatype-filename 2)
+(def metatype-title 4)
+(def metatype-original-filename 180)
+
 (defn metatype-to-string
   [type]
   (js/Pointer_stringify
@@ -30,3 +35,49 @@
   [type]
   (js/Pointer_stringify
     (js/_EXTRACTOR_metatype_to_description type)))
+
+(defn metadata-destroy
+  [metadata]
+  (js/_GNUNET_CONTAINER_meta_data_destroy metadata))
+
+(defn metadata-extract
+  [file]
+  (let [metadata (js/_GNUNET_CONTAINER_meta_data_create)]
+    (js/ccallFunc
+      js/_GNUNET_CONTAINER_meta_data_insert
+      "number"
+      (array "number" "string" "number" "number" "string" "string" "number")
+      (array
+        metadata
+        "<gnunet-web>"
+        metatype-mimetype
+        format-utf8
+        "text/plain"
+        (.-type file)
+        (inc (count (.-type file)))))
+    (js/ccallFunc
+      js/_GNUNET_CONTAINER_meta_data_insert
+      "number"
+      (array "number" "string" "number" "number" "string" "string" "number")
+      (array
+        metadata
+        "<gnunet-web>"
+        metatype-original-filename
+        format-utf8
+        "text/plain"
+        (.-name file)
+        (inc (count (.-name file)))))
+    metadata))
+
+(defn guess-filename
+  [metadata]
+  (let [preference [metatype-original-filename
+                    metatype-filename
+                    metatype-title
+                    ;; ...
+                    ]]
+    (first
+      (for [type preference
+            x metadata
+            :when (= type (:type x))]
+        (:data x)))))
