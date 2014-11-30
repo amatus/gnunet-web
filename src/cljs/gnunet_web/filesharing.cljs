@@ -185,11 +185,7 @@
 
 (defn stop-search
   [{:keys [ch callback-key search]}]
-  (js/ccallFunc
-    js/_GNUNET_FS_search_stop
-    "void"
-    (array "number")
-    (array search))
+  (js/_GNUNET_FS_search_stop search)
   (unregister-object callback-key)
   (close! ch))
 
