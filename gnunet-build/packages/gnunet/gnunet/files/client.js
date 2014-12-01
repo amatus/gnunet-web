@@ -115,10 +115,11 @@ mergeInto(LibraryManager.library, {
     var client = CLIENT_PORTS[port];
     if (client.th !== null)
       return -1;
+    var size = getValue(message, 'i8') << 8 | getValue(message + 1, 'i8');
+    var view = {{{ makeHEAPView('U8', 'message', 'message+size') }}};
+    view = new Uint8Array(view);
     client.th = setTimeout(function() {
-      var size = getValue(message, 'i8') << 8 | getValue(message + 1, 'i8');
-      var view = {{{ makeHEAPView('U8', 'message', 'message+size') }}};
-      client.port.postMessage(new Uint8Array(view));
+      client.port.postMessage(view);
       _GNUNET_CLIENT_receive(port, handler, handler_cls, timeout);
     }, 0);
     return 1;
