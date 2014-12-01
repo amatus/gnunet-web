@@ -475,7 +475,9 @@ pkg_compile() {
 		"${S}/src/client-lib.lo" \
 		"${S}/src/datastore/libgnunetdatastore.la" \
 		"${S}/src/fs/libgnunetfs.la" \
+		"${S}/src/hello/libgnunethello.la" \
 		"${S}/src/statistics/libgnunetstatistics.la" \
+		"${S}/src/transport/libgnunettransport.la" \
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \

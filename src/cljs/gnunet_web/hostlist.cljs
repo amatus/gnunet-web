@@ -17,9 +17,9 @@
 (ns gnunet-web.hostlist
   (:require [gnunet-web.http :refer [GET]]
             [gnunet-web.parser :refer [none-or-more parser]]
-            [gnunet-web.peerinfo :refer [process-hello]]
             [gnunet-web.hello :refer [parse-hello]]
-            [gnunet-web.message :refer [parse-message-types]])
+            [gnunet-web.message :refer [parse-message-types]]
+            [gnunet-web.transport :refer [offer-hello]])
   (:require-macros [cljs.core.async.macros :refer [go]]
                    [monads.macros :as monadic]))
 
@@ -27,7 +27,7 @@
   (monadic/do parser
               [hellos (none-or-more (parse-message-types #{parse-hello}))]
               (doseq [hello hellos]
-                (process-hello (:message hello)))))
+                (offer-hello (:message hello)))))
 
 (defn fetch-and-process!
   []

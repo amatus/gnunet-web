@@ -16,7 +16,7 @@
 
 (ns gnunet-web.transport
   (:require [gnunet-web.encoder :refer [encode-uint32]]
-            [gnunet-web.hello :refer [parse-hello]]
+            [gnunet-web.hello :refer [encode-hello parse-hello]]
             [gnunet-web.message :refer [encode-message parse-message-types
                                         parse-peer-identity]]
             [gnunet-web.parser :refer [items optional parser parse-absolute-time
@@ -117,3 +117,22 @@
 (defn addr->string
   [address]
   (utf8ByteArrayToString (to-array (drop 8 address))))
+
+(def transport-handle (js/_GNUNET_TRANSPORT_connect
+                        0 ; const struct GNUNET_CONFIGURATION_Handle *cfg
+                        0 ; const struct GNUNET_PeerIdentity *self
+                        0 ; void *cls
+                        0 ; GNUNET_TRANSPORT_ReceiveCallback rec
+                        0 ; GNUNET_TRANSPORT_NotifyConnect nc
+                        0)) ; GNUNET_TRANSPORT_NotifyDisconnect nd
+
+(defn offer-hello
+  [hello]
+  (js/ccallFunc
+    js/_GNUNET_TRANSPORT_offer_hello
+    "number"
+    (array "number" "array" "number" "number")
+    (array transport-handle
+           (into-array (encode-hello hello))
+           0
+           0)))
