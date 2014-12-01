@@ -15,19 +15,16 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.transport
-  (:require [gnunet-web.encoder :refer [encode-uint32]]
+  (:require [cljs.core.async :refer [chan close!]]
+            [gnunet-web.encoder :refer [encode-uint32]]
             [gnunet-web.hello :refer [encode-hello parse-hello]]
-            [gnunet-web.message :refer [encode-message parse-message-types
-                                        parse-peer-identity]]
-            [gnunet-web.parser :refer [items optional parser parse-absolute-time
-                                       parse-uint32]]
+            [gnunet-web.message :refer [encode-message parse-message-types]]
             [gnunet-web.service :refer [client-connect]]
-            [goog.crypt :refer [utf8ByteArrayToString]])
-  (:require-macros [monads.macros :as monadic]))
+            [gnunet-web.util :refer [get-object read-memory register-object
+                                     unregister-object]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (def message-type-start 360)
-(def message-type-monitor-peer-request 380)
-(def message-type-peer-iterate-reply 383)
 
 (defn encode-start-message
   [{:keys [options peer] :or {options 0 peer (repeat 32 0)}}]
@@ -37,37 +34,6 @@
      (concat
        (encode-uint32 options)
        peer)}))
-
-(defn encode-monitor-peer-request-message
-  [{:keys [one-shot peer] :or {one-shot false peer (repeat 32 0)}}]
-  (encode-message
-    {:message-type message-type-monitor-peer-request
-     :message
-     (concat
-       (encode-uint32 one-shot)
-       peer)}))
-
-(def parse-peer-iterate-reply
-  (with-meta
-    (optional
-      (monadic/do parser
-                  [reserved parse-uint32
-                   peer parse-peer-identity
-                   state-timeout parse-absolute-time
-                   local-address-info parse-uint32
-                   state parse-uint32
-                   address-length parse-uint32
-                   plugin-length parse-uint32
-                   address (items address-length)
-                   plugin (items plugin-length)]
-                  {:peer peer
-                   :state-timeout state-timeout
-                   :local-address-info local-address-info
-                   :state state
-                   :address (vec (.apply js/Array (array) address))
-                   :plugin (utf8ByteArrayToString
-                             (.apply js/Array (array) plugin))}))
-    {:message-type message-type-peer-iterate-reply}))
 
 (defn monitor
   [callback]
@@ -82,20 +48,6 @@
                     (.-port2 message-channel))
     (.postMessage (.-port1 message-channel)
                   (into-array (encode-start-message {})))))
-
-(defn monitor-peers
-  [callback]
-  (let [message-channel (js/MessageChannel.)]
-    (set! (.-onmessage (.-port1 message-channel))
-          (fn [event]
-            (let [message @((parse-message-types #{parse-peer-iterate-reply})
-                              (.-data event))]
-              (if (coll? message)
-                (callback (:message (first message)))))))
-    (client-connect "transport" "web app (monitor-peers)"
-                    (.-port2 message-channel))
-    (.postMessage (.-port1 message-channel)
-                  (into-array (encode-monitor-peer-request-message {})))))
 
 (def state-strings
   {0 "Not connected"
@@ -113,10 +65,6 @@
 (defn state->string
   [state]
   (get state-strings state))
-
-(defn addr->string
-  [address]
-  (utf8ByteArrayToString (to-array (drop 8 address))))
 
 (def transport-handle (js/_GNUNET_TRANSPORT_connect
                         0 ; const struct GNUNET_CONFIGURATION_Handle *cfg
@@ -136,3 +84,56 @@
            (into-array (encode-hello hello))
            0
            0)))
+
+(defn address->string-callback
+  [cls string-pointer res]
+  (let [ch (get-object cls)]
+    (if (zero? string-pointer)
+      (close! ch)
+      (go (>! ch (js/Pointer_stringify string-pointer))))))
+
+(def address->string-callback-pointer
+  (js/Runtime.addFunction address->string-callback))
+
+(defn address->string
+  [address-pointer]
+  (let [ch (chan 1)
+        ret-ch (chan 1)
+        ch-key (register-object ch)
+        context (js/_GNUNET_TRANSPORT_address_to_string_simple
+                  address-pointer
+                  address->string-callback-pointer
+                  ch-key)]
+    (go-loop []
+             (let [result (<! ch)]
+               (if (nil? result)
+                 (do
+                   (unregister-object ch-key)
+                   (js/_GNUNET_TRANSPORT_address_to_string_cancel context)
+                   (close! ret-ch))
+                 (do
+                   (>! ret-ch result)
+                   (recur)))))
+    ret-ch))
+
+(defn monitor-callback
+  [cls peer-pointer address-pointer state state-timeout]
+  (when-not (zero? peer-pointer)
+    (let [callback (get-object cls)
+          peer (vec (read-memory peer-pointer 32))]
+      (if (zero? address-pointer)
+        (callback {:state state
+                   :peer peer})
+        (let [ch (address->string address-pointer)]
+          (go (callback {:state state
+                         :peer peer
+                         :address (<! ch)})
+              (close! ch)))))))
+
+(def monitor-callback-pointer (js/Runtime.addFunction monitor-callback))
+
+(defn monitor-peers
+  [callback]
+  (let [callback-key (register-object callback)]
+    (js/_GNUNET_TRANSPORT_monitor_peers_simple monitor-callback-pointer
+                                               callback-key)))

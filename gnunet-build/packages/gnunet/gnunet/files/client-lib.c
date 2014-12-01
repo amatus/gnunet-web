@@ -18,6 +18,7 @@
 
 #include "platform.h"
 #include "gnunet_fs_service.h"
+#include "gnunet_transport_service.h"
 
 void *
 GNUNET_FS_ProgressInfo_get_publish_cctx(struct GNUNET_FS_ProgressInfo *pi)
@@ -144,6 +145,25 @@ GNUNET_FS_download_start_simple(struct GNUNET_FS_Handle *h,
 
   return GNUNET_FS_download_start(h, uri, NULL, NULL, NULL, 0, length,
       anonymity, 0, cctx, NULL);
+}
+
+struct GNUNET_TRANSPORT_PeerMonitoringContext *
+GNUNET_TRANSPORT_monitor_peers_simple(
+    GNUNET_TRANSPORT_PeerIterateCallback peer_callback,
+    void *peer_callback_cls)
+{
+  return GNUNET_TRANSPORT_monitor_peers(NULL, NULL, GNUNET_NO,
+      GNUNET_TIME_UNIT_FOREVER_REL, peer_callback, peer_callback_cls);
+}
+
+struct GNUNET_TRANSPORT_AddressToStringContext *
+GNUNET_TRANSPORT_address_to_string_simple(
+    const struct GNUNET_HELLO_Address *address,
+    GNUNET_TRANSPORT_AddressToStringCallback aluc,
+    void *aluc_cls)
+{
+  return GNUNET_TRANSPORT_address_to_string(NULL, address, GNUNET_YES,
+      GNUNET_TIME_UNIT_FOREVER_REL, aluc, aluc_cls);
 }
 
 /* vim: set expandtab ts=2 sw=2: */

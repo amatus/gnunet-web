@@ -17,8 +17,9 @@
 (ns gnunet-web.filesharing
   (:require [cljs.core.async :refer [chan close!]]
             [gnunet-web.extractor :as e]
-            [gnunet-web.util :refer [get-object i64-to-real real-to-i64
-                                     register-object unregister-object]])
+            [gnunet-web.util :refer [get-object i64-to-real read-memory
+                                     real-to-i64 register-object
+                                     unregister-object]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn uri-ksk-create
@@ -63,7 +64,7 @@
           :data (if (or (= format e/format-utf8)
                         (= format e/format-string)) 
                   (js/Pointer_stringify data)
-                  (.subarray js/HEAP8 data data-size))}))
+                  (read-memory data data-size))}))
 
 (defn parse-progress-publish
   [status info-pointer]

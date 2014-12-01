@@ -24,7 +24,7 @@
                 [gnunet-web.service :as service]
                 [gnunet-web.transport :as transport]
                 [gnunet-web.util :refer [now]])
-      (:require-macros [cljs.core.async.macros :refer [go]]))
+      (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (set! *print-fn* #(.log js/console %))
 
@@ -41,9 +41,7 @@
                                     (assoc-in [(:peer message) :transport-state]
                                               (:state message))
                                     (assoc-in [(:peer message) :address]
-                                              (:address message))
-                                    (assoc-in [(:peer message) :plugin]
-                                              (:plugin message))))))
+                                              (:address message))))))
 (core/monitor-peers (fn [message]
                       (if (not (= 6 (:state message)))
                         (swap! peers assoc-in [(:peer message) :core-state]
@@ -53,47 +51,47 @@
 (defc search-results [])
 (defn start-search
   [query anonymity]
-  (go
-    (let [search (filesharing/start-search query anonymity)]
-      (swap! active-search
-             (fn [old-search]
-               (when old-search
-                 (filesharing/stop-search old-search))
-               search))
-      (reset! search-results [])
-      (loop []
-        (when-let [info (<! (:ch search))]
-          (when (= :search-result (:status info))
-            (swap! search-results conj info))
-          (recur))))))
+  (let [search (filesharing/start-search query anonymity)]
+    (swap! active-search
+           (fn [old-search]
+             (when old-search
+               (filesharing/stop-search old-search))
+             search))
+    (reset! search-results [])
+    (go-loop
+      []
+      (when-let [info (<! (:ch search))]
+        (when (= :search-result (:status info))
+          (swap! search-results conj info))
+        (recur)))))
 
 (defn start-download
   [uri anonymity state-cell progress-cell object-cell]
-  (go
-    (let [download (filesharing/start-download uri anonymity)
-          buffer (js/Uint8Array. (:size download))]
-      (loop []
-        (when-let [info (<! (:ch download))]
-          (when (= :download-start (:status info))
-            (reset! state-cell :downloading))
-          (when (= :download-completed (:status info))
-            (reset! object-cell
-                    ;; XXX this needs to be revoked when we're finished
-                    (.createObjectURL
-                      js/URL
-                      (js/Blob. (array buffer)
-                                (js-obj "type" "application/octet-stream"))))
-            (reset! state-cell :complete))
-          (when (zero? (:depth info))
-            (let [offset (:offset info)
-                  dst (.subarray buffer
-                                 offset
-                                 (+ offset (.-length (:data info))))]
-              (.set dst (:data info))))
-          (reset! progress-cell (if (zero? (:size info))
-                                  0
-                                  (/ (:completed info) (:size info))))
-          (recur))))))
+  (let [download (filesharing/start-download uri anonymity)
+        buffer (js/Uint8Array. (:size download))]
+    (go-loop
+      []
+      (when-let [info (<! (:ch download))]
+        (when (= :download-start (:status info))
+          (reset! state-cell :downloading))
+        (when (= :download-completed (:status info))
+          (reset! object-cell
+                  ;; XXX this needs to be revoked when we're finished
+                  (.createObjectURL
+                    js/URL
+                    (js/Blob. (array buffer)
+                              (js-obj "type" "application/octet-stream"))))
+          (reset! state-cell :complete))
+        (when (zero? (:depth info))
+          (let [offset (:offset info)
+                dst (.subarray buffer
+                               offset
+                               (+ offset (.-length (:data info))))]
+            (.set dst (:data info))))
+        (reset! progress-cell (if (zero? (:size info))
+                                0
+                                (/ (:completed info) (:size info))))
+        (recur)))))
 
 (defn start-publish
   [keywords metadata file state-cell progress-cell uri-cell]
@@ -101,27 +99,27 @@
     (set!
       (.-onload reader)
       (fn [e]
-        (go
-          (let [publish (filesharing/start-publish
-                          (.-result (.-target e))
-                          keywords
-                          metadata
-                          {:expiration (+ (* 2 356.24 24 60 60 1000 1000) (now))
-                           :anonymity 0
-                           :priority 365
-                           :replication 1})]
-            (loop []
-              (when-let [info (<! (:ch publish))]
-                (when (= :publish-start (:status info))
-                  (reset! state-cell :active))
-                (when (= :publish-progress (:status info))
-                  (reset! progress-cell (if (zero? (:size info))
-                                          0
-                                          (/ (:completed info) (:size info)))))
-                (when (= :publish-completed (:status info))
-                  (reset! uri-cell (:uri info))
-                  (reset! state-cell :complete))
-                (recur)))))))
+        (let [publish (filesharing/start-publish
+                        (.-result (.-target e))
+                        keywords
+                        metadata
+                        {:expiration (+ (* 2 356.24 24 60 60 1000 1000) (now))
+                         :anonymity 0
+                         :priority 365
+                         :replication 1})]
+          (go-loop
+            []
+            (when-let [info (<! (:ch publish))]
+              (when (= :publish-start (:status info))
+                (reset! state-cell :active))
+              (when (= :publish-progress (:status info))
+                (reset! progress-cell (if (zero? (:size info))
+                                        0
+                                        (/ (:completed info) (:size info)))))
+              (when (= :publish-completed (:status info))
+                (reset! uri-cell (:uri info))
+                (reset! state-cell :complete))
+              (recur))))))
     (.readAsArrayBuffer reader file)))
 
 (def topology-worker (service/start-worker "topology"
@@ -262,7 +260,6 @@
                              :text (cell= (core/state->string
                                             (:core-state info))))
                          (td :width "25%"
-                             :text (cell= (transport/addr->string
-                                            (:address info))))))))))
+                             :text (cell= (:address info)))))))))
 
 ;; vim: set expandtab ts=2 sw=2 filetype=clojure :

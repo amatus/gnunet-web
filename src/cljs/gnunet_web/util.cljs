@@ -48,3 +48,8 @@
 (defn i64-to-real
   [[lw hw]]
   (+ lw (* 4294967296 hw)))
+
+(defn read-memory
+  [pointer length]
+  (.call js/Array.prototype.slice
+         (.subarray js/HEAPU8 pointer (+ pointer length))))
