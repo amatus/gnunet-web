@@ -33,7 +33,7 @@
   (.substr (code/base32-crockford peer) 0 4))
 
 (defc my-id [])
-(transport/monitor (fn [message] (reset! my-id (:public-key message))))
+(transport/get-my-peer-id (fn [peer-id] (reset! my-id peer-id)))
 (defc peers {})
 (transport/monitor-peers (fn [message]
                            (swap! peers

@@ -17,7 +17,7 @@
 (ns gnunet-web.transport
   (:require [cljs.core.async :refer [chan close!]]
             [gnunet-web.encoder :refer [encode-uint32]]
-            [gnunet-web.hello :refer [encode-hello parse-hello]]
+            [gnunet-web.hello :refer [encode-hello]]
             [gnunet-web.message :refer [encode-message parse-message-types]]
             [gnunet-web.service :refer [client-connect]]
             [gnunet-web.util :refer [get-object read-memory register-object
@@ -34,20 +34,6 @@
      (concat
        (encode-uint32 options)
        peer)}))
-
-(defn monitor
-  [callback]
-  (let [message-channel (js/MessageChannel.)]
-    (set! (.-onmessage (.-port1 message-channel))
-          (fn [event]
-            (let [message @((parse-message-types #{parse-hello})
-                              (.-data event))]
-              (if (coll? message)
-                       (callback (:message (first message)))))))
-    (client-connect "transport" "web app (monitor)"
-                    (.-port2 message-channel))
-    (.postMessage (.-port1 message-channel)
-                  (into-array (encode-start-message {})))))
 
 (def state-strings
   {0 "Not connected"
@@ -84,6 +70,29 @@
            (into-array (encode-hello hello))
            0
            0)))
+
+(defn get-hello-callback
+  [cls hello-pointer]
+  (let [closure (get-object cls)
+        peer-id-pointer (js/_malloc 32)]
+    (js/_GNUNET_HELLO_get_id hello-pointer peer-id-pointer)
+    ((:callback closure) (vec (read-memory peer-id-pointer 32)))
+    (js/_free peer-id-pointer)
+    (js/_GNUNET_TRANSPORT_get_hello_cancel @(:handle closure))
+    (unregister-object cls)))
+
+(def get-hello-callback-pointer (js/Runtime.addFunction get-hello-callback))
+
+(defn get-my-peer-id
+  [callback]
+  (let [closure {:callback callback
+                 :handle (atom nil)}
+        closure-key (register-object closure)]
+    (reset! (:handle closure)
+            (js/_GNUNET_TRANSPORT_get_hello
+              transport-handle
+              get-hello-callback-pointer
+              closure-key))))
 
 (defn address->string-callback
   [cls string-pointer res]
