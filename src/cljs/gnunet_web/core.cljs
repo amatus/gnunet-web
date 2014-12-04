@@ -15,46 +15,37 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.core
-  (:require [gnunet-web.hello :refer [parse-hello]]
-            [gnunet-web.message :refer [encode-message parse-message-types
-                                        parse-peer-identity]]
-            [gnunet-web.parser :refer [parser parse-absolute-time parse-uint32]]
-            [gnunet-web.service :refer [client-connect]])
-  (:require-macros [monads.macros :as monadic]))
+  (:require [gnunet-web.service :as service] ;; leave this here
+            [gnunet-web.util :refer [get-object read-memory register-object
+                                     unregister-object]]))
 
-(def message-type-monitor-peers 78)
-(def message-type-monitor-notify 79)
+(def core-handle (js/_GNUNET_CORE_connect
+                   1 ; const struct GNUNET_CONFIGURATION_Handle *cfg
+                   0 ; void *cls
+                   0 ; GNUNET_CORE_StartupCallback init
+                   0 ; GNUNET_CORE_ConnectEventHandler connects
+                   0 ; GNUNET_CORE_DisconnectEventHandler disconnects
+                   0 ; GNUNET_CORE_MessageCallback inbound_notify
+                   0 ; int inbound_hdr_only
+                   0 ; GNUNET_CORE_MessageCallback outbound_notify
+                   0 ; int outbound_hdr_only
+                   0)) ; const struct GNUNET_CORE_MessageHandler *handlers
 
-(def monitor-peers-message
-  (encode-message
-    {:message-type message-type-monitor-peers
-     :message []}))
+(defn monitor-callback
+  [cls peer-id-pointer state timeout-pointer]
+  (let [callback (get-object cls)]
+    (callback {:peer (vec (read-memory peer-id-pointer 32))
+               :state state})))
 
-(def parse-monitor-notify-message
-  (with-meta
-    (monadic/do parser
-                [state parse-uint32
-                 peer parse-peer-identity
-                 timeout parse-absolute-time]
-                {:state state
-                 :peer peer
-                 :timeout timeout})
-    {:message-type message-type-monitor-notify}))
+(def monitor-callback-pointer (js/Runtime.addFunction monitor-callback))
 
 (defn monitor-peers
   [callback]
-  (let [message-channel (js/MessageChannel.)]
-    (set! (.-onmessage (.-port1 message-channel))
-          (fn [event]
-            (let [message @((parse-message-types
-                              #{parse-monitor-notify-message})
-                              (.-data event))]
-              (if (coll? message)
-                (callback (:message (first message)))))))
-    (client-connect "core" "web app (monitor-peers)"
-                    (.-port2 message-channel))
-    (.postMessage (.-port1 message-channel)
-                  (into-array monitor-peers-message))))
+  (let [callback-key (register-object callback)]
+    (js/_GNUNET_CORE_monitor_start
+      core-handle
+      monitor-callback-pointer
+      callback-key)))
 
 (def state-strings
   {0 "Down"

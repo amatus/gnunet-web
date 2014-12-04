@@ -5,6 +5,8 @@
 "_GNUNET_CONTAINER_meta_data_destroy",
 "_GNUNET_CONTAINER_meta_data_insert",
 "_GNUNET_CONTAINER_meta_data_iterate",
+"_GNUNET_CORE_connect",
+"_GNUNET_CORE_monitor_start",
 "_GNUNET_FS_BlockOptions_new",
 "_GNUNET_FS_ProgressInfo_get_download_cctx",
 "_GNUNET_FS_ProgressInfo_get_download_completed",
