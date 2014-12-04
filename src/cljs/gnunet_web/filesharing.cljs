@@ -17,6 +17,7 @@
 (ns gnunet-web.filesharing
   (:require [cljs.core.async :refer [chan close!]]
             [gnunet-web.extractor :as e]
+            [gnunet-web.service :as service] ;; leave this here
             [gnunet-web.util :refer [get-object i64-to-real read-memory
                                      real-to-i64 register-object
                                      unregister-object]])

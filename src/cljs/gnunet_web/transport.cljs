@@ -16,24 +16,11 @@
 
 (ns gnunet-web.transport
   (:require [cljs.core.async :refer [chan close!]]
-            [gnunet-web.encoder :refer [encode-uint32]]
             [gnunet-web.hello :refer [encode-hello]]
-            [gnunet-web.message :refer [encode-message parse-message-types]]
-            [gnunet-web.service :refer [client-connect]]
+            [gnunet-web.service :as service] ;; leave this here
             [gnunet-web.util :refer [get-object read-memory register-object
                                      unregister-object]])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
-
-(def message-type-start 360)
-
-(defn encode-start-message
-  [{:keys [options peer] :or {options 0 peer (repeat 32 0)}}]
-  (encode-message
-    {:message-type message-type-start
-     :message
-     (concat
-       (encode-uint32 options)
-       peer)}))
 
 (def state-strings
   {0 "Not connected"
