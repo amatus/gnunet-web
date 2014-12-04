@@ -28,6 +28,13 @@
 
 (set! *print-fn* #(.log js/console %))
 
+(defc browser-support nil)
+(try
+  (js/MessageChannel.)
+  (catch :default e
+    (reset! browser-support
+            "Your browser does not support MessageChannel. This website will not work.")))
+
 (defn peer-id-short
   [peer]
   (.substr (code/base32-crockford peer) 0 4))
@@ -192,6 +199,9 @@
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
     (script :src "js/semantic.min.js"))
   (body
+    (div :class "ui inverted segment"
+         :toggle (cell= (not (nil? browser-support)))
+         (div :class "ui red header" :text browser-support))
     (div :class "ui header"
          :title (cell= (code/base32-crockford my-id))
          (text "My Peer ID: ~(peer-id-short my-id)\u2026"))

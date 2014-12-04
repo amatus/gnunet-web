@@ -20,7 +20,13 @@ mergeInto(LibraryManager.library, {
   GNUNET_CLIENT_connect__deps: ['$CLIENT_PORTS', '$NEXT_PORT'],
   GNUNET_CLIENT_connect: function(service_name, cfg) {
     var service_name = Pointer_stringify(service_name);
-    var channel = new MessageChannel();
+    var channel;
+    try {
+      channel = new MessageChannel();
+    } catch (e) {
+      console.error("No MessageChannel in this browser", e);
+      return 0;
+    }
     var port = NEXT_PORT;
     NEXT_PORT = port + 1;
     var client = {
