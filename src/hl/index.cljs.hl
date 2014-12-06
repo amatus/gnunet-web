@@ -33,7 +33,13 @@
   (js/MessageChannel.)
   (catch :default e
     (reset! browser-support
-            "Your browser does not support MessageChannel. This website will not work.")))
+            "This website requires MessageChannel support. Try Chromium or Google Chrome.")))
+
+(try
+  (js/SharedWorker.)
+  (catch :default e
+    (reset! browser-support
+            "This website requires SharedWorker support. Try Chromium or Google Chrome.")))
 
 (defn peer-id-short
   [peer]
@@ -129,8 +135,12 @@
               (recur))))))
     (.readAsArrayBuffer reader file)))
 
-(def topology-worker (service/start-worker "topology"
+(try
+  (def topology-worker (service/start-worker "topology"
                                            "js/gnunet-daemon-topology.js"))
+  (catch :default e
+    nil))
+
 (hostlist/fetch-and-process!)
 
 (defelem ui-search

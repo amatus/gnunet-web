@@ -47,8 +47,13 @@ mergeInto(LibraryManager.library, {
     if (typeof client_connect == "function")
       client_connect(service_name, channel.port2);
     else
-      gnunet_web.service.client_connect(service_name, "client.js",
-          channel.port2);
+      try {
+        gnunet_web.service.client_connect(service_name, "client.js",
+            channel.port2);
+      } catch(e) {
+        console.error("Failed to connect to " + service_name, e);
+        return 0;
+      }
     return port;
   },
   GNUNET_CLIENT_disconnect__deps: ['$CLIENT_PORTS'],
