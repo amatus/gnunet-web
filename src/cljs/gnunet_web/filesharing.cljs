@@ -56,16 +56,19 @@
     keywords))
 
 (defn metadata-iterator
-  [metadata cls plugin-name type format mime-type data data-size]
-  (swap! metadata conj
-         {:plugin-name (js/Pointer_stringify plugin-name)
-          :type type
-          :format format
-          :mime-type (js/Pointer_stringify mime-type)
-          :data (if (or (= format e/format-utf8)
-                        (= format e/format-string)) 
-                  (js/Pointer_stringify data)
-                  (read-memory data data-size))}))
+  [cls plugin-name type format mime-type data data-size]
+  (let [metadata (get-object cls)]
+    (swap! metadata conj
+           {:plugin-name (js/Pointer_stringify plugin-name)
+            :type type
+            :format format
+            :mime-type (js/Pointer_stringify mime-type)
+            :data (if (or (= format e/format-utf8)
+                          (= format e/format-string))
+                    (js/Pointer_stringify data)
+                    (read-memory data data-size))})))
+
+(def metadata-iterator-pointer (js/Runtime.addFunction metadata-iterator))
 
 (defn parse-progress-publish
   [status info-pointer]
@@ -113,13 +116,13 @@
      :cctx (js/_GNUNET_FS_ProgressInfo_get_search_cctx info-pointer)}
     (condp = status
       :search-result (let [metadata (atom [])
-                           callback (partial metadata-iterator metadata)
-                           callback-pointer (js/Runtime.addFunction callback)]
+                           metadata-key (register-object metadata)]
                        (js/_GNUNET_CONTAINER_meta_data_iterate
                          (js/_GNUNET_FS_ProgressInfo_get_search_result_meta
                            info-pointer)
-                         callback-pointer)
-                       (js/Runtime.removeFunction callback-pointer)
+                         metadata-iterator-pointer
+                         metadata-key)
+                       (unregister-object metadata-key)
                        {:uri (uri-pointer-to-string
                                (js/_GNUNET_FS_ProgressInfo_get_search_result_uri
                                  info-pointer))
