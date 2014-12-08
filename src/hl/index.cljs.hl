@@ -201,8 +201,14 @@
 (html
   (head
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
-    (script :src "js/semantic.min.js"))
+    (link :rel "stylesheet" :type "text/css" :href "css/gh-fork-ribbon.css")
+    (script :src "js/semantic.min.js")
+    (title "gnunet.io"))
   (body
+    (div :class "github-fork-ribbon-wrapper right"
+         (div :class "github-fork-ribbon"
+              (a :href "https://github.com/amatus/gnunet-web"
+                 "Fork me on GitHub")))
     (div :class "ui inverted segment"
          :toggle (cell= (not (nil? browser-support)))
          (div :class "ui red header" :text browser-support))
