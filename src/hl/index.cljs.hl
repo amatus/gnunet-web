@@ -28,18 +28,12 @@
 
 (set! *print-fn* #(.log js/console %))
 
-(defc browser-support nil)
-(try
-  (js/MessageChannel.)
-  (catch :default e
-    (reset! browser-support
-            "This website requires MessageChannel support. Try Chromium or Google Chrome.")))
-
-(try
-  (js/SharedWorker.)
-  (catch :default e
-    (reset! browser-support
-            "This website requires SharedWorker support. Try Chromium or Google Chrome.")))
+(defc browser-support
+      (cond
+        (not (exists? js/MessageChannel))
+        "This website requires MessageChannel support. Try Chromium or Google Chrome."
+        (not (exists? js/SharedWorker))
+        "This website requires SharedWorker support. Try Chromium or Google Chrome."))
 
 (defn peer-id-short
   [peer]
