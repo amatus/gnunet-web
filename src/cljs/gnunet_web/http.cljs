@@ -31,7 +31,8 @@
               (let [res (.getResponse xhr)]
                 (go (>! ch res)
                     (close! ch)))))
-    (events/listen xhr EventType/READY #(.dispose xhr))
+    ;XXX This breaks when we enable optimization
+    ;(events/listen xhr EventType/READY #(.dispose xhr))
     (.setResponseType xhr ResponseType/ARRAY_BUFFER)
     (.send xhr url)
     ch))

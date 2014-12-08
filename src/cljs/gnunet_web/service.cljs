@@ -74,7 +74,7 @@
                                  :random-bytes random-bytes}))
     worker))
 
-(defn client-connect
+(defn ^:export client-connect
   [service-name client-name message-port]
   (let [service (get @services service-name)]
     (if (nil? service)
