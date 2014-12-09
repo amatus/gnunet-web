@@ -201,20 +201,22 @@
 (html
   (head
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
-    (link :rel "stylesheet" :type "text/css" :href "css/gh-fork-ribbon.css")
     (script :src "js/semantic.min.js")
     (title "gnunet.io - A GNUnet Web Application"))
   (body
-    (div :class "github-fork-ribbon-wrapper right"
-         (div :class "github-fork-ribbon"
-              (a :href "https://github.com/amatus/gnunet-web"
-                 "Fork me on GitHub")))
+    (div :class "ui fixed main menu grid" ; grid somehow fixes things here too
+         (div :class "container"
+              (div :class "right item"
+                   (a :href "https://github.com/amatus/gnunet-web"
+                      :title "Fork me on GitHub"
+                      (i :class "github icon")))
+              (div :class "item"
+                   :title (cell= (code/base32-crockford my-id))
+                   (text "My Peer ID: ~(peer-id-short my-id)\u2026"))))
+    (div :class "ui grid") ; This pushes content down so it's not under the menu
     (div :class "ui inverted segment"
          :toggle (cell= (not (nil? browser-support)))
          (div :class "ui red header" :text browser-support))
-    (div :class "ui header"
-         :title (cell= (code/base32-crockford my-id))
-         (text "My Peer ID: ~(peer-id-short my-id)\u2026"))
     (ui-publish)
     (ui-search)
     (table :class "ui table segment"
