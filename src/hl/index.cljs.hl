@@ -196,13 +196,16 @@
                    :href publish-uri
                    :toggle (cell= (= :complete publish-state))
                    :click #(do false)
-                   (i :class "url icon")))))
+                   (i :class "external share icon")))))
 
 (html
   (head
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
+    (link :rel "stylesheet" :type "text/css" :href "css/menu.min.css")
+    (link :rel "stylesheet" :type "text/css" :href "css/progress.min.css")
     (link :rel "stylesheet" :type "text/css" :href "css/gh-fork-ribbon.css")
     (script :src "js/semantic.min.js")
+    (script :src "js/progress.min.js")
     (title "gnunet.io"))
   (body
     (div :class "github-fork-ribbon-wrapper right"
