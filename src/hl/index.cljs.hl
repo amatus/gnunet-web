@@ -101,7 +101,7 @@
         (recur)))))
 
 (defn start-publish
-  [keywords metadata file state-cell progress-cell uri-cell]
+  [keywords metadata file anonymity state-cell progress-cell uri-cell]
   (let [reader (js/FileReader.)]
     (set!
       (.-onload reader)
@@ -111,7 +111,7 @@
                         keywords
                         metadata
                         {:expiration (+ (* 2 356.24 24 60 60 1000 1000) (now))
-                         :anonymity 0
+                         :anonymity anonymity
                          :priority 365
                          :replication 1})]
           (go-loop
@@ -137,17 +137,19 @@
 
 (hostlist/fetch-and-process!)
 
+(defc anonymity 1)
+
 (defelem ui-search
          [attr kids]
          (let [input (input :type "text" :placeholder "Keywords...")]
            (form :class "ui action input"
-                 :submit #(start-search (.-value input) 0)
+                 :submit #(start-search (.-value input) @anonymity)
                  input
                  (div :class "ui icon button"
                       (i :class (cell= (if active-search
                                          "loading icon"
                                          "search icon"))
-                         :click #(start-search (.-value input) 0))))))
+                         :click #(start-search (.-value input) @anonymity))))))
 
 (defelem ui-publish
          [attr kids]
@@ -183,6 +185,7 @@
                      :click #(start-publish (.-value keywords)
                                             @metadata
                                             (aget (.-files file) 0)
+                                            @anonymity
                                             publish-state
                                             publish-progress
                                             publish-uri)
@@ -198,6 +201,29 @@
                    :click #(do false)
                    (i :class "external share icon")))))
 
+(defn dropdownify
+  [dropdown]
+  (with-init! (.dropdown (js/$ dropdown)))
+  dropdown)
+
+(defelem ui-anonymity
+         [{:keys [state] :as attr} kids]
+         (div (dissoc attr :state)
+              (text "Anonymity")
+              (div :class "ui label"
+                   (dropdownify
+                     (div :class "ui dropdown"
+                          (input :type "hidden"
+                                 :value state
+                                 :change #(reset! state (.-value (.-target %))))
+                          (div :class "text" "1")
+                          (i :class "dropdown icon")
+                          (div :class "menu"
+                               (div :class "item" "0")
+                               (div :class "item" "1")
+                               (div :class "item" "2")
+                               (div :class "item" "3")))))))
+
 (html
   (head
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
@@ -209,6 +235,8 @@
                    (a :href "https://github.com/amatus/gnunet-web"
                       :title "Fork me on GitHub"
                       (i :class "github icon")))
+              (ui-anonymity :class "right item"
+                            :state anonymity)
               (div :class "item"
                    :title (cell= (code/base32-crockford my-id))
                    (text "My Peer ID: ~(peer-id-short my-id)\u2026"))))
@@ -238,7 +266,8 @@
                                   (a :class "item"
                                      :href uri
                                      :click #(do
-                                               (start-download @uri 0
+                                               (start-download @uri
+                                                               @anonymity
                                                                download-state
                                                                download-progress
                                                                download-object)
