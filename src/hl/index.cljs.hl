@@ -201,7 +201,6 @@
 (html
   (head
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
-    (script :src "js/semantic.min.js")
     (title "gnunet.io - A GNUnet Web Application"))
   (body
     (div :class "ui fixed main menu grid" ; grid somehow fixes things here too
