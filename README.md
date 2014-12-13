@@ -1,14 +1,15 @@
 gnunet-web
 ==========
 
-This is a port of [GNUnet] to the browser using [WebRTC] for peer-to-peer
-communication.
+This is a port of the [GNUnet] secure peer-to-peer network to the browser using
+HTTP for browser-to-native communication and soon [WebRTC] for
+browser-to-browser communication.
 
 Roadmap
 -------
 * Compile GNUnet using [emscripten].
     * gnunet-service-peerinfo.js - Done.
-    * gnunet-service-transport.js - Done, with HTTP(S) transport.
+    * gnunet-service-transport.js - Done, with HTTP transport.
     * gnunet-service-ats.js - Done.
     * gnunet-daemon-topology.js - Done.
     * gnunet-service-core.js - Done.
@@ -17,10 +18,21 @@ Roadmap
     * gnunet-service-cadet.js - Done.
     * gnunet-service-datastore.js - Building with heap backend plugin.
         * Needs an [indexedDB] backend plugin.
-    * gnunet-service-peerstore.js - Done, with [indexedDB] backend plugin.
+    * gnunet-service-peerstore.js - Building with a broken [indexedDB] backend
+      plugin.
     * gnunet-service-fs.js - Done.
-* Write a minimal UI that allows publishing, searching, and downloading via the
-  file-sharing service.
+* Write a minimal UI for the file-sharing service.
+    * Search - Done.
+    * Publish.
+        * The user can only select one file at a time.
+        * No directory support.
+        * Needs indexedDB datastore backend for persistence.
+        * Needs a GNUnet API change to access the File object piecewise instead
+          of loading the entire thing into RAM.
+    * Download.
+        * No directory support.
+        * Needs indexedDB support to store the file piecewise instead of
+          storing the entire thing in RAM.
 * Release alpha.
 * Write a WebRTC transport plugin.
     * Implement [RFC3264] over GNUnet.
