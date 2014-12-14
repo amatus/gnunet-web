@@ -207,6 +207,22 @@
   (with-init! (+++ (.dropdown (js/$ dropdown))))
   dropdown)
 
+(defn pretty-print-byte-count
+  [byte-count]
+  (let [log (+++ (.log2 js/Math byte-count))
+        form (fn [exp suffix] (str (.toFixed (.pow js/Math 2 (- log exp)) 3)
+                                   suffix))]
+    (condp (fn [[low high] x] (and (<= low x) (> high x))) log
+      [10 20] (form 10 " KiB")
+      [20 30] (form 20 " MiB")
+      [30 40] (form 30 " GiB")
+      [40 50] (form 40 " TiB")
+      [50 60] (form 50 " PiB")
+      [60 70] (form 60 " EiB")
+      [70 80] (form 70 " ZiB")
+      [80 90] (form 80 " YiB")
+      (str byte-count " B"))))
+
 (defelem ui-anonymity
          [{:keys [state] :as attr} kids]
          (div (dissoc attr :state)
@@ -252,6 +268,7 @@
            (thead
              (tr
                (th :text "File")
+               (th :text "Size")
                (th :text "Metadata")))
            (tbody
              (loop-tpl :bindings [result search-results]
@@ -289,6 +306,9 @@
                                                   download-state))
                                 (div :class "ui icon button"
                                      (i :class "save icon"))))
+                           (td :text (cell=
+                                       (pretty-print-byte-count
+                                         (filesharing/uri-to-file-size uri))))
                            (td (pre :text (cell= (metadata/pretty-print
                                                    (:metadata result))))))))))
     (table :class "ui table segment"

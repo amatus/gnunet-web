@@ -134,7 +134,10 @@ GNUNET_FS_BlockOptions_new(double expiration_time, uint32_t anonymity_level,
 double
 GNUNET_FS_uri_chk_get_file_size2(const struct GNUNET_FS_Uri *uri)
 {
-  return GNUNET_FS_uri_chk_get_file_size(uri);
+  if (GNUNET_FS_uri_test_chk(uri) ||
+      GNUNET_FS_uri_test_loc(uri))
+    return GNUNET_FS_uri_chk_get_file_size(uri);
+  return 0;
 }
 
 struct GNUNET_FS_DownloadContext *

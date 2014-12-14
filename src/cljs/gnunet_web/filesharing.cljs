@@ -269,3 +269,9 @@
      :ch ch
      :callback-key callback-key}))
 
+(defn uri-to-file-size
+  [uri]
+  (let [uri-pointer (string-to-uri-pointer uri)
+        file-size (js/_GNUNET_FS_uri_chk_get_file_size2 uri-pointer)]
+    (js/_GNUNET_FS_uri_destroy uri-pointer)
+    file-size))
