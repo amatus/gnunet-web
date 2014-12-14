@@ -202,11 +202,6 @@
                    :click #(do false)
                    (i :class "external share icon")))))
 
-(defn dropdownify
-  [dropdown]
-  (with-init! (+++ (.dropdown (js/$ dropdown))))
-  dropdown)
-
 (defn pretty-print-byte-count
   [byte-count]
   (let [log (+++ (.log2 js/Math byte-count))
@@ -223,23 +218,21 @@
       [80 90] (form 80 " YiB")
       (str byte-count " B"))))
 
-(defelem ui-anonymity
-         [{:keys [state] :as attr} kids]
-         (div (dissoc attr :state)
-              (text "Anonymity")
-              (div :class "ui label"
-                   (dropdownify
-                     (div :class "ui dropdown"
+(defelem ui-dropdown
+         [{:keys [state class] :as attr} kids]
+         (let [attr (assoc (dissoc attr :state) :class (str "ui dropdown "
+                                                            class))
+               dropdown (div
+                          attr
                           (input :type "hidden"
                                  :value state
                                  :change #(reset! state (.-value (.-target %))))
-                          (div :class "text" "1")
+                          (div :class "text" @state)
                           (i :class "dropdown icon")
                           (div :class "menu"
-                               (div :class "item" "0")
-                               (div :class "item" "1")
-                               (div :class "item" "2")
-                               (div :class "item" "3")))))))
+                               (map #(div :class "item" %) kids)))]
+           (with-init! (+++ (.dropdown (js/$ dropdown))))
+           dropdown))
 
 (html
   (head
@@ -252,8 +245,10 @@
                    (a :href "https://github.com/amatus/gnunet-web"
                       :title "Fork me on GitHub"
                       (i :class "github icon")))
-              (ui-anonymity :class "right item"
-                            :state anonymity)
+              (div :class "right item"
+                   (text "Anonymity")
+                   (div :class "ui label"
+                        (ui-dropdown :state anonymity "0" "1" "2" "3")))
               (div :class "item"
                    :title (cell= (code/base32-crockford my-id))
                    (text "My Peer ID: ~(peer-id-short my-id)\u2026"))))
