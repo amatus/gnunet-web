@@ -85,8 +85,11 @@
   [cls string-pointer res]
   (let [ch (get-object cls)]
     (if (zero? string-pointer)
-      (close! ch)
-      (go (>! ch (js/Pointer_stringify string-pointer))))))
+      (do
+        (unregister-object cls)
+        (close! ch))
+      (when (= 1 res)
+        (go (>! ch (js/Pointer_stringify string-pointer)))))))
 
 (def address->string-callback-pointer
   (js/Runtime.addFunction address->string-callback))
@@ -94,23 +97,12 @@
 (defn address->string
   [address-pointer]
   (let [ch (chan 1)
-        ret-ch (chan 1)
-        ch-key (register-object ch)
-        context (js/_GNUNET_TRANSPORT_address_to_string_simple
-                  address-pointer
-                  address->string-callback-pointer
-                  ch-key)]
-    (go-loop []
-             (let [result (<! ch)]
-               (if (nil? result)
-                 (do
-                   (unregister-object ch-key)
-                   (js/_GNUNET_TRANSPORT_address_to_string_cancel context)
-                   (close! ret-ch))
-                 (do
-                   (>! ret-ch result)
-                   (recur)))))
-    ret-ch))
+        ch-key (register-object ch)]
+    (js/_GNUNET_TRANSPORT_address_to_string_simple
+      address-pointer
+      address->string-callback-pointer
+      ch-key)
+    ch))
 
 (defn monitor-callback
   [cls peer-pointer address-pointer state state-timeout]

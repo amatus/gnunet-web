@@ -38,7 +38,6 @@
 "_GNUNET_FS_uri_parse",
 "_GNUNET_FS_uri_to_string",
 "_GNUNET_HELLO_get_id",
-"_GNUNET_TRANSPORT_address_to_string_cancel",
 "_GNUNET_TRANSPORT_address_to_string_simple",
 "_GNUNET_TRANSPORT_connect",
 "_GNUNET_TRANSPORT_get_hello",
