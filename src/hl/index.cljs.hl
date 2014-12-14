@@ -140,6 +140,24 @@
 
 (defc anonymity 1)
 
+(defelem ui-progress
+         [{:keys [state class] :as attr} kids]
+         (let [attr (assoc (dissoc attr :state)
+                           :class (str "ui progress " class))
+               progress (div
+                          attr
+                          (div :class "bar"
+                               (div :class "progress")))]
+           (with-init! (+++ (.progress
+                              (js/$ progress)
+                              (js-obj "percent" 0))))
+           (add-watch state nil
+                      (fn [_ _ _ new-state]
+                        (+++ (.progress
+                               (js/$ progress)
+                               (js-obj "percent" (* 100 new-state))))))
+           progress))
+
 (defelem ui-search
          [attr kids]
          (let [input (input :type "text" :placeholder "Keywords...")]
@@ -191,11 +209,8 @@
                                             publish-progress
                                             publish-uri)
                      (i :class "upload icon large"))
-                (div :class "ui progress"
-                     :toggle (cell= (not (= :inactive publish-state)))
-                     (div :class "bar"
-                          :css (cell= {:width (str (* 100 publish-progress)
-                                                   "%")})))
+                (ui-progress :toggle (cell= (not (= :inactive publish-state)))
+                             :state publish-progress)
                 (a :class "item"
                    :href publish-uri
                    :toggle (cell= (= :complete publish-state))
@@ -287,14 +302,10 @@
                                                false)
                                      (i :class "download icon")
                                      (text "~{filename}")))
-                             (div :class "ui progress"
-                                  :toggle (cell= (not (= :inactive
-                                                         download-state)))
-                                  (div :class "bar"
-                                       :css (cell=
-                                              {:width
-                                               (str (* 100 download-progress)
-                                                    "%")})))
+                             (ui-progress :toggle (cell=
+                                                    (not (= :inactive
+                                                            download-state)))
+                                          :state download-progress)
                              (a :href download-object
                                 :download filename
                                 :toggle (cell= (= :complete
