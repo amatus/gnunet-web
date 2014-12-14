@@ -21,7 +21,8 @@
             [gnunet-web.util :refer [get-object i64-to-real read-memory
                                      real-to-i64 register-object
                                      unregister-object]])
-  (:require-macros [cljs.core.async.macros :refer [go]]))
+  (:require-macros [cljs.core.async.macros :refer [go]]
+                   [fence.core :refer [+++]]))
 
 (defn uri-ksk-create
   [query]
@@ -68,7 +69,8 @@
                     (js/Pointer_stringify data)
                     (read-memory data data-size))})))
 
-(def metadata-iterator-pointer (js/Runtime.addFunction metadata-iterator))
+(def metadata-iterator-pointer
+  (+++ (.addFunction js/Runtime metadata-iterator)))
 
 (defn parse-progress-publish
   [status info-pointer]
@@ -177,7 +179,7 @@
     js/_GNUNET_FS_start
     "number"
     (array "number" "string" "number" "number" "number" "array")
-    (array 0 "gnunet-web" (js/Runtime.addFunction progress-callback) 0 0
+    (array 0 "gnunet-web" (+++ (.addFunction js/Runtime progress-callback)) 0 0
            (array 0))))
 
 (defn start-search
@@ -229,7 +231,7 @@
       size)))
 
 (def publish-reader-callback-pointer
-  (js/Runtime.addFunction publish-reader-callback))
+  (+++ (.addFunction js/Runtime publish-reader-callback)))
 
 (defn new-block-options
   [{:keys [expiration anonymity priority replication]}]

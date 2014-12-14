@@ -20,7 +20,8 @@
             [gnunet-web.service :as service] ;; leave this here
             [gnunet-web.util :refer [get-object read-memory register-object
                                      unregister-object]])
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
+                   [fence.core :refer [+++]]))
 
 (def state-strings
   {0 "Not connected"
@@ -68,7 +69,8 @@
     (js/_GNUNET_TRANSPORT_get_hello_cancel @(:handle closure))
     (unregister-object cls)))
 
-(def get-hello-callback-pointer (js/Runtime.addFunction get-hello-callback))
+(def get-hello-callback-pointer
+  (+++ (.addFunction js/Runtime get-hello-callback)))
 
 (defn get-my-peer-id
   [callback]
@@ -92,7 +94,7 @@
         (go (>! ch (js/Pointer_stringify string-pointer)))))))
 
 (def address->string-callback-pointer
-  (js/Runtime.addFunction address->string-callback))
+  (+++ (.addFunction js/Runtime address->string-callback)))
 
 (defn address->string
   [address-pointer]
@@ -118,7 +120,7 @@
                          :address (<! ch)})
               (close! ch)))))))
 
-(def monitor-callback-pointer (js/Runtime.addFunction monitor-callback))
+(def monitor-callback-pointer (+++ (.addFunction js/Runtime monitor-callback)))
 
 (defn monitor-peers
   [callback]

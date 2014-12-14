@@ -5,7 +5,8 @@
 (set-env!
   :project      'gnunet-web
   :version      "0.1.0-SNAPSHOT"
-  :dependencies '[[net.clojure/monads        "1.0.2"]
+  :dependencies '[[fence                     "0.2.0"]
+                  [net.clojure/monads        "1.0.2"]
                   [org.clojure/core.async    "0.1.303.0-886421-alpha"]
                   [tailrecursion/boot.task   "2.2.1"]
                   [tailrecursion/hoplon      "5.10.22"]]

@@ -24,7 +24,8 @@
                 [gnunet-web.service :as service]
                 [gnunet-web.transport :as transport]
                 [gnunet-web.util :refer [now]])
-      (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
+      (:require-macros [cljs.core.async.macros :refer [go go-loop]]
+                       [fence.core :refer [+++]]))
 
 (set! *print-fn* #(.log js/console %))
 
@@ -203,7 +204,7 @@
 
 (defn dropdownify
   [dropdown]
-  (with-init! (.dropdown (js/$ dropdown)))
+  (with-init! (+++ (.dropdown (js/$ dropdown))))
   dropdown)
 
 (defelem ui-anonymity

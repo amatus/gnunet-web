@@ -1,1 +1,0 @@
-Runtime.addFunction = function() {};

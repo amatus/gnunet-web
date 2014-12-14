@@ -17,7 +17,8 @@
 (ns gnunet-web.core
   (:require [gnunet-web.service :as service] ;; leave this here
             [gnunet-web.util :refer [get-object read-memory register-object
-                                     unregister-object]]))
+                                     unregister-object]])
+  (:require-macros [fence.core :refer [+++]]))
 
 (def core-handle (js/_GNUNET_CORE_connect
                    1 ; const struct GNUNET_CONFIGURATION_Handle *cfg
@@ -37,7 +38,7 @@
     (callback {:peer (vec (read-memory peer-id-pointer 32))
                :state state})))
 
-(def monitor-callback-pointer (js/Runtime.addFunction monitor-callback))
+(def monitor-callback-pointer (+++ (.addFunction js/Runtime monitor-callback)))
 
 (defn monitor-peers
   [callback]
