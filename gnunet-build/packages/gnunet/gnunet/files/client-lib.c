@@ -150,23 +150,50 @@ GNUNET_FS_download_start_simple(struct GNUNET_FS_Handle *h,
       anonymity, 0, cctx, NULL);
 }
 
-struct GNUNET_TRANSPORT_PeerMonitoringContext *
-GNUNET_TRANSPORT_monitor_peers_simple(
-    GNUNET_TRANSPORT_PeerIterateCallback peer_callback,
-    void *peer_callback_cls)
+struct monitor_peers_cls {
+  void (*cb)(void *cls,
+      const struct GNUNET_PeerIdentity *peer,
+      enum GNUNET_TRANSPORT_PeerState state,
+      const char *transport_name,
+      const void *address,
+      size_t address_length);
+  void *cb_cls;
+};
+
+static void
+monitor_peers_callback(void *cls,
+    const struct GNUNET_PeerIdentity *peer,
+    const struct GNUNET_HELLO_Address *address,
+    enum GNUNET_TRANSPORT_PeerState state,
+    struct GNUNET_TIME_Absolute state_timeout)
 {
-  return GNUNET_TRANSPORT_monitor_peers(NULL, NULL, GNUNET_NO,
-      GNUNET_TIME_UNIT_FOREVER_REL, peer_callback, peer_callback_cls);
+  struct monitor_peers_cls *mpc = cls;
+
+  if (!peer) {
+    free(cls);
+    return;
+  }
+  if (!address) {
+    mpc->cb(mpc->cb_cls, peer, state, NULL, NULL, 0);
+    return;
+  }
+  mpc->cb(mpc->cb_cls, peer, state, address->transport_name, address->address,
+      address->address_length);
 }
 
-struct GNUNET_TRANSPORT_AddressToStringContext *
-GNUNET_TRANSPORT_address_to_string_simple(
-    const struct GNUNET_HELLO_Address *address,
-    GNUNET_TRANSPORT_AddressToStringCallback aluc,
-    void *aluc_cls)
+struct GNUNET_TRANSPORT_PeerMonitoringContext *
+GNUNET_TRANSPORT_monitor_peers_simple(
+    void *peer_callback,
+    void *peer_callback_cls)
 {
-  return GNUNET_TRANSPORT_address_to_string(NULL, address, GNUNET_YES,
-      GNUNET_TIME_UNIT_FOREVER_REL, aluc, aluc_cls);
+  struct monitor_peers_cls *mpc = malloc(sizeof(struct monitor_peers_cls));
+
+  if (!mpc)
+    return NULL;
+  mpc->cb = peer_callback;
+  mpc->cb_cls = peer_callback_cls;
+  return GNUNET_TRANSPORT_monitor_peers(NULL, NULL, GNUNET_NO,
+      GNUNET_TIME_UNIT_FOREVER_REL, monitor_peers_callback, mpc);
 }
 
 /* vim: set expandtab ts=2 sw=2: */

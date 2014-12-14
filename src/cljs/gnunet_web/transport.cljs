@@ -19,7 +19,8 @@
             [gnunet-web.hello :refer [encode-hello]]
             [gnunet-web.service :as service] ;; leave this here
             [gnunet-web.util :refer [get-object read-memory register-object
-                                     unregister-object]])
+                                     unregister-object]]
+            [goog.crypt :refer [utf8ByteArrayToString]])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                    [fence.core :refer [+++]]))
 
@@ -83,42 +84,18 @@
               get-hello-callback-pointer
               closure-key))))
 
-(defn address->string-callback
-  [cls string-pointer res]
-  (let [ch (get-object cls)]
-    (if (zero? string-pointer)
-      (do
-        (unregister-object cls)
-        (close! ch))
-      (when (= 1 res)
-        (go (>! ch (js/Pointer_stringify string-pointer)))))))
-
-(def address->string-callback-pointer
-  (+++ (.addFunction js/Runtime address->string-callback)))
-
-(defn address->string
-  [address-pointer]
-  (let [ch (chan 1)
-        ch-key (register-object ch)]
-    (js/_GNUNET_TRANSPORT_address_to_string_simple
-      address-pointer
-      address->string-callback-pointer
-      ch-key)
-    ch))
-
 (defn monitor-callback
-  [cls peer-pointer address-pointer state state-timeout]
-  (when-not (zero? peer-pointer)
-    (let [callback (get-object cls)
-          peer (vec (read-memory peer-pointer 32))]
-      (if (zero? address-pointer)
-        (callback {:state state
-                   :peer peer})
-        (let [ch (address->string address-pointer)]
-          (go (callback {:state state
-                         :peer peer
-                         :address (<! ch)})
-              (close! ch)))))))
+  [cls peer-pointer state transport-pointer address-pointer address-length]
+  (let [callback (get-object cls)
+        peer (vec (read-memory peer-pointer 32))]
+    (callback
+      {:state state
+       :peer peer
+       :address (when-not (zero? transport-pointer)
+                  (let [transport (js/Pointer_stringify transport-pointer)
+                        address (read-memory address-pointer address-length)]
+                    (when (= "http_client" transport)
+                      (utf8ByteArrayToString (to-array (drop 8 address))))))})))
 
 (def monitor-callback-pointer (+++ (.addFunction js/Runtime monitor-callback)))
 
