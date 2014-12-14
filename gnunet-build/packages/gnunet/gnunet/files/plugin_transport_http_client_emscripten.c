@@ -330,7 +330,7 @@ client_delete_session (struct Session *s)
 
   notify_session_monitor (plugin,
                           s,
-                          GNUNET_TRANSPORT_SS_DOWN);
+                          GNUNET_TRANSPORT_SS_DONE);
   if (NULL != s->msg_tk)
   {
     GNUNET_SERVER_mst_destroy (s->msg_tk);
@@ -391,8 +391,6 @@ http_client_plugin_send (void *cls,
                          GNUNET_TRANSPORT_TransmitContinuation cont,
                          void *cont_cls)
 {
-  struct HTTP_Client_Plugin *plugin = cls;
-
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Session %p: Sending message with %u to peer `%s' \n",
        s,
@@ -842,7 +840,7 @@ client_session_timeout (void *cls,
        the monitor, it may think we're about to die ... */
     notify_session_monitor (s->plugin,
                             s,
-                            GNUNET_TRANSPORT_SS_UP);
+                            GNUNET_TRANSPORT_SS_UPDATE);
     s->timeout_task = GNUNET_SCHEDULER_add_delayed (left,
                                                     &client_session_timeout,
                                                     s);
@@ -963,6 +961,9 @@ http_client_plugin_get_session (void *cls,
     client_delete_session (s);
     return NULL;
   }
+  notify_session_monitor (plugin,
+                          s,
+                          GNUNET_TRANSPORT_SS_INIT);
   notify_session_monitor (plugin,
                           s,
                           GNUNET_TRANSPORT_SS_UP); /* or handshake? */
@@ -1137,7 +1138,10 @@ send_session_info_iter (void *cls,
 
   notify_session_monitor (plugin,
                           session,
-                          GNUNET_TRANSPORT_SS_UP);
+                          GNUNET_TRANSPORT_SS_INIT);
+  notify_session_monitor (plugin,
+                          session,
+                          GNUNET_TRANSPORT_SS_UP); /* FIXME: or handshake? */
   return GNUNET_OK;
 }
 
