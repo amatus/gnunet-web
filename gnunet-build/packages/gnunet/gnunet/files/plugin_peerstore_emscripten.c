@@ -56,30 +56,70 @@ struct Plugin
  *
  * @param cls closure (internal context for the plugin)
  * @param now time to use as reference
- * @return number of records deleted
+ * @param cont continuation called with the number of records expired
+ * @param cont_cls continuation closure
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error and cont is not
+ * called
  */
 static int
 peerstore_emscripten_expire_records(void *cls,
-    struct GNUNET_TIME_Absolute now)
+    struct GNUNET_TIME_Absolute now,
+    GNUNET_PEERSTORE_Continuation cont,
+    void *cont_cls)
 {
   EM_ASM_ARGS({
     var now = $0;
+    var cont = $1;
+    var cont_cls = $2;
+    var count = 0;
     var store =
-      psdb.transaction(['peerstore'], 'readwrite').objectStore('peerstore');
-    store.index('by_expiry').openKeyCursor(
-        IDBKeyRange.upperBound(now, true)).onsuccess = function(e) {
+     self.psdb.transaction(['peerstore'], 'readwrite').objectStore('peerstore');
+    var request = store.index('by_expiry').openKeyCursor(
+        IDBKeyRange.upperBound(now, true));
+    request.onsuccess = function(e) {
       var cursor = e.target.result;
       if (cursor) {
-        var request = store.delete(cursor.value);
-        request.onerror = function(e) {
+        count++;
+        cursor.delete().onerror = function(e) {
           Module.print('expiry request failed');
         };
         cursor.continue();
+      } else {
+        if (cont) {
+          Runtime.dynCall('vii', cont, [cont_cls, count]);
+        }
       }
     };
-  }, (double)now.abs_value_us);
-  return 0;
+    request.onerror = function(e) {
+      Module.print('cursor request failed');
+      Runtime.dynCall('vii', cont, [cont_cls, -1]);
+    };
+  }, (double)now.abs_value_us, cont, cont_cls);
+  return GNUNET_OK;
+}
 
+static void
+peerstore_emscripten_iter_wrapper (
+    GNUNET_PEERSTORE_Processor iter,
+    void *iter_cls,
+    char *sub_system,
+    struct GNUNET_PeerIdentity *peer,
+    char *key,
+    void *value,
+    size_t value_size,
+    double expiry_dbl)
+{
+  struct GNUNET_TIME_Absolute expiry;
+  struct GNUNET_PEERSTORE_Record ret;
+
+  expiry.abs_value_us = expiry_dbl;
+  ret.sub_system = sub_system;
+  ret.peer = peer;
+  ret.key = key;
+  ret.value = value;
+  ret.value_size = value_size;
+  ret.expiry = &expiry;
+  iter (iter_cls, &ret, NULL);
 }
 
 /**
@@ -90,9 +130,11 @@ peerstore_emscripten_expire_records(void *cls,
  * @param sub_system name of sub system
  * @param peer Peer identity (can be NULL)
  * @param key entry key string (can be NULL)
- * @param iter function to call with the result
+ * @param iter function to call asynchronously with the results, terminated
+ * by a NULL result
  * @param iter_cls closure for @a iter
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error and iter is not
+ * called
  */
 static int
 peerstore_emscripten_iterate_records (void *cls,
@@ -107,6 +149,7 @@ peerstore_emscripten_iterate_records (void *cls,
     var key = $2 ? Pointer_stringify($2) : null;
     var iter = $3;
     var iter_cls = $4;
+    var peerstore_emscripten_iter_wrapper = $5;
     var key_range = [sub_system];
     if (peer) {
       key_range.push(peer);
@@ -115,7 +158,7 @@ peerstore_emscripten_iterate_records (void *cls,
       key_range.push(key);
     }
     var store =
-      psdb.transaction(['peerstore'], 'readonly').objectStore('peerstore');
+      self.psdb.transaction(['peerstore'], 'readonly').objectStore('peerstore');
     var index;
     if (!peer && !key) {
       index = store.index('by_subsystem');
@@ -126,31 +169,26 @@ peerstore_emscripten_iterate_records (void *cls,
     } else {
       index = store.index('by_all');
     }
-    index.openCursor(IDBKeyRange.only(key_range)).onsuccess = function(e) {
+    var request = index.openCursor(IDBKeyRange.only(key_range));
+    request.onsuccess = function(e) {
       var cursor = e.target.result;
       if (cursor) {
-        var stack = Runtime.stackSave();
-        var record = Runtime.stackAlloc(6 * 4);
-        var sub_system = allocate(intArrayFromString(cursor.value.sub_system),
-          'i8', ALLOC_STACK);
-        var peer = allocate(cursor.value.peer, 'i8', ALLOC_STACK);
-        var key = allocate(intArrayFromString(cursor.value.key), 'i8',
-          ALLOC_STACK);
-        var value = allocate(cursor.value.value, 'i8', ALLOC_STACK);
-        var expiry = Runtime.stackAlloc(8);
-        setValue(expiry, cursor.value.expiry, 'i64');
-        setValue(record, sub_system, 'i32');
-        setValue(record + 4, peer, 'i32');
-        setValue(record + 8, key, 'i32');
-        setValue(record + 12, value, 'i32');
-        setValue(record + 16, cursor.value.value.length, 'i32');
-        setValue(record + 20, expiry, 'i32');
-        Runtime.dynCall('viii', iter, [iter_cls, record, 0]);
-        Runtime.stackRestore(stack);
+        ccallFunc(peerstore_emscripten_iter_wrapper, "number"
+            ["number", "number", "string", "array", "string", "array", "number",
+             "number"],
+            [iter, iter_cls, cursor.value.subsystem, cursor.value.peer,
+             cursor.value.key, cursor.value.value, cursor.value.value.length,
+             cursor.value.expiry]);
         cursor.continue();
+      } else {
+        Runtime.dynCall('viii', iter, [iter_cls, 0, 0]);
       }
     };
-  }, sub_system, peer, key, iter, iter_cls);
+    request.onerror = function(e) {
+      Module.print('cursor request failed');
+      Runtime.dynCall('viii', iter, [iter_cls, 0, -1]);
+    };
+  }, sub_system, peer, key, iter, iter_cls, &peerstore_emscripten_iter_wrapper);
   return GNUNET_OK;
 }
 
@@ -164,7 +202,9 @@ peerstore_emscripten_iterate_records (void *cls,
  * @param sub_system name of the GNUnet sub system responsible
  * @param value value to be stored
  * @param size size of value to be stored
- * @return #GNUNET_OK on success, else #GNUNET_SYSERR
+ * @param cont continuation called when record is stored
+ * @param cont_cls continuation closure
+ * @return #GNUNET_OK on success, else #GNUNET_SYSERR and cont is not called
  */
 static int
 peerstore_emscripten_store_record(void *cls,
@@ -174,17 +214,21 @@ peerstore_emscripten_store_record(void *cls,
     const void *value,
     size_t size,
     struct GNUNET_TIME_Absolute expiry,
-    enum GNUNET_PEERSTORE_StoreOption options)
+    enum GNUNET_PEERSTORE_StoreOption options,
+    GNUNET_PEERSTORE_Continuation cont,
+    void *cont_cls)
 {
   EM_ASM_ARGS({
     var sub_system = Pointer_stringify($0);
-    var peer = Array.apply([], HEAP8.subarray($1, $1 + 32));
+    var peer = Array.prototype.slice(HEAP8.subarray($1, $1 + 32));
     var key = Pointer_stringify($2);
     var value = new Uint8Array(HEAP8.subarray($3, $3 + $4));
     var expiry = $5;
     var options = $6;
+    var cont = $7;
+    var cont_cls = $8;
     var store =
-      psdb.transaction(['peerstore'], 'readwrite').objectStore('peerstore');
+     self.psdb.transaction(['peerstore'], 'readwrite').objectStore('peerstore');
     var put = function() {
       var request = store.put(
           {sub_system: sub_system,
@@ -194,71 +238,38 @@ peerstore_emscripten_store_record(void *cls,
            expiry: expiry});
       request.onerror = function(e) {
         Module.print('put request failed');
+        Runtime.dynCall('vii', cont, [cont_cls, -1]);
+      };
+      request.onsuccess = function(e) {
+        Runtime.dynCall('vii', cont, [cont_cls, 0]);
       };
     };
     if (options == 1) {
-      store.index('by_all').openKeyCursor(
-          IDBKeyRange.only([sub_system, peer, key])).onsuccess = function(e) {
+      var request = store.index('by_all').openKeyCursor(
+          IDBKeyRange.only([sub_system, peer, key]));
+      request.onsuccess = function(e) {
         var cursor = e.target.result;
         if (cursor) {
-          var request = store.delete(cursor.value);
-          request.onerror = function(e) {
+          cursor.delete().onerror = function(e) {
             Module.print('replace request failed');
           };
           cursor.continue();
         } else {
           put();
         }
-      }
+      };
+      request.onerror = function(e) {
+        Module.print('cursor request failed');
+        Runtime.dynCall('vii', cont, [cont_cls, -1]);
+      };
     } else {
       put();
     }
-  }, sub_system, peer, key, value, size, (double)expiry.abs_value_us, options);
+  }, sub_system, peer, key, value, size, (double)expiry.abs_value_us, options,
+     cont, cont_cls);
   return GNUNET_OK;
 }
 
-
-/**
- * Initialize the database connections and associated
- * data structures (create tables and indices
- * as needed as well).
- *
- * @param plugin the plugin context (state for this module)
- * @return GNUNET_OK on success
- */
-static int
-database_setup (struct Plugin *plugin)
-{
-  EM_ASM({
-    var request = indexedDB.open('peerstore', 1);
-    request.onsuccess = function(e) {
-      psdb = e.target.result;
-    };
-    request.onerror = function(e) {
-      Module.print('Error opening peerstore database');
-    };
-    request.onupgradeneeded = function(e) {
-      var db = e.target.result;
-      var store = db.createObjectStore('peerstore', {autoIncrement: true});
-      store.createIndex('by_subsystem', 'sub_system');
-      store.createIndex('by_pid', ['sub_system', 'peer_id']);
-      store.createIndex('by_key', ['sub_system', 'key']);
-      store.createIndex('by_all', ['sub_system', 'peer_id', 'key']);
-      store.createIndex('by_expiry', 'expiry');
-    };
-  });
-  return GNUNET_OK;
-}
-
-/**
- * Shutdown database connection and associate data
- * structures.
- * @param plugin the plugin context (state for this module)
- */
-static void
-database_shutdown (struct Plugin *plugin)
-{
-}
 
 /**
  * Entry point for the plugin.
@@ -277,11 +288,6 @@ libgnunet_plugin_peerstore_emscripten_init (void *cls)
     return NULL;                /* can only initialize once! */
   memset (&plugin, 0, sizeof (struct Plugin));
   plugin.cfg = cfg;
-  if (GNUNET_OK != database_setup (&plugin))
-  {
-    database_shutdown (&plugin);
-    return NULL;
-  }
   api = GNUNET_new (struct GNUNET_PEERSTORE_PluginFunctions);
   api->cls = &plugin;
   api->store_record = &peerstore_emscripten_store_record;
@@ -303,7 +309,6 @@ libgnunet_plugin_peerstore_emscripten_done (void *cls)
   struct GNUNET_PEERSTORE_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
 
-  database_shutdown (plugin);
   plugin->cfg = NULL;
   GNUNET_free (api);
   LOG (GNUNET_ERROR_TYPE_DEBUG, "emscripten plugin is finished\n");

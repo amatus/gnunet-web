@@ -15,7 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var xhrs = []; // plugin_transport_http_client
-var psdb; // plugin_peerstore_emscripten
 
 var WorkerMessageQueue = [];
 function flush_worker_message_queue(f) {
