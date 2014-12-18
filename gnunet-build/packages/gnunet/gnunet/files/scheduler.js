@@ -28,7 +28,13 @@ mergeInto(LibraryManager.library, {
       return 0;
     }
     var id = setTimeout(function() {
-      Runtime.dynCall('vii', task, [task_cls, 0]);
+      var stack = Runtime.stackSave();
+      var tc = Runtime.stackAlloc(3 * 4); // struct GNUNET_SCHEDULER_TaskContext
+      setValue(tc, 2, 'i32'); // ts.reason = GNUNET_SCHEDULER_REASON_TIMEOUT
+      setValue(tc + 4, 0, 'i32'); // ts.read_ready = NULL
+      setValue(tc + 8, 0, 'i32'); // ts.write_ready = NULL
+      Runtime.dynCall('vii', task, [task_cls, tc]);
+      Runtime.stackRestore(stack);
     }, delay / 1000);
     SCHEDULER_TASKS[id] = task_cls;
     return id;
