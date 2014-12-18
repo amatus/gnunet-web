@@ -145,7 +145,8 @@ peerstore_emscripten_iterate_records (void *cls,
 {
   EM_ASM_ARGS({
     var sub_system = Pointer_stringify($0);
-    var peer = $1 ? Array.apply([], HEAP8.subarray($1, $1 + 32)) : null;
+    var peer = $1 ? Array.prototype.slice.call(HEAP8.subarray($1, $1 + 32))
+                  : null;
     var key = $2 ? Pointer_stringify($2) : null;
     var iter = $3;
     var iter_cls = $4;
@@ -181,12 +182,12 @@ peerstore_emscripten_iterate_records (void *cls,
              cursor.value.expiry]);
         cursor.continue();
       } else {
-        Runtime.dynCall('viii', iter, [iter_cls, 0, 0]);
+        Runtime.dynCall('iiii', iter, [iter_cls, 0, 0]);
       }
     };
     request.onerror = function(e) {
       Module.print('cursor request failed');
-      Runtime.dynCall('viii', iter, [iter_cls, 0, -1]);
+      Runtime.dynCall('iiii', iter, [iter_cls, 0, -1]);
     };
   }, sub_system, peer, key, iter, iter_cls, &peerstore_emscripten_iter_wrapper);
   return GNUNET_OK;
@@ -220,7 +221,7 @@ peerstore_emscripten_store_record(void *cls,
 {
   EM_ASM_ARGS({
     var sub_system = Pointer_stringify($0);
-    var peer = Array.prototype.slice(HEAP8.subarray($1, $1 + 32));
+    var peer = Array.prototype.slice.call(HEAP8.subarray($1, $1 + 32));
     var key = Pointer_stringify($2);
     var value = new Uint8Array(HEAP8.subarray($3, $3 + $4));
     var expiry = $5;
