@@ -11,26 +11,6 @@ Index: gnunet-svn-34682/configure.ac
  then
   AC_MSG_RESULT([libltdl found])
  else
-Index: gnunet-svn-34682/po/POTFILES.in
-===================================================================
---- gnunet-svn-34682/po/POTFILES.in	(revision 34682)
-+++ gnunet-svn-34682/po/POTFILES.in	(working copy)
-@@ -229,6 +229,7 @@
- src/peerstore/gnunet-service-peerstore.c
- src/peerstore/peerstore_api.c
- src/peerstore/peerstore_common.c
-+src/peerstore/plugin_peerstore_emscripten.c
- src/peerstore/plugin_peerstore_sqlite.c
- src/postgres/postgres.c
- src/psyc/gnunet-service-psyc.c
-@@ -347,6 +348,7 @@
- src/transport/gnunet-transport-wlan-receiver.c
- src/transport/gnunet-transport-wlan-sender.c
- src/transport/plugin_transport_http_client.c
-+src/transport/plugin_transport_http_client_emscripten.c
- src/transport/plugin_transport_http_common.c
- src/transport/plugin_transport_http_server.c
- src/transport/plugin_transport_smtp.c
 Index: gnunet-svn-34682/src/Makefile.am
 ===================================================================
 --- gnunet-svn-34682/src/Makefile.am	(revision 34682)
