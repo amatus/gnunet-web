@@ -74,7 +74,7 @@ peerstore_emscripten_expire_records(void *cls,
     var count = 0;
     var store =
      self.psdb.transaction(['peerstore'], 'readwrite').objectStore('peerstore');
-    var request = store.index('by_expiry').openKeyCursor(
+    var request = store.index('by_expiry').openCursor(
         IDBKeyRange.upperBound(now, true));
     request.onsuccess = function(e) {
       var cursor = e.target.result;
@@ -98,6 +98,8 @@ peerstore_emscripten_expire_records(void *cls,
   return GNUNET_OK;
 }
 
+/* emscripten has a bug which breaks dynamic calling of a function of a
+ * unique type signature, so we pass expiry_dbl as a pointer */
 static void
 peerstore_emscripten_iter_wrapper (
     GNUNET_PEERSTORE_Processor iter,
@@ -107,12 +109,12 @@ peerstore_emscripten_iter_wrapper (
     char *key,
     void *value,
     size_t value_size,
-    double expiry_dbl)
+    double *expiry_dbl)
 {
   struct GNUNET_TIME_Absolute expiry;
   struct GNUNET_PEERSTORE_Record ret;
 
-  expiry.abs_value_us = expiry_dbl;
+  expiry.abs_value_us = *expiry_dbl;
   ret.sub_system = sub_system;
   ret.peer = peer;
   ret.key = key;
@@ -174,12 +176,19 @@ peerstore_emscripten_iterate_records (void *cls,
     request.onsuccess = function(e) {
       var cursor = e.target.result;
       if (cursor) {
-        ccallFunc(peerstore_emscripten_iter_wrapper, "number"
+        var stack = Runtime.stackSave();
+        var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize("double"));
+        setValue(expiry, cursor.value.expiry, "double");
+        ccallFunc(
+            Runtime.getFuncWrapper(peerstore_emscripten_iter_wrapper,
+              "viiiiiiii"),
+            "void",
             ["number", "number", "string", "array", "string", "array", "number",
              "number"],
             [iter, iter_cls, cursor.value.subsystem, cursor.value.peer,
              cursor.value.key, cursor.value.value, cursor.value.value.length,
-             cursor.value.expiry]);
+             expiry]);
+        Runtime.stackRestore(stack);
         cursor.continue();
       } else {
         Runtime.dynCall('iiii', iter, [iter_cls, 0, 0]);
@@ -242,11 +251,11 @@ peerstore_emscripten_store_record(void *cls,
         Runtime.dynCall('vii', cont, [cont_cls, -1]);
       };
       request.onsuccess = function(e) {
-        Runtime.dynCall('vii', cont, [cont_cls, 0]);
+        Runtime.dynCall('vii', cont, [cont_cls, 1]);
       };
     };
     if (options == 1) {
-      var request = store.index('by_all').openKeyCursor(
+      var request = store.index('by_all').openCursor(
           IDBKeyRange.only([sub_system, peer, key]));
       request.onsuccess = function(e) {
         var cursor = e.target.result;
