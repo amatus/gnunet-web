@@ -53,3 +53,18 @@
   [pointer length]
   (.call js/Array.prototype.slice
          (.subarray js/HEAPU8 pointer (+ pointer length))))
+
+(defn data->string
+  [data]
+  (let [data-array (to-array data)
+        data-len (count data)
+        strlen (quot (+ (* 8 data-len) 4) 5)
+        string-pointer (js/_malloc strlen)]
+    (js/ccallFunc
+      js/_GNUNET_STRINGS_data_to_string
+      "number"
+      (array "array" "number" "number" "number")
+      (array data-array data-len string-pointer strlen))
+    (let [string (js/Pointer_stringify string-pointer)]
+      (js/_free string-pointer)
+      string)))

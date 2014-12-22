@@ -15,15 +15,14 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (page "index.html"
-      (:require [amatus.code :as code]
-                [gnunet-web.core :as core]
+      (:require [gnunet-web.core :as core]
                 [gnunet-web.extractor :as extractor]
                 [gnunet-web.filesharing :as filesharing]
                 [gnunet-web.hostlist :as hostlist]
                 [gnunet-web.metadata :as metadata]
                 [gnunet-web.service :as service]
                 [gnunet-web.transport :as transport]
-                [gnunet-web.util :refer [now]])
+                [gnunet-web.util :refer [data->string now]])
       (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                        [fence.core :refer [+++]]))
 
@@ -38,7 +37,7 @@
 
 (defn peer-id-short
   [peer]
-  (.substr (code/base32-crockford peer) 0 4))
+  (.substr (data->string peer) 0 4))
 
 (defc my-id [])
 (transport/get-my-peer-id (fn [peer-id] (reset! my-id peer-id)))
@@ -265,7 +264,7 @@
                    (div :class "ui label"
                         (ui-dropdown :state anonymity "0" "1" "2" "3")))
               (div :class "item"
-                   :title (cell= (code/base32-crockford my-id))
+                   :title (cell= (data->string my-id))
                    (text "My Peer ID: ~(peer-id-short my-id)\u2026"))))
     (div :class "ui grid") ; This pushes content down so it's not under the menu
     (div :class "ui inverted segment"
@@ -328,7 +327,7 @@
              (loop-tpl :bindings [[peer info] peers]
                        (tr
                          (td :width "25%"
-                             :title (cell= (code/base32-crockford peer))
+                             :title (cell= (data->string peer))
                              (text "~(peer-id-short peer)\u2026"))
                          (td :width "25%"
                              :text (cell= (transport/state->string
