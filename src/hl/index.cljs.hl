@@ -248,6 +248,36 @@
            (with-init! (+++ (.dropdown (js/$ dropdown))))
            dropdown))
 
+(defelem ui-popup
+         [{:keys [settings] :as attr} kids]
+         (let [popup (div (dissoc attr :settings) kids)]
+           (with-init! (+++ (.popup (js/$ popup) (clj->js settings))))
+           popup))
+
+(defelem peer-table
+  [attr kids]
+  (table :class "ui table segment"
+         (thead
+           (tr
+             (th :text "Peer ID")
+             (th :text "Transport State")
+             (th :text "Core State")
+             (th :text "Address")))
+         (tbody
+           (loop-tpl :bindings [[peer info] peers]
+                     (tr
+                       (td :width "25%"
+                           :title (cell= (data->string peer))
+                           (text "~(peer-id-short peer)\u2026"))
+                       (td :width "25%"
+                           :text (cell= (transport/state->string
+                                          (:transport-state info))))
+                       (td :width "25%"
+                           :text (cell= (core/state->string
+                                          (:core-state info))))
+                       (td :width "25%"
+                           :text (cell= (:address info))))))))
+
 (html
   (head
     (link :rel "stylesheet" :type "text/css" :href "css/semantic.min.css")
@@ -260,12 +290,31 @@
                       :title "Fork me on GitHub"
                       (i :class "github icon")))
               (div :class "right item"
-                   (text "Anonymity")
+                   "Anonymity"
                    (div :class "ui label"
                         (ui-dropdown :state anonymity "0" "1" "2" "3")))
-              (div :class "item"
+              (ui-popup :class "right item"
+                        :settings {:inline true
+                                   :position "bottom right"
+                                   :on "click"}
+                        "Connections"
+                        (div :class "ui label"
+                             :text (cell=
+                                     (count
+                                       (filter
+                                         (fn [[_ info]]
+                                           (and
+                                             (= 5 (:transport-state info))
+                                             (= 3 (:core-state info))))
+                                         peers)))))
+              (div :class "ui flowing popup"
+                   (peer-table))
+              (div :class "right item"
                    :title (cell= (data->string my-id))
-                   (text "My Peer ID: ~(peer-id-short my-id)\u2026"))))
+                   (text "My Peer ID: ~(peer-id-short my-id)\u2026"))
+              (div :class "item"
+                   "gnunet-web"
+                   (span :class "ui red label" "Pre-Alpha"))))
     (div :class "ui grid") ; This pushes content down so it's not under the menu
     (div :class "ui inverted segment"
          :toggle (cell= (not (nil? browser-support)))
@@ -315,27 +364,6 @@
                                        (pretty-print-byte-count
                                          (filesharing/uri-to-file-size uri))))
                            (td (pre :text (cell= (metadata/pretty-print
-                                                   (:metadata result))))))))))
-    (table :class "ui table segment"
-           (thead
-             (tr
-               (th :text "Peer ID")
-               (th :text "Transport State")
-               (th :text "Core State")
-               (th :text "Address")))
-           (tbody
-             (loop-tpl :bindings [[peer info] peers]
-                       (tr
-                         (td :width "25%"
-                             :title (cell= (data->string peer))
-                             (text "~(peer-id-short peer)\u2026"))
-                         (td :width "25%"
-                             :text (cell= (transport/state->string
-                                            (:transport-state info))))
-                         (td :width "25%"
-                             :text (cell= (core/state->string
-                                            (:core-state info))))
-                         (td :width "25%"
-                             :text (cell= (:address info)))))))))
+                                                   (:metadata result))))))))))))
 
 ;; vim: set expandtab ts=2 sw=2 filetype=clojure :
