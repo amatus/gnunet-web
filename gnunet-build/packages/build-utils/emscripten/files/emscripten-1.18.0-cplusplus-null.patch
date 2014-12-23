@@ -1,0 +1,128 @@
+Index: b/system/include/libc/locale.h
+===================================================================
+--- a/system/include/libc/locale.h
++++ b/system/include/libc/locale.h
+@@ -7,7 +7,11 @@ extern "C" {
+ 
+ #include <features.h>
+ 
++#ifdef __cplusplus
+ #define NULL 0L
++#else
++#define NULL ((void*)0)
++#endif
+ 
+ #define LC_CTYPE    0
+ #define LC_NUMERIC  1
+Index: b/system/include/libc/stddef.h
+===================================================================
+--- a/system/include/libc/stddef.h
++++ b/system/include/libc/stddef.h
+@@ -1,7 +1,11 @@
+ #ifndef _STDDEF_H
+ #define _STDDEF_H
+ 
++#ifdef __cplusplus
+ #define NULL 0L
++#else
++#define NULL ((void*)0)
++#endif
+ 
+ #define __NEED_ptrdiff_t
+ #define __NEED_size_t
+Index: b/system/include/libc/stdio.h
+===================================================================
+--- a/system/include/libc/stdio.h
++++ b/system/include/libc/stdio.h
+@@ -21,7 +21,11 @@ extern "C" {
+ 
+ #include <bits/alltypes.h>
+ 
++#ifdef __cplusplus
+ #define NULL 0L
++#else
++#define NULL ((void*)0)
++#endif
+ 
+ #undef EOF
+ #define EOF (-1)
+Index: b/system/include/libc/stdlib.h
+===================================================================
+--- a/system/include/libc/stdlib.h
++++ b/system/include/libc/stdlib.h
+@@ -7,7 +7,11 @@ extern "C" {
+ 
+ #include <features.h>
+ 
++#ifdef __cplusplus
+ #define NULL 0L
++#else
++#define NULL ((void*)0)
++#endif
+ 
+ #define __NEED_size_t
+ #define __NEED_wchar_t
+Index: b/system/include/libc/string.h
+===================================================================
+--- a/system/include/libc/string.h
++++ b/system/include/libc/string.h
+@@ -7,7 +7,11 @@ extern "C" {
+ 
+ #include <features.h>
+ 
++#ifdef __cplusplus
+ #define NULL 0L
++#else
++#define NULL ((void*)0)
++#endif
+ 
+ #define __NEED_size_t
+ #if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
+Index: b/system/include/libc/time.h
+===================================================================
+--- a/system/include/libc/time.h
++++ b/system/include/libc/time.h
+@@ -7,7 +7,11 @@ extern "C" {
+ 
+ #include <features.h>
+ 
++#ifdef __cplusplus
+ #define NULL 0L
++#else
++#define NULL ((void*)0)
++#endif
+ 
+ #define __NEED_size_t
+ #define __NEED_time_t
+Index: b/system/include/libc/unistd.h
+===================================================================
+--- a/system/include/libc/unistd.h
++++ b/system/include/libc/unistd.h
+@@ -15,7 +15,11 @@ extern "C" {
+ #define SEEK_CUR 1
+ #define SEEK_END 2
+ 
++#ifdef __cplusplus
+ #define NULL 0L
++#else
++#define NULL ((void*)0)
++#endif
+ 
+ #define __NEED_size_t
+ #define __NEED_ssize_t
+Index: b/system/include/libc/wchar.h
+===================================================================
+--- a/system/include/libc/wchar.h
++++ b/system/include/libc/wchar.h
+@@ -33,7 +33,11 @@ extern "C" {
+ #define WCHAR_MIN (-1-0x7fffffff+L'\0')
+ #endif
+ 
++#ifdef __cplusplus
+ #define NULL 0L
++#else
++#define NULL ((void*)0)
++#endif
+ 
+ #undef WEOF
+ #define WEOF 0xffffffffU

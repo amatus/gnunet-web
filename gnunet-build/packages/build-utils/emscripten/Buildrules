@@ -1,7 +1,7 @@
 VERSION="1.18.0"
 DESCRIPTION="Emscripten is an LLVM-to-JavaScript compiler."
 SOURCE_URI="git://github.com/amatus/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
-PATCHES="import-symbols fix-idbfs-for-webworkers getFuncWrapper"
+PATCHES="import-symbols fix-idbfs-for-webworkers getFuncWrapper cplusplus-null"
 # XXX: these are actually RDEPENDS but that's broken
 BDEPENDS="build-utils/emscripten-fastcomp build-utils/node"
 
