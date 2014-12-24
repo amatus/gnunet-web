@@ -1,5 +1,6 @@
 #!/bin/sh -e
 
+mkdir -p assets/js
 cd gnunet-build
 export PATH="$PATH":"$(pwd)/scripts"
 build
