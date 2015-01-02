@@ -42,6 +42,12 @@
 (defc my-id [])
 (transport/get-my-peer-id (fn [peer-id] (reset! my-id peer-id)))
 (defc peers {})
+(defc= connection-count (count (filter (fn [[_ info]]
+                                         (and
+                                           (= 5 (:transport-state info))
+                                           (= 3 (:core-state info))))
+                                       peers)))
+
 (transport/monitor-peers (fn [message]
                            (swap! peers
                                   #(-> %
@@ -160,14 +166,16 @@
 (defelem ui-search
          [attr kids]
          (let [input (input :type "text" :placeholder "Keywords...")]
-           (form :class "ui action input"
-                 :submit #(start-search (.-value input) @anonymity)
-                 input
-                 (div :class "ui icon button"
-                      (i :class (cell= (if active-search
-                                         "loading icon"
-                                         "search icon"))
-                         :click #(start-search (.-value input) @anonymity))))))
+           (div
+             (form :class (cell= {:ui true :icon true :input true
+                                  :error (zero? connection-count)})
+                   :submit #(start-search (.-value input) @anonymity)
+                   input
+                   (i :class (cell= {:icon true :search true
+                                     :loading active-search})))
+             (div :class "ui pointing left red label"
+                  :toggle (cell= (zero? connection-count))
+                  "Live results are unavailable when not connected"))))
 
 (defelem ui-publish
          [attr kids]
@@ -298,18 +306,10 @@
                                    :position "bottom right"
                                    :on "click"}
                         "Connections"
-                        (let [connection-count
-                              (cell=
-                                (count (filter (fn [[_ info]]
-                                                 (and
-                                                   (= 5 (:transport-state info))
-                                                   (= 3 (:core-state info))))
-                                               peers)))]
-                          (div :class (cell=
-                                       {:ui true :label true :dropdown true
-                                       :red (zero? connection-count)})
-                               (text "~{connection-count}")
-                               (i :class "dropdown icon"))))
+                        (div :class (cell= {:ui true :label true :dropdown true
+                                            :red (zero? connection-count)})
+                             (text "~{connection-count}")
+                             (i :class "dropdown icon")))
               (div :class "ui flowing popup"
                    (peer-table))
               (div :class "right item"
