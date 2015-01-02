@@ -298,15 +298,18 @@
                                    :position "bottom right"
                                    :on "click"}
                         "Connections"
-                        (div :class "ui label"
-                             :text (cell=
-                                     (count
-                                       (filter
-                                         (fn [[_ info]]
-                                           (and
-                                             (= 5 (:transport-state info))
-                                             (= 3 (:core-state info))))
-                                         peers)))))
+                        (let [connection-count
+                              (cell=
+                                (count (filter (fn [[_ info]]
+                                                 (and
+                                                   (= 5 (:transport-state info))
+                                                   (= 3 (:core-state info))))
+                                               peers)))]
+                          (div :class (cell=
+                                       {:ui true :label true :dropdown true
+                                       :red (zero? connection-count)})
+                               (text "~{connection-count}")
+                               (i :class "dropdown icon"))))
               (div :class "ui flowing popup"
                    (peer-table))
               (div :class "right item"
