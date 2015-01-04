@@ -27,7 +27,9 @@ mergeInto(LibraryManager.library, {
       // This is the shutdown task, ignore for now
       return 0;
     }
-    var id = setTimeout(function() {
+    var id;
+    id = setTimeout(function() {
+      delete SCHEDULER_TASKS[id];
       var stack = Runtime.stackSave();
       var tc = Runtime.stackAlloc(3 * 4); // struct GNUNET_SCHEDULER_TaskContext
       setValue(tc, 2, 'i32'); // ts.reason = GNUNET_SCHEDULER_REASON_TIMEOUT
