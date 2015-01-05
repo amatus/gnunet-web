@@ -25,7 +25,7 @@ mergeInto(LibraryManager.library, {
     //Module.print('GNUNET_SCHEDULER_add_delayed_with_priority(delay='+delay+',pirority='+priority+',task='+task+',task_cls='+task_cls+')');
     if (-1 == delay) {
       // This is the shutdown task, ignore for now
-      return 0;
+      return -1;
     }
     var id;
     id = setTimeout(function() {
