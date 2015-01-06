@@ -19,6 +19,13 @@
 #include "platform.h"
 #include "gnunet_fs_service.h"
 #include "gnunet_transport_service.h"
+#include "emscripten.h"
+
+int main(int argc, char **argv)
+{
+  GNUNET_log_setup("client.js", "DEBUG", NULL);
+  emscripten_exit_with_live_runtime();
+}
 
 void *
 GNUNET_FS_ProgressInfo_get_publish_cctx(struct GNUNET_FS_ProgressInfo *pi)

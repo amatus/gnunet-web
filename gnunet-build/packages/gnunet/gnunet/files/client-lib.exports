@@ -45,4 +45,5 @@
 "_GNUNET_TRANSPORT_monitor_peers_simple",
 "_GNUNET_TRANSPORT_offer_hello",
 "_GNUNET_xstrdup_",
-"_free"]
+"_free",
+"_main"]
