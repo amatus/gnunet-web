@@ -142,7 +142,7 @@ struct Session
   /**
    * Session timeout task
    */
-  GNUNET_SCHEDULER_TaskIdentifier timeout_task;
+  struct GNUNET_SCHEDULER_Task *timeout_task;
 
   /**
    * Absolute time when to receive data again
@@ -299,10 +299,10 @@ client_delete_session (struct Session *s)
 {
   struct HTTP_Client_Plugin *plugin = s->plugin;
 
-  if (GNUNET_SCHEDULER_NO_TASK != s->timeout_task)
+  if (NULL != s->timeout_task)
   {
     GNUNET_SCHEDULER_cancel (s->timeout_task);
-    s->timeout_task = GNUNET_SCHEDULER_NO_TASK;
+    s->timeout_task = NULL;
     s->timeout = GNUNET_TIME_UNIT_ZERO_ABS;
   }
   GNUNET_assert (GNUNET_OK ==
@@ -349,7 +349,7 @@ client_delete_session (struct Session *s)
 static void
 client_reschedule_session_timeout (struct Session *s)
 {
-  GNUNET_assert (GNUNET_SCHEDULER_NO_TASK != s->timeout_task);
+  GNUNET_assert (NULL != s->timeout_task);
   s->timeout = GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
 }
 
@@ -832,7 +832,7 @@ client_session_timeout (void *cls,
   struct Session *s = cls;
   struct GNUNET_TIME_Relative left;
 
-  s->timeout_task = GNUNET_SCHEDULER_NO_TASK;
+  s->timeout_task = NULL;
   left = GNUNET_TIME_absolute_get_remaining (s->timeout);
   if (0 != left.rel_value_us)
   {
