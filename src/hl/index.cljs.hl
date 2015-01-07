@@ -364,8 +364,10 @@
                                 (div :class "ui icon button"
                                      (i :class "save icon"))))
                            (td :text (cell=
-                                       (pretty-print-byte-count
-                                         (filesharing/uri-to-file-size uri))))
+                                       (when uri
+                                         (pretty-print-byte-count
+                                           (filesharing/uri-to-file-size
+                                             uri)))))
                            (td (pre :text (cell= (metadata/pretty-print
                                                    (:metadata result))))))))))))
 
