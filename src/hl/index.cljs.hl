@@ -339,6 +339,12 @@
                              download-state (cell :inactive)
                              download-progress (cell 0)
                              download-object (cell nil)]
+                         (add-watch result nil
+                                    (fn [_ _ _ new-state]
+                                      (when (nil? new-state)
+                                        (reset! download-state :inactive)
+                                        (reset! download-progress 0)
+                                        (reset! download-object nil))))
                          (tr
                            (td
                              (div :class "ui compact menu"
