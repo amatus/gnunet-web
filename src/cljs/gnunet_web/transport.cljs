@@ -26,12 +26,12 @@
 
 (def state-strings
   {0 "Not connected"
-   1 "Waiting for ATS"
+   1 "Selecting transport"
    2 "Waiting for SYN_ACK"
-   3 "Waiting for ATS suggestion"
+   3 "Selecting address"
    4 "Waiting for ACK"
    5 "Connected"
-   6 "ATS Reconnect"
+   6 "Error, reconnecting"
    7 "Reconnecting"
    8 "Switching address"
    9 "Disconnecting"
