@@ -381,14 +381,14 @@ Index: gnunet-svn-35073/src/util/Makefile.am
    container_bloomfilter.c \
    container_heap.c \
    container_meta_data.c \
-@@ -101,15 +98,10 @@
+@@ -101,15 +98,11 @@
    os_network.c \
    os_priority.c \
    peer.c \
 -  plugin.c \
 -  program.c \
    resolver_api.c resolver.h \
--  scheduler.c \
+   scheduler.c \
 -  server.c \
    server_mst.c \
    server_nc.c \

@@ -1,5 +1,5 @@
 // scheduler.js - scheduler routines for gnunet-web services
-// Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2013-2015  David Barksdale <amatus@amatus.name>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,12 +16,9 @@
 
 mergeInto(LibraryManager.library, {
   $SCHEDULER_TASKS: {},
-  GNUNET_SCHEDULER_add_delayed_with_priority__deps: ['$SCHEDULER_TASKS'],
-  GNUNET_SCHEDULER_add_delayed_with_priority:
+  GNUNET_SCHEDULER_add_delayed_with_priority_js__deps: ['$SCHEDULER_TASKS'],
+  GNUNET_SCHEDULER_add_delayed_with_priority_js:
   function(delay, priority, task, task_cls) {
-    if (delay) {
-      delay = getValue(delay, 'i64');
-    }
     //Module.print('GNUNET_SCHEDULER_add_delayed_with_priority(delay='+delay+',pirority='+priority+',task='+task+',task_cls='+task_cls+')');
     if (-1 == delay) {
       // This is the shutdown task, ignore for now
@@ -30,35 +27,10 @@ mergeInto(LibraryManager.library, {
     var id;
     id = setTimeout(function() {
       delete SCHEDULER_TASKS[id];
-      var stack = Runtime.stackSave();
-      var tc = Runtime.stackAlloc(3 * 4); // struct GNUNET_SCHEDULER_TaskContext
-      setValue(tc, 4, 'i32'); // ts.reason = GNUNET_SCHEDULER_REASON_TIMEOUT
-      setValue(tc + 4, 0, 'i32'); // ts.read_ready = NULL
-      setValue(tc + 8, 0, 'i32'); // ts.write_ready = NULL
-      Runtime.dynCall('vii', task, [task_cls, tc]);
-      Runtime.stackRestore(stack);
-    }, delay / 1000);
+      _GNUNET_SCHEDULER_run_task(task, task_cls);
+    }, delay);
     SCHEDULER_TASKS[id] = task_cls;
     return id;
-  },
-  GNUNET_SCHEDULER_add_delayed__deps:
-    ['GNUNET_SCHEDULER_add_delayed_with_priority'],
-  GNUNET_SCHEDULER_add_delayed: function(delay, task, task_cls) {
-    return _GNUNET_SCHEDULER_add_delayed_with_priority(delay, 0, task,
-      task_cls);
-  },
-  GNUNET_SCHEDULER_add_now__deps: ['GNUNET_SCHEDULER_add_delayed'],
-  GNUNET_SCHEDULER_add_now: function(task, task_cls) {
-    return _GNUNET_SCHEDULER_add_delayed(0, task, task_cls);
-  },
-  GNUNET_SCHEDULER_add_with_priority__deps:
-    ['GNUNET_SCHEDULER_add_delayed_with_priority'],
-  GNUNET_SCHEDULER_add_with_priority: function(prio, task, task_cls) {
-    return _GNUNET_SCHEDULER_add_delayed_with_priority(0, prio, task, task_cls);
-  },
-  GNUNET_SCHEDULER_add_continuation__deps: ['GNUNET_SCHEDULER_add_now'],
-  GNUNET_SCHEDULER_add_continuation: function(task, task_cls, reason) {
-    return _GNUNET_SCHEDULER_add_now(task, task_cls);
   },
   GNUNET_SCHEDULER_add_read_file: function(delay, rfd, task, task_cls) {
     abort();
