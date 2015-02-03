@@ -1,0 +1,5 @@
+_GNUNET_CONFIGURATION_get_value_float
+_GNUNET_STRINGS_fancy_size_to_bytes
+_GNUNET_STRINGS_fancy_time_to_relative
+_GNUNET_log_setup
+_GNUNET_xstrdup_

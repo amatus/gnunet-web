@@ -62,9 +62,13 @@ pkg_compile() {
 	#
 	# Peerinfo
 	#
+	( echo '['
+	  sed -e 's/.*/"&",/' < "${F}/imports"
+          echo '"_main"]' ) > peerinfo.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \
+		-O2 \
+		-s EXPORTED_FUNCTIONS=@peerinfo.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/peerinfo/gnunet-service-peerinfo.js" \
 		"${S}/src/peerinfo/gnunet-service-peerinfo.o" \
@@ -112,9 +116,7 @@ pkg_compile() {
 		"${S}/src/datastore/plugin_datastore_heap.lo"
 	( echo '['
 	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
-	  echo '"_GNUNET_log_setup",'
-	  echo '"_GNUNET_STRINGS_fancy_size_to_bytes",'
-	  echo '"_GNUNET_xstrdup_",'
+	  sed -e 's/.*/"&",/' < "${F}/imports"
           echo '"_main"]' ) > datastore.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
@@ -152,9 +154,7 @@ pkg_compile() {
 		"${S}/src/ats/plugin_ats_proportional.lo"
 	( echo '['
 	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
-	  echo '"_GNUNET_CONFIGURATION_get_value_float",'
-	  echo '"_GNUNET_log_setup",'
-          echo '"_GNUNET_xstrdup_",'
+	  sed -e 's/.*/"&",/' < "${F}/imports"
           echo '"_main"]' ) > ats.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
@@ -196,7 +196,7 @@ pkg_compile() {
 		"${S}/src/transport/libgnunet_plugin_transport_http_client_la-plugin_transport_http_common.lo"
 	( echo '['
 	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
-	  echo '"_GNUNET_log_setup",'
+	  sed -e 's/.*/"&",/' < "${F}/imports"
           echo '"_main"]' ) > transport.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
@@ -227,9 +227,13 @@ pkg_compile() {
 	#
 	# Core
 	#
+	( echo '['
+	  sed -e 's/.*/"&",/' < "${F}/imports"
+          echo '"_main"]' ) > core.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \
+		-O2 \
+		-s EXPORTED_FUNCTIONS=@core.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/core/gnunet-service-core.js" \
 		"${S}/src/core/gnunet-service-core"*.o \
@@ -251,13 +255,13 @@ pkg_compile() {
 	#
 	# Network Size Estimation
 	#
+	( echo '['
+	  sed -e 's/.*/"&",/' < "${F}/imports"
+          echo '"_main"]' ) > nse.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-s EXPORTED_FUNCTIONS='[
-			"_main",
-			"_GNUNET_log_setup",
-			"_GNUNET_STRINGS_fancy_time_to_relative"
-		]' \
+		-O2 \
+		-s EXPORTED_FUNCTIONS=@nse.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/nse/gnunet-service-nse.js" \
 		"${S}/src/nse/gnunet-service-nse.o" \
@@ -282,9 +286,7 @@ pkg_compile() {
 	( echo '['
 	  sed -e 's/.*/"&",/' < libgnunet_plugin_block.imports
 	  sed -e 's/.*/"&",/' < libgnunet_plugin_datacache_heap.imports
-	  echo '"_GNUNET_log_setup",'
-	  echo '"_GNUNET_STRINGS_fancy_size_to_bytes",'
-	  echo '"_GNUNET_xstrdup_",'
+	  sed -e 's/.*/"&",/' < "${F}/imports"
           echo '"_main"]' ) > dht.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
@@ -320,9 +322,13 @@ pkg_compile() {
 	#
 	# Topology
 	#
+	( echo '['
+	  sed -e 's/.*/"&",/' < "${F}/imports"
+          echo '"_main"]' ) > topology.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-s EXPORTED_FUNCTIONS='["_main", "_GNUNET_log_setup"]' \
+		-O2 \
+		-s EXPORTED_FUNCTIONS=@topology.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/topology/gnunet-daemon-topology.js" \
 		"${S}/src/topology/gnunet-daemon-topology.o" \
@@ -348,9 +354,7 @@ pkg_compile() {
 	#
 	( echo '['
 	  sed -e 's/.*/"&",/' < libgnunet_plugin_block.imports
-	  echo '"_GNUNET_log_setup",'
-	  echo '"_GNUNET_STRINGS_fancy_time_to_relative",'
-          echo '"_GNUNET_xstrdup_",'
+	  sed -e 's/.*/"&",/' < "${F}/imports"
           echo '"_main"]' ) > cadet.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
@@ -395,8 +399,7 @@ pkg_compile() {
 		"${S}/src/peerstore/plugin_peerstore_emscripten.lo"
 	( echo '['
 	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
-	  echo '"_GNUNET_log_setup",'
-	  echo '"_GNUNET_xstrdup_",'
+	  sed -e 's/.*/"&",/' < "${F}/imports"
           echo '"_main"]' ) > peerstore.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
@@ -424,8 +427,7 @@ pkg_compile() {
 	#
 	( echo '['
 	  sed -e 's/.*/"&",/' < libgnunet_plugin_block.imports
-	  echo '"_GNUNET_log_setup",'
-          echo '"_GNUNET_xstrdup_",'
+	  sed -e 's/.*/"&",/' < "${F}/imports"
           echo '"_main"]' ) > fs.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
