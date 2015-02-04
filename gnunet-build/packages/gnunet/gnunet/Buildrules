@@ -12,6 +12,7 @@ BDEPENDS="${BDEPENDS}
 "
 
 pkg_compile() {
+	cp "${F}/scheduler.c" "${S}/src/util/"
 	cp "${F}/plugin_transport_http_client_emscripten.c" \
 		"${S}/src/transport/"
 	cp "${F}/plugin_peerstore_emscripten.c" \
