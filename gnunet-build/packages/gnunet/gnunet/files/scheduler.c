@@ -33,7 +33,7 @@ GNUNET_SCHEDULER_add_delayed_with_priority (struct GNUNET_TIME_Relative delay,
 {
   if (GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us == delay.rel_value_us) {
     // This is the shutdown task, ignore for now
-    return NULL;
+    return (struct GNUNET_SCHEDULER_Task *)-1;
   }
   return GNUNET_SCHEDULER_add_delayed_with_priority_js(
       (double)(delay.rel_value_us / 1000), priority, task, task_cls);
