@@ -169,22 +169,7 @@ struct Session
   /**
    * ATS network type.
    */
-  enum GNUNET_ATS_Network_Type ats_address_network_type;
-
-  /**
-   * Is the client PUT handle disconnect in progress?
-   */
-  int put_tmp_disconnecting;
-
-  /**
-   * Is the client PUT handle temporarily disconnected?
-   */
-  int put_tmp_disconnected;
-
-  /**
-   * We received data to send while disconnecting, reconnect immediately
-   */
-  int put_reconnect_required;
+  enum GNUNET_ATS_Network_Type scope;
 };
 
 
@@ -595,22 +580,13 @@ client_receive_mst_cb (void *cls,
   struct Session *s = cls;
   struct HTTP_Client_Plugin *plugin;
   struct GNUNET_TIME_Relative delay;
-  struct GNUNET_ATS_Information atsi;
   char *stat_txt;
 
   plugin = s->plugin;
-  GNUNET_break (s->ats_address_network_type != GNUNET_ATS_NET_UNSPECIFIED);
-  atsi.type = htonl (GNUNET_ATS_NETWORK_TYPE);
-  atsi.value = htonl (s->ats_address_network_type);
-
   delay = s->plugin->env->receive (plugin->env->cls,
                                    s->address,
                                    s,
                                    message);
-  plugin->env->update_address_metrics (plugin->env->cls,
-				       s->address, s,
-				       &atsi, 1);
-
   GNUNET_asprintf (&stat_txt,
                    "# bytes received via %s_client",
                    plugin->protocol);
@@ -815,7 +791,7 @@ static enum GNUNET_ATS_Network_Type
 http_client_plugin_get_network (void *cls,
                                 struct Session *session)
 {
-  return session->ats_address_network_type;
+  return session->scope;
 }
 
 
@@ -927,9 +903,7 @@ http_client_plugin_get_session (void *cls,
   s = GNUNET_new (struct Session);
   s->plugin = plugin;
   s->address = GNUNET_HELLO_address_copy (address);
-  s->ats_address_network_type = net_type;
-  s->put_tmp_disconnecting = GNUNET_NO;
-  s->put_tmp_disconnected = GNUNET_NO;
+  s->scope = net_type;
   s->timeout = GNUNET_TIME_relative_to_absolute (HTTP_CLIENT_SESSION_TIMEOUT);
   s->timeout_task =  GNUNET_SCHEDULER_add_delayed (HTTP_CLIENT_SESSION_TIMEOUT,
                                                    &client_session_timeout,
