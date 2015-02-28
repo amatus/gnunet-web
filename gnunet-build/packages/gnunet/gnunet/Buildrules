@@ -124,6 +124,7 @@ pkg_compile() {
 		-O2 \
 		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
 		-s EXPORTED_FUNCTIONS=@datastore.exports \
+		-s TOTAL_MEMORY=$((80 * 1024 * 1024)) \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/datastore/gnunet-service-datastore.js" \
 		"${S}/src/datastore/gnunet-service-datastore.o" \
