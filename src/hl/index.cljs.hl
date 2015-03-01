@@ -44,21 +44,31 @@
 (defc peers {})
 (defc= connection-count (count (filter (fn [[_ info]]
                                          (and
-                                           (= 5 (:transport-state info))
-                                           (= 3 (:core-state info))))
+                                           (= transport/state-connected
+                                              (:transport-state info))
+                                           (= core/state-connected
+                                              (:core-state info))))
                                        peers)))
 
-(transport/monitor-peers (fn [message]
-                           (swap! peers
-                                  #(-> %
-                                    (assoc-in [(:peer message) :transport-state]
-                                              (:state message))
-                                    (assoc-in [(:peer message) :address]
-                                              (:address message))))))
-(core/monitor-peers (fn [message]
-                      (if (not (= 6 (:state message)))
-                        (swap! peers assoc-in [(:peer message) :core-state]
-                               (:state message)))))
+(transport/monitor-peers
+  (fn [message]
+    (swap! peers
+           (fn [peers]
+             (if (= transport/state-disconnected (:state message))
+               (dissoc peers (:peer message))
+               (-> peers
+                 (assoc-in [(:peer message) :transport-state] (:state message))
+                 (assoc-in [(:peer message) :address] (:address message))))))))
+
+(core/monitor-peers
+  (fn [message]
+    (if (not (= core/iteration-finished (:state message)))
+      (swap! peers
+             (fn [peers]
+               (if (get peers (:peer message))
+                 (assoc-in peers [(:peer message) :core-state]
+                           (:state message))
+                 peers))))))
 
 (defc active-search nil)
 (defc search-results [])

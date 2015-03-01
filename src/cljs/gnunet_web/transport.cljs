@@ -37,6 +37,9 @@
    9 "Disconnecting"
    10 "Disconnect finished"})
 
+(def state-connected 5)
+(def state-disconnected 10)
+
 (defn state->string
   [state]
   (get state-strings state))

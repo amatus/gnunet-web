@@ -56,6 +56,10 @@
    4 "Re-keying"
    5 "Disconnected"})
 
+(def state-connected 3)
+(def state-disconnected 5)
+(def iteration-finished 6)
+
 (defn state->string
   [state]
   (get state-strings state))
