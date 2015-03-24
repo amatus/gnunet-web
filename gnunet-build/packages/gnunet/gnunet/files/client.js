@@ -60,6 +60,8 @@ mergeInto(LibraryManager.library, {
   GNUNET_CLIENT_disconnect: function(port) {
     var client = CLIENT_PORTS[port];
     Module.print('Closing client port to service ' + client.name);
+    clearTimeout(client.th);
+    client.th = null;
     client.port.close();
     delete CLIENT_PORTS[port];
   },
