@@ -51,7 +51,7 @@ mergeInto(LibraryManager.library, {
         gnunet_web.service.client_connect(service_name, "client.js",
             channel.port2);
       } catch(e) {
-        console.error("Failed to connect to " + service_name, e);
+        console.error("Failed to connect to", service_name, e);
         return 0;
       }
     return port;
@@ -59,7 +59,7 @@ mergeInto(LibraryManager.library, {
   GNUNET_CLIENT_disconnect__deps: ['$CLIENT_PORTS'],
   GNUNET_CLIENT_disconnect: function(port) {
     var client = CLIENT_PORTS[port];
-    Module.print('Closing client port to service ' + client.name);
+    console.debug('Closing client port to service', client.name);
     clearTimeout(client.th);
     client.th = null;
     client.port.close();
@@ -69,7 +69,7 @@ mergeInto(LibraryManager.library, {
   GNUNET_CLIENT_receive: function(port, handler, handler_cls, timeout) {
     var client = CLIENT_PORTS[port];
     var fn = function(ev) {
-      Module.print('Received ' + ev.data.length + ' bytes from service '
+      console.debug('Received ' + ev.data.length + ' bytes from service '
         + client.name);
       ccallFunc(Runtime.getFuncWrapper(handler, 'vii'), 'void',
         ['number', 'array'],
@@ -98,13 +98,13 @@ mergeInto(LibraryManager.library, {
     // does so let's emulate that.
     client.th = setTimeout(function() {
       client.th = null;
-      //Module.print('I want to send ' + size + ' bytes to service '
-      //  + CLIENT_PORTS[client].name);
+      console.debug('I want to send ' + size + ' bytes to service '
+        + client.name);
       var stack = Runtime.stackSave();
       var buffer = Runtime.stackAlloc(size);
       var ret = Runtime.dynCall('iiii', notify, [notify_cls, size, buffer]);
-      //Module.print('I\'m sending ' + size + ' bytes to service '
-      //          + CLIENT_PORTS[client].name);
+      console.debug('I\'m sending ' + size + ' bytes to service '
+        + client.name);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
       // See http://code.google.com/p/chromium/issues/detail?id=169705
       if (ret > 0)
@@ -118,7 +118,6 @@ mergeInto(LibraryManager.library, {
     var client = CLIENT_PORTS[port];
     clearTimeout(client.th);
     client.th = null;
-
   },
   GNUNET_CLIENT_transmit_and_get_response__deps: ['$CLIENT_PORTS',
                                                   'GNUNET_CLIENT_receive'],

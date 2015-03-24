@@ -86,17 +86,18 @@ mergeInto(LibraryManager.library, {
   GNUNET_CONFIGURATION_get_value: function(section, option) {
     var section = Pointer_stringify(section).toLowerCase();
     var option = Pointer_stringify(option).toUpperCase();
-    Module.print('GNUNET_CONFIGURATION_get_value(' + section + ',' + option + ')');
+    console.debug('GNUNET_CONFIGURATION_get_value(' + section + ',' + option
+          + ')');
     if (!(section in CONFIG)) {
-      Module.print(section + ' not in CONFIG');
+      console.debug(section + ' not in CONFIG');
       return undefined;
     }
     section = CONFIG[section]
     if (!(option in section)) {
-      Module.print(option + ' not in ' + section);
+      console.debug(option + ' not in ' + section);
       return undefined;
     }
-    Module.print('found: ' + section[option]);
+    console.debug('found:', section[option]);
     return section[option];
   },
   GNUNET_CONFIGURATION_have_value__deps:
@@ -172,7 +173,8 @@ mergeInto(LibraryManager.library, {
   GNUNET_CONFIGURATION_iterate_section_values:
   function(cfg, section, iter, iter_cls) {
     var section_name = Pointer_stringify(section);
-    Module.print('GNUNET_CONFIGURATION_iterate_section_values(' + section_name + ')');
+    console.debug('GNUNET_CONFIGURATION_iterate_section_values(' + section_name
+          + ')');
     if (!(section_name in CONFIG)) {
       Module.print(section_name + ' not in CONFIG');
       return;

@@ -6,7 +6,7 @@ peerstore_prerun = function() {
     removeRunDependency('peerstore-indexedDB');
   };
   request.onerror = function(e) {
-    Module.print('Error opening peerstore database');
+    console.error('Error opening peerstore database');
   };
   request.onupgradeneeded = function(e) {
     var db = e.target.result;
