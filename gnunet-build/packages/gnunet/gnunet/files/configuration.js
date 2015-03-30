@@ -65,8 +65,9 @@ mergeInto(LibraryManager.library, {
       ID_ANNOUNCE_TIME: '1 h',
     },
     datastore: {
-      DATABASE: 'heap',
-      QUOTA: '64 MB',
+      DATABASE: 'emscripten',
+      QUOTA: '1 GB',
+      BLOOMFILTER: '/datastore/bloomfilter',
     },
     fs: {
       DELAY: true,

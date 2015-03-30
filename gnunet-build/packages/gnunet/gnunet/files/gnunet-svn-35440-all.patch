@@ -61,6 +61,32 @@ Index: gnunet-svn-35440/src/arm/gnunet-service-arm.c
 -
 -
  /* end of gnunet-service-arm.c */
+Index: gnunet-svn-35440/src/datastore/Makefile.am
+===================================================================
+--- gnunet-svn-35440/src/datastore/Makefile.am	(revision 35440)
++++ gnunet-svn-35440/src/datastore/Makefile.am	(working copy)
+@@ -105,6 +105,7 @@
+   $(MYSQL_PLUGIN) \
+   $(POSTGRES_PLUGIN) \
+   libgnunet_plugin_datastore_heap.la \
++  libgnunet_plugin_datastore_emscripten.la \
+   libgnunet_plugin_datastore_template.la 
+ 
+ 
+@@ -126,6 +127,13 @@
+ libgnunet_plugin_datastore_heap_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
+ 
++libgnunet_plugin_datastore_emscripten_la_SOURCES = \
++  plugin_datastore_emscripten.c
++libgnunet_plugin_datastore_emscripten_la_LIBADD = \
++  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
++  $(LTLIBINTL)
++libgnunet_plugin_datastore_emscripten_la_LDFLAGS = \
++ $(GN_PLUGIN_LDFLAGS)
+ 
+ libgnunet_plugin_datastore_mysql_la_SOURCES = \
+   plugin_datastore_mysql.c
 Index: gnunet-svn-35440/src/dht/Makefile.am
 ===================================================================
 --- gnunet-svn-35440/src/dht/Makefile.am	(revision 35440)

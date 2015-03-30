@@ -33,7 +33,7 @@ gnunet_prerun = function() {
     'block_dht',
     'block_fs',
     'datacache_heap',
-    'datastore_heap',
+    'datastore_emscripten',
     'peerstore_emscripten',
     'transport_http_client',
   ].forEach(function(plugin) {
@@ -66,7 +66,7 @@ gnunet_prerun = function() {
   var match = location.pathname.match('gnunet-service-(.*).js');
   if (match) {
     var service = match[1];
-    var mounts = {peerinfo: true, fs: true, nse: true};
+    var mounts = {peerinfo: true, fs: true, nse: true, datastore: true};
     if (mounts[service]) {
       var mount = '/' + service;
       FS.mkdir(mount);

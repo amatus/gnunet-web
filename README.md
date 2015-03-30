@@ -16,8 +16,7 @@ Roadmap
     * gnunet-service-nse.js - Done.
     * gnunet-service-dht.js - Done.
     * gnunet-service-cadet.js - Done.
-    * gnunet-service-datastore.js - Building with heap backend plugin.
-        * Needs an [indexedDB] backend plugin.
+    * gnunet-service-datastore.js - Done.
     * gnunet-service-peerstore.js - Done.
     * gnunet-service-fs.js - Done.
 * Write a minimal UI for the file-sharing service.
@@ -25,7 +24,6 @@ Roadmap
     * Publish.
         * The user can only select one file at a time.
         * No directory support.
-        * Needs indexedDB datastore backend for persistence.
         * Needs a GNUnet API change to access the File object piecewise instead
           of loading the entire thing into RAM.
     * Download.
