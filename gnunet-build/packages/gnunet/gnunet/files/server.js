@@ -125,14 +125,14 @@ mergeInto(LibraryManager.library, {
   GNUNET_SERVER_notify_transmit_ready: function(client, size, timeout, callback,
                                            callback_cls) {
     setTimeout(function() {
-      //Module.print('I want to send ' + size + ' bytes to client '
-      //  + SERVER.clients[client].name);
+      console.debug('I want to send ' + size + ' bytes to client '
+        + SERVER.clients[client].name);
       var stack = Runtime.stackSave();
       var buffer = Runtime.stackAlloc(size);
       var ret = Runtime.dynCall('iiii', callback, [callback_cls, size, buffer]);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
-      //Module.print('I\'m sending ' + size + ' bytes to client '
-      //  + SERVER.clients[client].name);
+      console.debug('I\'m sending ' + size + ' bytes to client '
+        + SERVER.clients[client].name);
       // See http://code.google.com/p/chromium/issues/detail?id=169705
       if (ret > 0)
         SERVER.clients[client].port.postMessage(new Uint8Array(view));
@@ -158,9 +158,11 @@ mergeInto(LibraryManager.library, {
     // TODO: We either need to fail client connections when the server is
     // suspended or we could allow connections but queue messages and
     // connection notifications for delivery when the server is resumed.
+    console.debug("SERVER_suspend called");
   },
   GNUNET_SERVER_resume: function(server) {
     // TODO: see GNUNET_SERVER_suspend
+    console.debug("SERVER_resume called");
   },
   GNUNET_SERVER_client_mark_monitor: function(client) {
     // Mark the client as a 'monitor' so we don't wait for it to disconnect
