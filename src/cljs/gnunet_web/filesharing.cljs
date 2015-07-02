@@ -221,14 +221,23 @@
      :callback-key callback-key}))
 
 (defn publish-reader-callback
-  [cls offset-lw offset-hw size buf emsg]
+  [cls offset-lw offset-hw size cont cont-cls]
   (if (zero? size)
     (do (unregister-object cls) 0)
     (let [file (get-object cls)
           offset (i64-to-real [offset-lw offset-hw])
-          file-array (js/Uint8Array. file offset size)]
-      (js/writeArrayToMemory file-array buf)
-      size)))
+          reader (js/FileReader.)]
+      (set!
+        (.-onload reader)
+        (fn [e]
+          (let [result (js/Uint8Array. (.-result (.-target e)))]
+            (js/ccallFunc
+              (+++ (.getFuncWrapper js/Runtime cont "viiii"))
+              "void"
+              (array "number" "array" "number" "number")
+              (array cont-cls result size 0)))))
+      (.readAsArrayBuffer reader (.slice file offset (+ offset size)))
+      1)))
 
 (def publish-reader-callback-pointer
   (+++ (.addFunction js/Runtime publish-reader-callback)))
@@ -240,7 +249,7 @@
 (defn start-publish
   [file keywords metadata block-options]
   (let [file-key (register-object file)
-        length (real-to-i64 (.-byteLength file))
+        length (real-to-i64 (.-size file))
         ch (chan 1)
         callback (fn [info] (go (>! ch info)))
         callback-key (register-object callback)

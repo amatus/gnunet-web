@@ -24,8 +24,6 @@ Roadmap
     * Publish.
         * The user can only select one file at a time.
         * No directory support.
-        * Needs a GNUnet API change to access the File object piecewise instead
-          of loading the entire thing into RAM.
     * Download.
         * No directory support.
         * Needs indexedDB support to store the file piecewise instead of

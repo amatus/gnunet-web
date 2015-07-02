@@ -118,32 +118,26 @@
 
 (defn start-publish
   [keywords metadata file anonymity state-cell progress-cell uri-cell]
-  (let [reader (js/FileReader.)]
-    (set!
-      (.-onload reader)
-      (fn [e]
-        (let [publish (filesharing/start-publish
-                        (.-result (.-target e))
-                        keywords
-                        metadata
-                        {:expiration (+ (* 2 356.24 24 60 60 1000 1000) (now))
-                         :anonymity anonymity
-                         :priority 365
-                         :replication 1})]
-          (go-loop
-            []
-            (when-let [info (<! (:ch publish))]
-              (when (= :publish-start (:status info))
-                (reset! state-cell :active))
-              (when (= :publish-progress (:status info))
-                (reset! progress-cell (if (zero? (:size info))
-                                        0
-                                        (/ (:completed info) (:size info)))))
-              (when (= :publish-completed (:status info))
-                (reset! uri-cell (:uri info))
-                (reset! state-cell :complete))
-              (recur))))))
-    (.readAsArrayBuffer reader file)))
+  (let [publish (filesharing/start-publish
+                  file
+                  keywords
+                  metadata
+                  {:expiration (+ (* 2 356.24 24 60 60 1000 1000) (now))
+                   :anonymity anonymity
+                   :priority 365
+                   :replication 1})]
+    (go-loop []
+             (when-let [info (<! (:ch publish))]
+               (when (= :publish-start (:status info))
+                 (reset! state-cell :active))
+               (when (= :publish-progress (:status info))
+                 (reset! progress-cell (if (zero? (:size info))
+                                         0
+                                         (/ (:completed info) (:size info)))))
+               (when (= :publish-completed (:status info))
+                 (reset! uri-cell (:uri info))
+                 (reset! state-cell :complete))
+               (recur)))))
 
 (try
   (def topology-worker (service/start-worker "topology"
