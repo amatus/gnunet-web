@@ -1,8 +1,8 @@
-Index: gnunet-svn-35965/configure.ac
+Index: gnunet-svn-36045/configure.ac
 ===================================================================
---- gnunet-svn-35965/configure.ac	(revision 35965)
-+++ gnunet-svn-35965/configure.ac	(working copy)
-@@ -621,7 +621,7 @@
+--- gnunet-svn-36045/configure.ac	(revision 36045)
++++ gnunet-svn-36045/configure.ac	(working copy)
+@@ -623,7 +623,7 @@
      AC_CHECK_HEADERS(ltdl.h,
       AC_CHECK_LIB([ltdl], [lt_dlopenext],
        ltdl=1))])
@@ -11,10 +11,10 @@ Index: gnunet-svn-35965/configure.ac
  then
   AC_MSG_RESULT([libltdl found])
  else
-Index: gnunet-svn-35965/src/Makefile.am
+Index: gnunet-svn-36045/src/Makefile.am
 ===================================================================
---- gnunet-svn-35965/src/Makefile.am	(revision 35965)
-+++ gnunet-svn-35965/src/Makefile.am	(working copy)
+--- gnunet-svn-36045/src/Makefile.am	(revision 36045)
++++ gnunet-svn-36045/src/Makefile.am	(working copy)
 @@ -77,10 +77,8 @@
    peerinfo-tool \
    core \
@@ -41,10 +41,10 @@ Index: gnunet-svn-35965/src/Makefile.am
    $(EXP_DIR)
  
  endif
-Index: gnunet-svn-35965/src/datastore/Makefile.am
+Index: gnunet-svn-36045/src/datastore/Makefile.am
 ===================================================================
---- gnunet-svn-35965/src/datastore/Makefile.am	(revision 35965)
-+++ gnunet-svn-35965/src/datastore/Makefile.am	(working copy)
+--- gnunet-svn-36045/src/datastore/Makefile.am	(revision 36045)
++++ gnunet-svn-36045/src/datastore/Makefile.am	(working copy)
 @@ -104,7 +104,8 @@
    $(SQLITE_PLUGIN) \
    $(MYSQL_PLUGIN) \
@@ -69,10 +69,10 @@ Index: gnunet-svn-35965/src/datastore/Makefile.am
  
  libgnunet_plugin_datastore_mysql_la_SOURCES = \
    plugin_datastore_mysql.c
-Index: gnunet-svn-35965/src/dht/Makefile.am
+Index: gnunet-svn-36045/src/dht/Makefile.am
 ===================================================================
---- gnunet-svn-35965/src/dht/Makefile.am	(revision 35965)
-+++ gnunet-svn-35965/src/dht/Makefile.am	(working copy)
+--- gnunet-svn-36045/src/dht/Makefile.am	(revision 36045)
++++ gnunet-svn-36045/src/dht/Makefile.am	(working copy)
 @@ -55,12 +55,6 @@
   gnunet-service-dht-whanau
  endif
@@ -86,10 +86,10 @@ Index: gnunet-svn-35965/src/dht/Makefile.am
  gnunet_service_dht_SOURCES = \
   gnunet-service-dht.c gnunet-service-dht.h \
   gnunet-service-dht_clients.c gnunet-service-dht_clients.h \
-Index: gnunet-svn-35965/src/dns/Makefile.am
+Index: gnunet-svn-36045/src/dns/Makefile.am
 ===================================================================
---- gnunet-svn-35965/src/dns/Makefile.am	(revision 35965)
-+++ gnunet-svn-35965/src/dns/Makefile.am	(working copy)
+--- gnunet-svn-36045/src/dns/Makefile.am	(revision 36045)
++++ gnunet-svn-36045/src/dns/Makefile.am	(working copy)
 @@ -18,14 +18,6 @@
  pkgcfg_DATA = \
    dns.conf
@@ -105,10 +105,10 @@ Index: gnunet-svn-35965/src/dns/Makefile.am
  lib_LTLIBRARIES = \
    libgnunetdnsparser.la \
    libgnunetdnsstub.la \
-Index: gnunet-svn-35965/src/nat/Makefile.am
+Index: gnunet-svn-36045/src/nat/Makefile.am
 ===================================================================
---- gnunet-svn-35965/src/nat/Makefile.am	(revision 35965)
-+++ gnunet-svn-35965/src/nat/Makefile.am	(working copy)
+--- gnunet-svn-36045/src/nat/Makefile.am	(revision 36045)
++++ gnunet-svn-36045/src/nat/Makefile.am	(working copy)
 @@ -15,24 +15,6 @@
  dist_pkgcfg_DATA = \
    nat.conf
@@ -134,10 +134,10 @@ Index: gnunet-svn-35965/src/nat/Makefile.am
  bin_PROGRAMS = \
   gnunet-nat-server 
  
-Index: gnunet-svn-35965/src/peerstore/Makefile.am
+Index: gnunet-svn-36045/src/peerstore/Makefile.am
 ===================================================================
---- gnunet-svn-35965/src/peerstore/Makefile.am	(revision 35965)
-+++ gnunet-svn-35965/src/peerstore/Makefile.am	(working copy)
+--- gnunet-svn-36045/src/peerstore/Makefile.am	(revision 36045)
++++ gnunet-svn-36045/src/peerstore/Makefile.am	(working copy)
 @@ -52,7 +52,7 @@
    $(GN_LIB_LDFLAGS)
  
@@ -166,10 +166,10 @@ Index: gnunet-svn-35965/src/peerstore/Makefile.am
  check_PROGRAMS = \
   test_peerstore_api_store \
   test_peerstore_api_iterate \
-Index: gnunet-svn-35965/src/set/Makefile.am
+Index: gnunet-svn-36045/src/set/Makefile.am
 ===================================================================
---- gnunet-svn-35965/src/set/Makefile.am	(revision 35965)
-+++ gnunet-svn-35965/src/set/Makefile.am	(working copy)
+--- gnunet-svn-36045/src/set/Makefile.am	(revision 36045)
++++ gnunet-svn-36045/src/set/Makefile.am	(working copy)
 @@ -16,9 +16,6 @@
    AM_CFLAGS = -fprofile-arcs -ftest-coverage
  endif
@@ -180,10 +180,10 @@ Index: gnunet-svn-35965/src/set/Makefile.am
  libexec_PROGRAMS = \
   gnunet-service-set
  
-Index: gnunet-svn-35965/src/transport/Makefile.am
+Index: gnunet-svn-36045/src/transport/Makefile.am
 ===================================================================
---- gnunet-svn-35965/src/transport/Makefile.am	(revision 35965)
-+++ gnunet-svn-35965/src/transport/Makefile.am	(working copy)
+--- gnunet-svn-36045/src/transport/Makefile.am	(revision 36045)
++++ gnunet-svn-36045/src/transport/Makefile.am	(working copy)
 @@ -80,20 +80,6 @@
  endif
  
@@ -238,10 +238,10 @@ Index: gnunet-svn-35965/src/transport/Makefile.am
  libgnunet_plugin_transport_http_client_la_LIBADD = \
    $(top_builddir)/src/hello/libgnunethello.la \
    $(top_builddir)/src/statistics/libgnunetstatistics.la \
-Index: gnunet-svn-35965/src/util/Makefile.am
+Index: gnunet-svn-36045/src/util/Makefile.am
 ===================================================================
---- gnunet-svn-35965/src/util/Makefile.am	(revision 35965)
-+++ gnunet-svn-35965/src/util/Makefile.am	(working copy)
+--- gnunet-svn-36045/src/util/Makefile.am	(revision 36045)
++++ gnunet-svn-36045/src/util/Makefile.am	(working copy)
 @@ -59,14 +59,10 @@
  libgnunetutil_la_SOURCES = \
    bandwidth.c \
