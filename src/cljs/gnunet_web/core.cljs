@@ -1,5 +1,5 @@
 ;; core.cljs - core service for gnunet-web website
-;; Copyright (C) 2014  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2014,2015  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -15,7 +15,8 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.core
-  (:require [gnunet-web.service :as service] ;; leave this here
+  (:require [client-lib]
+            [gnunet-web.service :as service] ;; leave this here
             [gnunet-web.util :refer [get-object read-memory register-object
                                      unregister-object]])
   (:require-macros [fence.core :refer [+++]]))

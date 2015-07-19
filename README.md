@@ -25,6 +25,7 @@ Roadmap
         * The user can only select one file at a time.
         * No directory support.
     * Download.
+        * No URI support.
         * No directory support.
         * Needs indexedDB support to store the file piecewise instead of
           storing the entire thing in RAM.
@@ -40,7 +41,7 @@ gnunet-web only works in Chromium or Google Chrome.
 
 ### Try gnunet-web pre-alpha ###
 0. Execute `./build-gnunet.sh`
-1. Execute `boot development`
+1. Execute `boot dev`
 2. Open http://localhost:8000/
 
 Each GNUnet service is running in its own [Web Worker] thread. The APIs used by
@@ -72,5 +73,5 @@ To debug a shared worker in chrome open chrome://inspect and click the
   [rfc3264]: http://www.ietf.org/rfc/rfc3264.txt
   [web worker]: http://www.w3.org/TR/workers/
   [indexeddb]: http://www.w3.org/TR/IndexedDB/
-  [boot]: https://github.com/tailrecursion/boot
+  [boot]: https://github.com/boot-clj/boot#install
 

@@ -1,5 +1,5 @@
 ;; parser.cljs - parser monad for gnunet-web website
-;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2013-2015  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.parser
-  (:require [goog.crypt :refer [utf8ByteArrayToString]]
+  (:require [goog.crypt :as gcrypt]
             [monads.core :as m :refer [bind get-state join maybe plus set-state
                                        state-t zero]])
   (:require-macros [monads.macros :as monadic]))
@@ -73,7 +73,7 @@
                xs (none-or-more mv)]
               (cons x xs)))
 
-(defn repeat
+(defn repeat-n
   "Makes a parser repeat exactly n times."
   [n mv]
   (m/seq (clojure.core/repeat n mv)))
@@ -139,6 +139,6 @@
   (monadic/do parser
               [xs (none-or-more (satisfy (comp not zero?)))
                _ (items 1)]
-              (utf8ByteArrayToString (to-array xs))))
+              (gcrypt/utf8ByteArrayToString (to-array xs))))
 
 (def parse-absolute-time parse-uint64)

@@ -1,5 +1,5 @@
 ;; extractor.cljs - libextractor used by gnunet-web website
-;; Copyright (C) 2014  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2014,2015  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -14,7 +14,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(ns gnunet-web.extractor)
+(ns gnunet-web.extractor
+  (:require [client-lib]))
 
 (def format-unknown 0)
 (def format-utf8 1)

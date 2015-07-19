@@ -1,5 +1,5 @@
 ;; encoder.cljs - network encodings for gnunet-web website
-;; Copyright (C) 2014  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2014,2015  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.encoder
-  (:require [goog.crypt :refer [stringToUtf8ByteArray]]))
+  (:require [goog.crypt :as gcrypt]))
 
 (defn encode-uint8
   [x]
@@ -42,7 +42,7 @@
 (defn encode-utf8
   [x]
   (concat
-    (stringToUtf8ByteArray x)
+    (gcrypt/stringToUtf8ByteArray x)
     [0]))
 
 (def encode-absolute-time encode-uint64)

@@ -1,34 +1,41 @@
-#!/usr/bin/env boot
-
-#tailrecursion.boot.core/version "2.5.0"
-
 (set-env!
-  :project      'gnunet-web
-  :version      "0.1.0-SNAPSHOT"
-  :dependencies '[[fence                     "0.2.0"]
+  :dependencies '[[adzerk/boot-cljs          "0.0-3308-0"]
+                  [adzerk/boot-reload        "0.3.0"]
+                  [fence                     "0.2.0"]
                   [net.clojure/monads        "1.0.2"]
+                  [org.clojure/clojure       "1.7.0"]
+                  [org.clojure/clojurescript "0.0-3308"]
                   [org.clojure/core.async    "0.1.303.0-886421-alpha"]
-                  [tailrecursion/boot.task   "2.2.1"]
-                  [tailrecursion/hoplon      "5.10.22"]]
-  :out-path     "resources/public"
-  :src-paths    #{"src"})
-
-;; Static resources (css, images, etc.):
-(add-sync! (get-env :out-path) #{"assets"})
+                  [pandeiro/boot-http        "0.6.3-SNAPSHOT"]
+                  [tailrecursion/boot-hoplon "0.1.0"]
+                  [tailrecursion/cljson      "1.0.7"]
+                  [tailrecursion/hoplon      "6.0.0-alpha2"]]
+  :source-paths #{"src/cljs" "src/hl" "src/js"}
+  :resource-paths #{"assets"})
 
 (require
-  '[tailrecursion.hoplon.boot    :refer :all]
-  '[tailrecursion.boot.task.ring :refer [dev-server]])
+  '[adzerk.boot-cljs          :refer [cljs]]
+  '[adzerk.boot-reload        :refer [reload]]
+  '[pandeiro.boot-http        :refer [serve]]
+  '[tailrecursion.boot-hoplon :refer [hoplon prerender]])
 
-(deftask development
+(deftask dev
   "Build gnunet-web for development."
   []
   (comp
+    (serve :dir "target/" :port 8000)
     (watch)
-    (hoplon {:prerender false :pretty-print true})
-    (dev-server)))
+    (speak)
+    (hoplon)
+    (reload)
+    (cljs :pretty-print true)))
 
-(deftask production
+(deftask prod
   "Build gnunet-web for production."
   []
-  (hoplon {:optimizations :advanced}))
+  (comp
+    (hoplon)
+    (cljs :optimizations :advanced)
+    (prerender)))
+
+;; vim: set filetype=clojure :

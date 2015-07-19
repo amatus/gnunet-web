@@ -1,4 +1,7 @@
 *.swp
+.nrepl-*
+target/
+out/
 downloads/
 /gnunet
 gnunet-build/artifacts/

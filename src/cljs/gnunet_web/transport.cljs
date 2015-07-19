@@ -1,5 +1,5 @@
 ;; transport.cljs - transport service for gnunet-web website
-;; Copyright (C) 2014  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2014,2015  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -15,12 +15,13 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.transport
-  (:require [cljs.core.async :refer [chan close!]]
+  (:require [client-lib]
+            [cljs.core.async :refer [chan close!]]
             [gnunet-web.hello :refer [encode-hello]]
             [gnunet-web.service :as service] ;; leave this here
             [gnunet-web.util :refer [get-object read-memory register-object
                                      unregister-object]]
-            [goog.crypt :refer [utf8ByteArrayToString]])
+            [goog.crypt :as gcrypt])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                    [fence.core :refer [+++]]))
 
@@ -98,7 +99,8 @@
                   (let [transport (js/Pointer_stringify transport-pointer)
                         address (read-memory address-pointer address-length)]
                     (when (= "http_client" transport)
-                      (utf8ByteArrayToString (to-array (drop 8 address))))))})))
+                      (gcrypt/utf8ByteArrayToString
+                        (to-array (drop 8 address))))))})))
 
 (def monitor-callback-pointer (+++ (.addFunction js/Runtime monitor-callback)))
 

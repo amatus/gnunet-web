@@ -1,5 +1,5 @@
 ;; index.cljs.hl - The gnunet-web website
-;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2013-2015  David Barksdale <amatus@amatus.name>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,7 +22,8 @@
                 [gnunet-web.metadata :as metadata]
                 [gnunet-web.service :as service]
                 [gnunet-web.transport :as transport]
-                [gnunet-web.util :refer [data->string now]])
+                [gnunet-web.util :refer [data->string now]]
+                [semantic-ui])
       (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                        [fence.core :refer [+++]]))
 
@@ -157,9 +158,9 @@
                           attr
                           (div :class "bar"
                                (div :class "progress")))]
-           (with-init! (+++ (.progress
-                              (js/$ progress)
-                              (js-obj "percent" 0))))
+           (with-timeout 0 (+++ (.progress
+                                  (js/$ progress)
+                                  (js-obj "percent" 0))))
            (add-watch state nil
                       (fn [_ _ _ new-state]
                         (+++ (.progress
@@ -257,13 +258,13 @@
                           (i :class "dropdown icon")
                           (div :class "menu"
                                (map #(div :class "item" %) kids)))]
-           (with-init! (+++ (.dropdown (js/$ dropdown))))
+           (with-timeout 0 (+++ (.dropdown (js/$ dropdown))))
            dropdown))
 
 (defelem ui-popup
          [{:keys [settings] :as attr} kids]
          (let [popup (div (dissoc attr :settings) kids)]
-           (with-init! (+++ (.popup (js/$ popup) (clj->js settings))))
+           (with-timeout 0 (+++ (.popup (js/$ popup) (clj->js settings))))
            popup))
 
 (defelem peer-table
