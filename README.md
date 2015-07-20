@@ -27,8 +27,6 @@ Roadmap
     * Download.
         * No URI support.
         * No directory support.
-        * Needs indexedDB support to store the file piecewise instead of
-          storing the entire thing in RAM.
 * Release alpha.
 * Write a WebRTC transport plugin.
     * Implement [RFC3264] over GNUnet.

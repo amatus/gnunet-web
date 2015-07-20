@@ -15,7 +15,8 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (page "index.html"
-      (:require [gnunet-web.core :as core]
+      (:require [amatus.filestorage :as file]
+                [gnunet-web.core :as core]
                 [gnunet-web.extractor :as extractor]
                 [gnunet-web.filesharing :as filesharing]
                 [gnunet-web.hostlist :as hostlist]
@@ -92,30 +93,24 @@
 (defn start-download
   [uri anonymity state-cell progress-cell object-cell]
   (let [download (filesharing/start-download uri anonymity)
-        buffer (js/Uint8Array. (:size download))]
-    (go-loop
-      []
-      (when-let [info (<! (:ch download))]
-        (when (= :download-start (:status info))
-          (reset! state-cell :downloading))
-        (when (= :download-completed (:status info))
-          (reset! object-cell
-                  ;; XXX this needs to be revoked when we're finished
-                  (.createObjectURL
-                    js/URL
-                    (js/Blob. (array buffer)
-                              (js-obj "type" "application/octet-stream"))))
-          (reset! state-cell :complete))
-        (when (zero? (:depth info))
-          (let [offset (:offset info)
-                dst (.subarray buffer
-                               offset
-                               (+ offset (.-length (:data info))))]
-            (.set dst (:data info))))
-        (reset! progress-cell (if (zero? (:size info))
-                                0
-                                (/ (:completed info) (:size info))))
-        (recur)))))
+        file-ch (file/create "application/octet-stream")]
+    (go
+      (let [file-handle (<! file-ch)]
+        (loop []
+          (when-let [info (<! (:ch download))]
+            (when (= :download-start (:status info))
+              (reset! state-cell :downloading))
+            (when (= :download-completed (:status info))
+              (let [object (<! (file/create-object-url file-handle))]
+                ;; XXX this needs to be revoked when we're finished
+                (reset! object-cell object)
+                (reset! state-cell :complete)))
+            (when (zero? (:depth info))
+              (file/write file-handle (:offset info) (:data info)))
+            (reset! progress-cell (if (zero? (:size info))
+                                    0
+                                    (/ (:completed info) (:size info))))
+            (recur)))))))
 
 (defn start-publish
   [keywords metadata file anonymity state-cell progress-cell uri-cell]
