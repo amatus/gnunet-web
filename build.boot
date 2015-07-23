@@ -1,6 +1,5 @@
 (set-env!
   :dependencies '[[adzerk/boot-cljs          "0.0-3308-0"]
-                  [adzerk/boot-reload        "0.3.0"]
                   [fence                     "0.2.0"]
                   [net.clojure/monads        "1.0.2"]
                   [org.clojure/clojure       "1.7.0"]
@@ -15,7 +14,6 @@
 
 (require
   '[adzerk.boot-cljs          :refer [cljs]]
-  '[adzerk.boot-reload        :refer [reload]]
   '[pandeiro.boot-http        :refer [serve]]
   '[tailrecursion.boot-hoplon :refer [hoplon prerender]])
 
@@ -27,7 +25,6 @@
     (watch)
     (speak)
     (hoplon)
-    (reload)
     (cljs :pretty-print true)))
 
 (deftask prod
