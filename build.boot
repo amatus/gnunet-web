@@ -5,11 +5,11 @@
                   [net.clojure/monads        "1.0.2"]
                   [org.clojure/clojure       "1.7.0"]
                   [org.clojure/clojurescript "0.0-3308"]
-                  [org.clojure/core.async    "0.1.303.0-886421-alpha"]
-                  [pandeiro/boot-http        "0.6.3-SNAPSHOT"]
+                  [org.clojure/core.async    "0.1.346.0-17112a-alpha"]
+                  [pandeiro/boot-http        "0.6.3"]
                   [tailrecursion/boot-hoplon "0.1.0"]
                   [tailrecursion/cljson      "1.0.7"]
-                  [tailrecursion/hoplon      "6.0.0-alpha2"]]
+                  [tailrecursion/hoplon      "6.0.0-alpha4"]]
   :source-paths #{"src/cljs" "src/hl" "src/js"}
   :resource-paths #{"assets"})
 
