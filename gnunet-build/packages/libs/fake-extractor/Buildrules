@@ -1,6 +1,6 @@
 VERSION="1.0"
 DESCRIPTION="Fake-extractor provides the minimum functionality of libextractor."
-SOURCE_URI="bogus"
+SOURCE_URI="file://"
 
 pkg_compile() {
         export TEMP_DIR="${T}"
