@@ -1,5 +1,5 @@
 // client-pre.js - linked into gnunet-web client library
-// Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2015  David Barksdale <amatus@amatus.name>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,27 +14,40 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-gnunet_prerun = function() {
-  // Create /dev/random but it doesn't need to do anything
-  var id = FS.makedev(1, 8);
-  FS.registerDevice(id, {});
-  FS.mkdev('/dev/random', id);
-
-  // Create /dev/urandom
-  var id = FS.makedev(1, 9);
-  FS.registerDevice(id, {
-    read: function(stream, buffer, offset, length, pos) {
-      var random_bytes = new Uint8Array(length);
-      window.crypto.getRandomValues(random_bytes);
-      for (var i = 0; i < length; i++) {
-        buffer[offset+i] = random_bytes[i];
+// emscripten removed this insanely useful function, wtf?
+function ccallFunc(func, returnType, argTypes, args) {
+  var toC = {'string' : function(str) {
+      var ret = 0;
+      if (str !== null && str !== undefined && str !== 0) { // null string
+        // at most 4 bytes per UTF-8 code point, +1 for the trailing '\0'
+        ret = Runtime.stackAlloc((str.length << 2) + 1);
+        writeStringToMemory(str, ret);
       }
-      return i;
-    },
-  });
-  FS.mkdev('/dev/urandom', id);
+      return ret;
+    }, 'array' : function(arr) {
+      var ret = Runtime.stackAlloc(arr.length);
+      writeArrayToMemory(arr, ret);
+      return ret;
+    }};
+  var cArgs = [];
+  var stack = 0;
+  if (args) {
+    for (var i = 0; i < args.length; i++) {
+      var converter = toC[argTypes[i]];
+      if (converter) {
+        if (stack === 0) stack = Runtime.stackSave();
+        cArgs[i] = converter(args[i]);
+      } else {
+        cArgs[i] = args[i];
+      }
+    }
+  }
+  var ret = func.apply(null, cArgs);
+  if (returnType === 'string') ret = Pointer_stringify(ret);
+  if (stack !== 0) {
+    Runtime.stackRestore(stack);
+  }
+  return ret;
 }
-if (typeof(Module) === "undefined") Module = { preRun: [] };
-Module.preRun.push(gnunet_prerun);
 
 // vim: set expandtab ts=2 sw=2:

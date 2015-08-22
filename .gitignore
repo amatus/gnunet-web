@@ -13,4 +13,4 @@ gnunet-build/tmp/
 /assets/js/gnunet-daemon-*.js
 /assets/js/gnunet-service-*.js
 /assets/js/libgnunet_plugin_*.js
-/src/js/client-lib.inc.js
+/src/js/client-lib.js

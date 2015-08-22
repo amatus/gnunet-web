@@ -32,47 +32,42 @@ pkg_compile() {
 		--enable-logging=verbose \
 		ac_cv_lib_idn_stringprep_check_version=yes \
 		ac_cv_func_srandom=no \
+		ac_cv_func_getifaddrs=no \
                 CPPFLAGS="-I${SYSROOT}/usr/include" \
                 LDFLAGS="-L${SYSROOT}/usr/lib"
         emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
 	mkdir -p "${D}/var/lib/gnunet/js"
+	OPT_LEVEL=""
 	#
 	# libgnunetblock plugins
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+		${OPT_LEVEL} \
+		-s SIDE_MODULE=1 \
 		-s EXPORTED_FUNCTIONS='["_libgnunet_plugin_block_dht_init"]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/dht/libgnunet_plugin_block_dht.js" \
 		"${S}/src/dht/plugin_block_dht.lo"
-	mv "${TEMP_DIR}/imports" libgnunet_plugin_block_dht.imports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+		${OPT_LEVEL} \
+		-s SIDE_MODULE=1 \
 		-s EXPORTED_FUNCTIONS='["_libgnunet_plugin_block_fs_init"]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/fs/libgnunet_plugin_block_fs.js" \
 		"${S}/src/fs/plugin_block_fs.lo"
-	mv "${TEMP_DIR}/imports" libgnunet_plugin_block_fs.imports
-	cat libgnunet_plugin_block_dht.imports \
-		libgnunet_plugin_block_fs.imports \
-		> libgnunet_plugin_block.imports
 	cp "${S}/src/dht/libgnunet_plugin_block_dht.js" \
 		"${S}/src/fs/libgnunet_plugin_block_fs.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Peerinfo
 	#
-	( echo '['
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > peerinfo.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s EXPORTED_FUNCTIONS=@peerinfo.exports \
+		${OPT_LEVEL} \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/peerinfo/gnunet-service-peerinfo.js" \
 		"${S}/src/peerinfo/gnunet-service-peerinfo.o" \
@@ -88,21 +83,21 @@ pkg_compile() {
 		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/peerinfo/.libs/gnunet-service-peerinfo.js" \
+		"${S}/src/peerinfo/.libs/gnunet-service-peerinfo.js.mem" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# libdatacache plugin
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+		${OPT_LEVEL} \
+		-s SIDE_MODULE=1 \
 		-s EXPORTED_FUNCTIONS='[
 			"_libgnunet_plugin_datacache_heap_init"
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/datacache/libgnunet_plugin_datacache_heap.js" \
 		"${S}/src/datacache/plugin_datacache_heap.lo"
-	mv "${TEMP_DIR}/imports" libgnunet_plugin_datacache_heap.imports
 	cp "${S}/src/datacache/libgnunet_plugin_datacache_heap.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
@@ -110,23 +105,20 @@ pkg_compile() {
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+		${OPT_LEVEL} \
+		-s SIDE_MODULE=1 \
 		-s EXPORTED_FUNCTIONS='[
 			"_libgnunet_plugin_datastore_emscripten_init",
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/datastore/libgnunet_plugin_datastore_emscripten.js" \
 		"${S}/src/datastore/plugin_datastore_emscripten.lo"
-	( echo '['
-	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > datastore.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@datastore.exports \
+		${OPT_LEVEL} \
+		-s MAIN_MODULE=1 \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		-s TOTAL_MEMORY=$((80 * 1024 * 1024)) \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/datastore/gnunet-service-datastore.js" \
@@ -143,6 +135,7 @@ pkg_compile() {
 		--pre-js "${F}/pre.js" \
 		--pre-js "${F}/datastore-pre.js"
 	cp "${S}/src/datastore/.libs/gnunet-service-datastore.js" \
+		"${S}/src/datastore/.libs/gnunet-service-datastore.js.mem" \
 		"${S}/src/datastore/libgnunet_plugin_datastore_emscripten.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
@@ -150,23 +143,20 @@ pkg_compile() {
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+		${OPT_LEVEL} \
+		-s SIDE_MODULE=1 \
 		-s EXPORTED_FUNCTIONS='[
 			"_libgnunet_plugin_ats_proportional_init"
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
 		"${S}/src/ats/plugin_ats_proportional.lo"
-	( echo '['
-	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > ats.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@ats.exports \
+		${OPT_LEVEL} \
+		-s MAIN_MODULE=1 \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/gnunet-service-ats.js" \
 		"${S}/src/ats/gnunet-service-ats"*.o \
@@ -184,6 +174,7 @@ pkg_compile() {
 		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/ats/.libs/gnunet-service-ats.js" \
+		"${S}/src/ats/.libs/gnunet-service-ats.js.mem" \
 		"${S}/src/ats/libgnunet_plugin_ats_proportional.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
@@ -191,8 +182,8 @@ pkg_compile() {
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+		${OPT_LEVEL} \
+		-s SIDE_MODULE=1 \
 		-s EXPORTED_FUNCTIONS='[
 			"_libgnunet_plugin_transport_http_client_init",
 		]' \
@@ -200,15 +191,12 @@ pkg_compile() {
 		-o "${S}/src/transport/libgnunet_plugin_transport_http_client.js" \
 		"${S}/src/transport/libgnunet_plugin_transport_http_client_la-plugin_transport_http_client_emscripten.lo" \
 		"${S}/src/transport/libgnunet_plugin_transport_http_client_la-plugin_transport_http_common.lo"
-	( echo '['
-	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > transport.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@transport.exports \
+		${OPT_LEVEL} \
+		-s MAIN_MODULE=1 \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
 "${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
@@ -228,18 +216,17 @@ pkg_compile() {
 		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/transport/.libs/gnunet-service-transport.js" \
+		"${S}/src/transport/.libs/gnunet-service-transport.js.mem" \
 		"${S}/src/transport/libgnunet_plugin_transport_http_client.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Core
 	#
-	( echo '['
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > core.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s EXPORTED_FUNCTIONS=@core.exports \
+		${OPT_LEVEL} \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/core/gnunet-service-core.js" \
 		"${S}/src/core/gnunet-service-core"*.o \
@@ -257,17 +244,16 @@ pkg_compile() {
 		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/core/.libs/gnunet-service-core.js" \
+		"${S}/src/core/.libs/gnunet-service-core.js.mem" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Network Size Estimation
 	#
-	( echo '['
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > nse.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s EXPORTED_FUNCTIONS=@nse.exports \
+		${OPT_LEVEL} \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/nse/gnunet-service-nse.js" \
 		"${S}/src/nse/gnunet-service-nse.o" \
@@ -285,21 +271,18 @@ pkg_compile() {
 		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/nse/.libs/gnunet-service-nse.js" \
+		"${S}/src/nse/.libs/gnunet-service-nse.js.mem" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Distributed Hash Table
 	#
-	( echo '['
-	  sed -e 's/.*/"&",/' < libgnunet_plugin_block.imports
-	  sed -e 's/.*/"&",/' < libgnunet_plugin_datacache_heap.imports
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > dht.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
+		${OPT_LEVEL} \
+		-s MAIN_MODULE=1 \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
-		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@dht.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/dht/gnunet-service-dht.js" \
 		"${S}/src/dht/gnunet-service-dht"*.o \
@@ -324,17 +307,16 @@ pkg_compile() {
 		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/dht/.libs/gnunet-service-dht.js" \
+		"${S}/src/dht/.libs/gnunet-service-dht.js.mem" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Topology
 	#
-	( echo '['
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > topology.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s EXPORTED_FUNCTIONS=@topology.exports \
+		${OPT_LEVEL} \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/topology/gnunet-daemon-topology.js" \
 		"${S}/src/topology/gnunet-daemon-topology.o" \
@@ -354,19 +336,17 @@ pkg_compile() {
 		--js-library "${F}/server.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/topology/.libs/gnunet-daemon-topology.js" \
+		"${S}/src/topology/.libs/gnunet-daemon-topology.js.mem" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Cadet
 	#
-	( echo '['
-	  sed -e 's/.*/"&",/' < libgnunet_plugin_block.imports
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > cadet.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@cadet.exports \
+		${OPT_LEVEL} \
+		-s MAIN_MODULE=1 \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/cadet/gnunet-service-cadet.js" \
 		"${S}/src/cadet/gnunet_service_cadet"*.o \
@@ -389,29 +369,27 @@ pkg_compile() {
 		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/cadet/.libs/gnunet-service-cadet.js" \
+		"${S}/src/cadet/.libs/gnunet-service-cadet.js.mem" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Peerstore
 	#
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s SIDE_MODULE=1 \
+		${OPT_LEVEL} \
+		-s SIDE_MODULE=1 \
 		-s EXPORTED_FUNCTIONS='[
 			"_libgnunet_plugin_peerstore_emscripten_init",
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/peerstore/libgnunet_plugin_peerstore_emscripten.js" \
 		"${S}/src/peerstore/plugin_peerstore_emscripten.lo"
-	( echo '['
-	  sed -e 's/.*/"&",/' < "${TEMP_DIR}/imports"
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > peerstore.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
-		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@peerstore.exports \
+		${OPT_LEVEL} \
+		-s MAIN_MODULE=1 \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/peerstore/gnunet-service-peerstore.js" \
 		"${S}/src/peerstore/gnunet_service_peerstore"*.o \
@@ -426,21 +404,19 @@ pkg_compile() {
 		--pre-js "${F}/pre.js" \
 		--pre-js "${F}/peerstore-pre.js"
 	cp "${S}/src/peerstore/.libs/gnunet-service-peerstore.js" \
+	   "${S}/src/peerstore/.libs/gnunet-service-peerstore.js.mem" \
 		"${S}/src/peerstore/libgnunet_plugin_peerstore_emscripten.js" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# File Sharing
 	#
-	( echo '['
-	  sed -e 's/.*/"&",/' < libgnunet_plugin_block.imports
-	  sed -e 's/.*/"&",/' < "${F}/imports"
-          echo '"_main"]' ) > fs.exports
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
+		${OPT_LEVEL} \
+		-s MAIN_MODULE=1 \
+		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		--memory-init-file 1 \
 		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
-		-s DLOPEN_SUPPORT=1 -s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@fs.exports \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/fs/gnunet-service-fs.js" \
 		"${S}/src/fs/gnunet-service-fs"*.o \
@@ -465,6 +441,7 @@ pkg_compile() {
 		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/fs/.libs/gnunet-service-fs.js" \
+		"${S}/src/fs/.libs/gnunet-service-fs.js.mem" \
 		"${D}/var/lib/gnunet/js/"
 	#
 	# Client Library
@@ -476,7 +453,7 @@ pkg_compile() {
 		"${F}/client-lib.c"
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		-O2 \
+		${OPT_LEVEL} \
 		-s EXPORTED_FUNCTIONS=@${F}/client-lib.exports \
 		-s RESERVED_FUNCTION_POINTERS=100 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \

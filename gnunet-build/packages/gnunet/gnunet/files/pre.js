@@ -1,5 +1,5 @@
 // pre.js - linked into each gnunet-web service
-// Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2013-2015  David Barksdale <amatus@amatus.name>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,18 +16,11 @@
 
 var xhrs = []; // plugin_transport_http_client
 
-var WorkerMessageQueue = [];
-function flush_worker_message_queue(f) {
-  WorkerMessageQueue.forEach(f);
-  WorkerMessageQueue = [];
-}
 var dev_urandom_bytes = 0;
 var random_bytes = [];
 var random_offset = 0;
 gnunet_prerun = function() {
   ENV.GNUNET_PREFIX = "/.";
-  //Module['print'] = function(x) { WorkerMessageQueue.push(x); };
-  //Module['printErr'] = function(x) { Module.print(x); };
   [
     'ats_proportional',
     'block_dht',
@@ -41,12 +34,8 @@ gnunet_prerun = function() {
         'libgnunet_plugin_' + plugin + '.js', true, false);
   });
 
-  // Create /dev/random but it doesn't need to do anything
-  var id = FS.makedev(1, 8);
-  FS.registerDevice(id, {});
-  FS.mkdev('/dev/random', id);
-
-  // Create /dev/urandom
+  // Create /dev/urandom that provides strong random bytes from the parent
+  // window since workers don't have crypto
   var id = FS.makedev(1, 9);
   FS.registerDevice(id, {
     read: function(stream, buffer, offset, length, pos) {
@@ -60,6 +49,7 @@ gnunet_prerun = function() {
       return i;
     },
   });
+  FS.unlink('/dev/urandom');
   FS.mkdev('/dev/urandom', id);
 
   //  Mount IDBFS for services that use it
@@ -85,8 +75,8 @@ gnunet_prerun = function() {
   }
   addRunDependency('window-init');
 }
-if (typeof(Module) === "undefined") Module = { preRun: [] };
-Module.preRun.push(gnunet_prerun);
+if (typeof(Module) === "undefined") Module = { 'preInit': [] };
+Module['preInit'].push(gnunet_prerun);
 
 // a map of window index to port
 var windows = {};
@@ -108,21 +98,17 @@ function do_to_window(fn) {
 }
 
 function get_message(ev) {
-  if ('init' == ev.data.type) {
-    var stdout = new MessageChannel();
-    var stderr = new MessageChannel();
-    //Module['print'] = function(x) { stdout.port1.postMessage(x); };
-    //Module['printErr'] = function(x) { stderr.port1.postMessage(x); };
-    //flush_worker_message_queue(Module.print);
-    ev.target.postMessage(
-      {type: 'init', stdout: stdout.port2, stderr: stderr.port2},
-      [stdout.port2, stderr.port2]);
-    FS.writeFile('/private_key', ev.data['private-key'], {encoding: 'binary'});
-    random_bytes = ev.data['random-bytes'];
-    random_offset = 0;
-    removeRunDependency('window-init');
-  } else if ('connect' == ev.data.type) {
-    SERVER.connect(ev.data.port, ev.data['client-name']);
+  try {
+    if ('init' == ev.data.type) {
+      FS.writeFile('/private_key', ev.data['private-key'], {encoding: 'binary'});
+      random_bytes = ev.data['random-bytes'];
+      random_offset = 0;
+      removeRunDependency('window-init');
+    } else if ('connect' == ev.data.type) {
+      SERVER.connect(ev.data.port, ev.data['client-name']);
+    }
+  } catch (e) {
+    console.error('Rekt', e);
   }
 }
 
@@ -131,16 +117,56 @@ function client_connect(service_name, message_port) {
   console.debug('I want to connect to', service_name);
   do_to_window(function(w) {
     console.debug('I am now connecting to', service_name);
-    w.postMessage({
-      type: 'client_connect',
-      service_name: service_name,
-      client_name: location.pathname,
-      message_port: message_port}, [message_port]);
+    try {
+      w.postMessage({
+        type: 'client_connect',
+        service_name: service_name,
+        client_name: location.pathname,
+        message_port: message_port}, [message_port]);
+    } catch (e) {
+      console.error('Failed to connect to', service_name);
+    }
   });
 }
 
 function breakpoint() {
   var x = 1; // Something to break on
+}
+
+// emscripten removed this insanely useful function, wtf?
+function ccallFunc(func, returnType, argTypes, args) {
+  var toC = {'string' : function(str) {
+      var ret = 0;
+      if (str !== null && str !== undefined && str !== 0) { // null string
+        // at most 4 bytes per UTF-8 code point, +1 for the trailing '\0'
+        ret = Runtime.stackAlloc((str.length << 2) + 1);
+        writeStringToMemory(str, ret);
+      }
+      return ret;
+    }, 'array' : function(arr) {
+      var ret = Runtime.stackAlloc(arr.length);
+      writeArrayToMemory(arr, ret);
+      return ret;
+    }};
+  var cArgs = [];
+  var stack = 0;
+  if (args) {
+    for (var i = 0; i < args.length; i++) {
+      var converter = toC[argTypes[i]];
+      if (converter) {
+        if (stack === 0) stack = Runtime.stackSave();
+        cArgs[i] = converter(args[i]);
+      } else {
+        cArgs[i] = args[i];
+      }
+    }
+  }
+  var ret = func.apply(null, cArgs);
+  if (returnType === 'string') ret = Pointer_stringify(ret);
+  if (stack !== 0) {
+    Runtime.stackRestore(stack);
+  }
+  return ret;
 }
 
 // vim: set expandtab ts=2 sw=2:

@@ -1,6 +1,7 @@
 VERSION="1.6.0"
 DESCRIPTION="This is a general purpose cryptographic library based on the code from GnuPG."
 SOURCE_URI="ftp://ftp.gnupg.org/gcrypt/${NAME}/${NAME}-${VERSION}.tar.bz2"
+PATCHES="align"
 BDEPENDS="${BDEPENDS} libs/libgpg-error"
 
 pkg_compile() {
@@ -13,6 +14,9 @@ pkg_compile() {
 				--disable-asm \
 				--disable-avx-support \
 				--disable-avx2-support \
+				--disable-neon-support \
+				--disable-drng-support \
+				--disable-padlock-support \
 				--disable-amd64-as-feature-detection \
 				--with-gpg-error-prefix="${SYSROOT}/usr" \
 				ac_cv_sizeof_unsigned_short=2 \
@@ -24,13 +28,17 @@ pkg_compile() {
 				gnupg_cv_mlock_is_in_sys_mman=no \
 				gcry_cv_have_asm=no \
 				gcry_cv_have___asm__=no \
+				gcry_cv_gcc_arm_platform_as_ok=no \
+				gcry_cv_gcc_inline_asm_bmi2=no \
+				gcry_cv_gcc_inline_asm_ssse3=no \
+				gcry_cv_gcc_inline_asm_pclmul=no \
 				CPPFLAGS="-I${SYSROOT}/usr/include" \
 				LDFLAGS="-L${SYSROOT}/usr/lib"
         emmake make SUBDIRS="compat mpi cipher random src" \
 		LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
 	#emmake make SUBDIRS="tests"
 	#touch tests/*.o
-	#EMMAKEN_JUST_CONFIGURE=true EMCONFIGURE_JS=true emmake make check \
+	#EMMAKEN_JUST_CONFIGURE=1 EMCONFIGURE_JS=1 emmake make check \
 	#  SUBDIRS="tests" \
 	#  LDFLAGS="-L${SYSROOT}/usr/lib -Wc,-s,TOTAL_MEMORY=33554432"
         emmake make SUBDIRS="compat mpi cipher random src" \

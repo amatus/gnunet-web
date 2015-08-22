@@ -36,24 +36,30 @@ mergeInto(LibraryManager.library, {
       handler: null,
       th: null};
     client.port.onmessage = function(ev) {
-      if (client.handler) {
-        var handler = client.handler;
-        client.handler = null;
-        handler(ev);
-      } else
-        client.queue.push(ev);
+      try {
+        if (client.handler) {
+          var handler = client.handler;
+          client.handler = null;
+          handler(ev);
+        } else
+          client.queue.push(ev);
+      } catch (e) {
+        console.error("Rekt'd", e);
+      }
     };
     CLIENT_PORTS[port] = client;
-    if (typeof client_connect == "function")
+    console.debug('connecting to service', service_name);
+    if (typeof client_connect == 'function') {
       client_connect(service_name, channel.port2);
-    else
+    } else {
       try {
-        gnunet_web.service.client_connect(service_name, "client.js",
+        gnunet_web.service.client_connect(service_name, 'client.js',
             channel.port2);
       } catch(e) {
-        console.error("Failed to connect to", service_name, e);
+        console.error('Failed to connect to', service_name, e);
         return 0;
       }
+    }
     return port;
   },
   GNUNET_CLIENT_disconnect__deps: ['$CLIENT_PORTS'],
@@ -107,8 +113,13 @@ mergeInto(LibraryManager.library, {
         + client.name);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
       // See http://code.google.com/p/chromium/issues/detail?id=169705
-      if (ret > 0)
-        client.port.postMessage(new Uint8Array(view));
+      if (ret > 0) {
+        try {
+          client.port.postMessage(new Uint8Array(view));
+        } catch (e) {
+          console.error('Failed to send');
+        }
+      }
       Runtime.stackRestore(stack);
     }, 0);
     return port;

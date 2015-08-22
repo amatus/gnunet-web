@@ -2,5 +2,6 @@ VERSION="1.28"
 DESCRIPTION="GNU Libidn is a fully documented implementation of the Stringprep, Punycode and IDNA specifications."
 SOURCE_URI="http://ftpmirror.gnu.org/${NAME}/${NAME}-${VERSION}.tar.gz"
 PATCHES="gnulib"
+CONFIG_OPTS="NM=llvm-nm gl_cv_ld_output_def=no"
 
 # vim: syntax=sh

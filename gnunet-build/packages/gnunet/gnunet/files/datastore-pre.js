@@ -18,6 +18,6 @@ datastore_prerun = function() {
     store.createIndex('by_expiry', 'expiry');
   };
 };
-Module.preRun.push(datastore_prerun);
+Module['preInit'].push(datastore_prerun);
 
 // vim: set expandtab ts=2 sw=2

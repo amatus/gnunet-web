@@ -20,6 +20,7 @@ mergeInto(LibraryManager.library, {
     handlers_initialized: false,
     connect_notify_list: [],
     disconnect_notify_list: [],
+    connect_notify_queue: [],
     clients: {},
     next_client: 1,
     connect: function(port, client_name) {
@@ -34,6 +35,11 @@ mergeInto(LibraryManager.library, {
         user_context: 0,
         user_context_size: 0,
       };
+      if (!SERVER.handlers_initialized) {
+        console.debug('And I\'m queueing it for later');
+        SERVER.connect_notify_queue.push(port._name);
+        return;
+      }
       SERVER.connect_notify_list.map(function(notify) {
         ccallFunc(Runtime.getFuncWrapper(notify.callback, 'vii'), 'void',
           ['number', 'number'],
@@ -42,26 +48,30 @@ mergeInto(LibraryManager.library, {
     },
     message_queue: [],
     client_get_message: function(ev) {
-      var size = ev.data[0] << 8 | ev.data[1];
-      var type = ev.data[2] << 8 | ev.data[3];
-      console.debug('Got message of type ' + type + ' size ' + size + ' from '
-          + SERVER.clients[ev.target._name].name);
-      if (!SERVER.handlers_initialized) {
-        console.debug('And I\'m queueing it for later');
-        SERVER.message_queue.push(ev);
-        return;
-      }
-      var handler = SERVER.handlers[type];
-      if (typeof handler === 'undefined') {
-        console.debug("But I don't know what to do with it");
-      } else {
-        if (handler.expected_size == 0 || handler.expected_size == size) {
-          ccallFunc(Runtime.getFuncWrapper(handler.callback, 'viii'), 'void',
-              ['number', 'number', 'array'],
-              [handler.callback_cls, ev.target._name, ev.data]);
-        } else {
-          console.debug("But I was expecting size " + handler.expected_size);
+      try {
+        var size = ev.data[0] << 8 | ev.data[1];
+        var type = ev.data[2] << 8 | ev.data[3];
+        console.debug('Got message of type ' + type + ' size ' + size + ' from '
+            + SERVER.clients[ev.target._name].name);
+        if (!SERVER.handlers_initialized) {
+          console.debug('And I\'m queueing it for later');
+          SERVER.message_queue.push(ev);
+          return;
         }
+        var handler = SERVER.handlers[type];
+        if (typeof handler === 'undefined') {
+          console.debug("But I don't know what to do with it");
+        } else {
+          if (handler.expected_size == 0 || handler.expected_size == size) {
+            ccallFunc(Runtime.getFuncWrapper(handler.callback, 'viii'), 'void',
+                ['number', 'number', 'array'],
+                [handler.callback_cls, ev.target._name, ev.data]);
+          } else {
+            console.debug("But I was expecting size " + handler.expected_size);
+          }
+        }
+      } catch (e) {
+        console.error("ReKt", e);
       }
     }
   },
@@ -82,9 +92,19 @@ mergeInto(LibraryManager.library, {
       };
     }
     setTimeout(function() {
-      var queue = SERVER.message_queue;
-      SERVER.message_queue = [];
       SERVER.handlers_initialized = true;
+      var queue = SERVER.connect_notify_queue;
+      SERVER.connect_notify_queue = [];
+      console.debug('Processing ' + queue.length + ' queued connections');
+      queue.forEach(function(client) {
+        SERVER.connect_notify_list.map(function(notify) {
+          ccallFunc(Runtime.getFuncWrapper(notify.callback, 'vii'), 'void',
+            ['number', 'number'],
+            [notify.callback_cls, client]);
+        });
+      });
+      queue = SERVER.message_queue;
+      SERVER.message_queue = [];
       console.debug('Processing ' + queue.length + ' queued messages');
       queue.forEach(SERVER.client_get_message);
     }, 0);

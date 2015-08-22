@@ -50,32 +50,36 @@
                     (.-lineno event)
                     (.-message event))))
     (set! (.-onmessage port)
-          (fn [event]
-            (let [data (.-data event)]
-              (condp = (.-type data)
-                "init" (do
-                         (set! (.-onmessage (aget data "stdout"))
-                               (fn [event]
-                                 (.debug js/console
-                                         worker-name
-                                         (.-data event))))
-                         (set! (.-onmessage (aget data "stderr"))
-                               (fn [event]
-                                 (.debug js/console
-                                         worker-name
-                                         (.-data event)))))
-                "client_connect" (client-connect (aget data "service_name")
-                                                 (aget data "client_name")
-                                                 (aget data "message_port"))
-                (.warn js/console worker-name data)))))
+          (try
+            (fn [event]
+              (let [data (.-data event)]
+                (condp = (.-type data)
+                  "init" (do
+                           (set! (.-onmessage (aget data "stdout"))
+                                 (fn [event]
+                                   (.debug js/console
+                                           worker-name
+                                           (.-data event))))
+                           (set! (.-onmessage (aget data "stderr"))
+                                 (fn [event]
+                                   (.debug js/console
+                                           worker-name
+                                           (.-data event)))))
+                  "client_connect" (client-connect (aget data "service_name")
+                                                   (aget data "client_name")
+                                                   (aget data "message_port"))
+                  (.warn js/console worker-name data))))
+          (catch :default e
+            (js/console.error "REKT" e))))
     (.start port)
-    (.postMessage port (clj->js {:type "init"
-                                 :private-key private-key
-                                 :random-bytes random-bytes}))
+    (.postMessage port (js-obj "type" "init"
+                               "private-key" (to-array private-key)
+                               "random-bytes" random-bytes))
     worker))
 
 (defn ^:export client-connect
   [service-name client-name message-port]
+  (js/console.debug "client" client-name "wants to connect to" service-name)
   (let [service (get @services service-name)]
     (if (nil? service)
       (let [worker (start-worker service-name
@@ -83,7 +87,7 @@
             port (.-port worker)]
         (add-service service-name port)
         (recur service-name client-name message-port))
-      (.postMessage service (clj->js {:type "connect"
-                                      :client-name client-name
-                                      :port message-port})
+      (.postMessage service (js-obj "type" "connect"
+                                    "client-name" client-name
+                                    "port" message-port)
                     (array message-port)))))

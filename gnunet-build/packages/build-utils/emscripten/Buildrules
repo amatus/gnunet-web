@@ -1,7 +1,6 @@
-VERSION="1.18.0"
+VERSION="1.34.4"
 DESCRIPTION="Emscripten is an LLVM-to-JavaScript compiler."
-SOURCE_URI="git://github.com/amatus/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
-PATCHES="import-symbols fix-idbfs-for-webworkers getFuncWrapper cplusplus-null"
+SOURCE_URI="git://github.com/kripken/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
 RDEPENDS="build-utils/emscripten-fastcomp build-utils/node"
 
 pkg_compile() {

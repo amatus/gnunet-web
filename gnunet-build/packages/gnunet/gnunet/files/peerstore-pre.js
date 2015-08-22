@@ -18,4 +18,4 @@ peerstore_prerun = function() {
     store.createIndex('by_expiry', 'expiry');
   };
 };
-Module.preRun.push(peerstore_prerun);
+Module['preInit'].push(peerstore_prerun);
