@@ -37,7 +37,7 @@ pkg_compile() {
                 LDFLAGS="-L${SYSROOT}/usr/lib"
         emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
 	mkdir -p "${D}/var/lib/gnunet/js"
-	OPT_LEVEL=""
+	OPT_LEVEL="-O2"
 	#
 	# libgnunetblock plugins
 	#
@@ -453,7 +453,6 @@ pkg_compile() {
 		"${F}/client-lib.c"
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
-		${OPT_LEVEL} \
 		-s EXPORTED_FUNCTIONS=@${F}/client-lib.exports \
 		-s RESERVED_FUNCTION_POINTERS=100 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
