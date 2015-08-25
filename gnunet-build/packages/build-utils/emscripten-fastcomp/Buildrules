@@ -1,13 +1,14 @@
 VERSION="1.34.4"
 DESCRIPTION="LLVM with the emscripten fastcomp javascript backend."
-SOURCE_URI="git://github.com/kripken/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
+SOURCE_URI="
+git://github.com/kripken/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}
+git://github.com/kripken/${NAME}-clang.git?${VERSION}&archive=${NAME}-clang-${VERSION}.${ARCHIVE_FORMAT}
+"
 CONFIG_OPTS="--enable-optimized --disable-assertions --enable-targets=host,js"
 
 pkg_prep()
 {
-	git clone git://github.com/kripken/emscripten-fastcomp-clang \
-		"${S}/tools/clang"
-	git --git-dir="${S}/tools/clang/.git" checkout "${VERSION}"
+	mv "${W}/${NAME}-clang-${VERSION}" "${S}/tools/clang"
 }
 
 # vim: syntax=sh
