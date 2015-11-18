@@ -1,8 +1,8 @@
-Index: gnunet-svn-36246/configure.ac
+Index: gnunet-svn-36670/configure.ac
 ===================================================================
---- gnunet-svn-36246/configure.ac	(revision 36246)
-+++ gnunet-svn-36246/configure.ac	(working copy)
-@@ -625,7 +625,7 @@
+--- gnunet-svn-36670/configure.ac	(revision 36670)
++++ gnunet-svn-36670/configure.ac	(working copy)
+@@ -636,7 +636,7 @@
      AC_CHECK_HEADERS(ltdl.h,
       AC_CHECK_LIB([ltdl], [lt_dlopenext],
        ltdl=1))])
@@ -11,11 +11,11 @@ Index: gnunet-svn-36246/configure.ac
  then
   AC_MSG_RESULT([libltdl found])
  else
-Index: gnunet-svn-36246/src/Makefile.am
+Index: gnunet-svn-36670/src/Makefile.am
 ===================================================================
---- gnunet-svn-36246/src/Makefile.am	(revision 36246)
-+++ gnunet-svn-36246/src/Makefile.am	(working copy)
-@@ -77,10 +77,8 @@
+--- gnunet-svn-36670/src/Makefile.am	(revision 36670)
++++ gnunet-svn-36670/src/Makefile.am	(working copy)
+@@ -81,10 +81,8 @@
    peerinfo-tool \
    core \
    $(TESTBED) \
@@ -26,7 +26,7 @@ Index: gnunet-svn-36246/src/Makefile.am
    topology \
    regex \
    cadet \
-@@ -92,14 +90,9 @@
+@@ -96,14 +94,9 @@
    gnsrecord \
    namecache \
    namestore \
@@ -41,10 +41,10 @@ Index: gnunet-svn-36246/src/Makefile.am
    $(EXP_DIR)
  
  endif
-Index: gnunet-svn-36246/src/datastore/Makefile.am
+Index: gnunet-svn-36670/src/datastore/Makefile.am
 ===================================================================
---- gnunet-svn-36246/src/datastore/Makefile.am	(revision 36246)
-+++ gnunet-svn-36246/src/datastore/Makefile.am	(working copy)
+--- gnunet-svn-36670/src/datastore/Makefile.am	(revision 36670)
++++ gnunet-svn-36670/src/datastore/Makefile.am	(working copy)
 @@ -104,7 +104,8 @@
    $(SQLITE_PLUGIN) \
    $(MYSQL_PLUGIN) \
@@ -69,10 +69,10 @@ Index: gnunet-svn-36246/src/datastore/Makefile.am
  
  libgnunet_plugin_datastore_mysql_la_SOURCES = \
    plugin_datastore_mysql.c
-Index: gnunet-svn-36246/src/dht/Makefile.am
+Index: gnunet-svn-36670/src/dht/Makefile.am
 ===================================================================
---- gnunet-svn-36246/src/dht/Makefile.am	(revision 36246)
-+++ gnunet-svn-36246/src/dht/Makefile.am	(working copy)
+--- gnunet-svn-36670/src/dht/Makefile.am	(revision 36670)
++++ gnunet-svn-36670/src/dht/Makefile.am	(working copy)
 @@ -55,12 +55,6 @@
   gnunet-service-dht-whanau
  endif
@@ -86,10 +86,10 @@ Index: gnunet-svn-36246/src/dht/Makefile.am
  gnunet_service_dht_SOURCES = \
   gnunet-service-dht.c gnunet-service-dht.h \
   gnunet-service-dht_clients.c gnunet-service-dht_clients.h \
-Index: gnunet-svn-36246/src/dns/Makefile.am
+Index: gnunet-svn-36670/src/dns/Makefile.am
 ===================================================================
---- gnunet-svn-36246/src/dns/Makefile.am	(revision 36246)
-+++ gnunet-svn-36246/src/dns/Makefile.am	(working copy)
+--- gnunet-svn-36670/src/dns/Makefile.am	(revision 36670)
++++ gnunet-svn-36670/src/dns/Makefile.am	(working copy)
 @@ -18,14 +18,6 @@
  pkgcfg_DATA = \
    dns.conf
@@ -97,7 +97,7 @@ Index: gnunet-svn-36246/src/dns/Makefile.am
 -if LINUX
 -HIJACKBIN = gnunet-helper-dns
 -install-exec-hook:
--	$(top_srcdir)/src/dns/install-dns-helper.sh $(libexecdir) $(GNUNETDNS_GROUP) $(SUDO_BINARY) || true
+-	$(top_srcdir)/src/dns/install-dns-helper.sh $(DESTDIR)$(libexecdir) $(GNUNETDNS_GROUP) $(SUDO_BINARY) || true
 -else
 -install-exec-hook:
 -endif
@@ -105,10 +105,10 @@ Index: gnunet-svn-36246/src/dns/Makefile.am
  lib_LTLIBRARIES = \
    libgnunetdnsparser.la \
    libgnunetdnsstub.la \
-Index: gnunet-svn-36246/src/fs/fs_api.c
+Index: gnunet-svn-36670/src/fs/fs_api.c
 ===================================================================
---- gnunet-svn-36246/src/fs/fs_api.c	(revision 36246)
-+++ gnunet-svn-36246/src/fs/fs_api.c	(working copy)
+--- gnunet-svn-36670/src/fs/fs_api.c	(revision 36670)
++++ gnunet-svn-36670/src/fs/fs_api.c	(working copy)
 @@ -452,19 +452,22 @@
   *            to provide less data unless there is an error;
   *            a value of "0" will be used at the end to allow
@@ -287,10 +287,10 @@ Index: gnunet-svn-36246/src/fs/fs_api.c
        {
          GNUNET_break (0);
          goto cleanup;
-Index: gnunet-svn-36246/src/fs/fs_api.h
+Index: gnunet-svn-36670/src/fs/fs_api.h
 ===================================================================
---- gnunet-svn-36246/src/fs/fs_api.h	(revision 36246)
-+++ gnunet-svn-36246/src/fs/fs_api.h	(working copy)
+--- gnunet-svn-36670/src/fs/fs_api.h	(revision 36670)
++++ gnunet-svn-36670/src/fs/fs_api.h	(working copy)
 @@ -686,16 +686,17 @@
   *            to provide less data unless there is an error;
   *            a value of "0" will be used at the end to allow
@@ -339,10 +339,10 @@ Index: gnunet-svn-36246/src/fs/fs_api.h
  
  
  /**
-Index: gnunet-svn-36246/src/fs/fs_download.c
+Index: gnunet-svn-36670/src/fs/fs_download.c
 ===================================================================
---- gnunet-svn-36246/src/fs/fs_download.c	(revision 36246)
-+++ gnunet-svn-36246/src/fs/fs_download.c	(working copy)
+--- gnunet-svn-36670/src/fs/fs_download.c	(revision 36670)
++++ gnunet-svn-36670/src/fs/fs_download.c	(working copy)
 @@ -1820,33 +1820,36 @@
   * @param offset identifies which block to get
   * @param max (maximum) number of bytes to get; returning
@@ -394,10 +394,10 @@ Index: gnunet-svn-36246/src/fs/fs_download.c
  }
  
  
-Index: gnunet-svn-36246/src/fs/fs_publish.c
+Index: gnunet-svn-36670/src/fs/fs_publish.c
 ===================================================================
---- gnunet-svn-36246/src/fs/fs_publish.c	(revision 36246)
-+++ gnunet-svn-36246/src/fs/fs_publish.c	(working copy)
+--- gnunet-svn-36670/src/fs/fs_publish.c	(revision 36670)
++++ gnunet-svn-36670/src/fs/fs_publish.c	(working copy)
 @@ -364,24 +364,24 @@
   * @param emsg location to store an error message (on error)
   * @return number of bytes copied to buf, 0 on error
@@ -482,10 +482,10 @@ Index: gnunet-svn-36246/src/fs/fs_publish.c
          }
          GNUNET_FS_directory_builder_add (db, dirpos->chk_uri, dirpos->meta,
                                           raw_data);
-Index: gnunet-svn-36246/src/fs/fs_test_lib.c
+Index: gnunet-svn-36670/src/fs/fs_test_lib.c
 ===================================================================
---- gnunet-svn-36246/src/fs/fs_test_lib.c	(revision 36246)
-+++ gnunet-svn-36246/src/fs/fs_test_lib.c	(working copy)
+--- gnunet-svn-36670/src/fs/fs_test_lib.c	(revision 36670)
++++ gnunet-svn-36670/src/fs/fs_test_lib.c	(working copy)
 @@ -275,26 +275,23 @@
   * @param cls pointer to uint32_t with publishing seed
   * @param offset offset to generate data for
@@ -581,10 +581,10 @@ Index: gnunet-svn-36246/src/fs/fs_test_lib.c
        off += bsize;
      }
      GNUNET_assert (GNUNET_OK == GNUNET_DISK_file_close (fh));
-Index: gnunet-svn-36246/src/fs/fs_tree.c
+Index: gnunet-svn-36670/src/fs/fs_tree.c
 ===================================================================
---- gnunet-svn-36246/src/fs/fs_tree.c	(revision 36246)
-+++ gnunet-svn-36246/src/fs/fs_tree.c	(working copy)
+--- gnunet-svn-36670/src/fs/fs_tree.c	(revision 36670)
++++ gnunet-svn-36670/src/fs/fs_tree.c	(working copy)
 @@ -322,59 +322,27 @@
  
  
@@ -722,10 +722,10 @@ Index: gnunet-svn-36246/src/fs/fs_tree.c
      te->reader =  NULL;
    }
    GNUNET_assert (GNUNET_NO == te->in_next);
-Index: gnunet-svn-36246/src/fs/fs_unindex.c
+Index: gnunet-svn-36670/src/fs/fs_unindex.c
 ===================================================================
---- gnunet-svn-36246/src/fs/fs_unindex.c	(revision 36246)
-+++ gnunet-svn-36246/src/fs/fs_unindex.c	(working copy)
+--- gnunet-svn-36670/src/fs/fs_unindex.c	(revision 36670)
++++ gnunet-svn-36670/src/fs/fs_unindex.c	(working copy)
 @@ -43,32 +43,37 @@
   * @param offset identifies which block to get
   * @param max (maximum) number of bytes to get; returning
@@ -778,11 +778,11 @@ Index: gnunet-svn-36246/src/fs/fs_unindex.c
  }
  
  
-Index: gnunet-svn-36246/src/include/gnunet_fs_service.h
+Index: gnunet-svn-36670/src/include/gnunet_fs_service.h
 ===================================================================
---- gnunet-svn-36246/src/include/gnunet_fs_service.h	(revision 36246)
-+++ gnunet-svn-36246/src/include/gnunet_fs_service.h	(working copy)
-@@ -1844,6 +1844,20 @@
+--- gnunet-svn-36670/src/include/gnunet_fs_service.h	(revision 36670)
++++ gnunet-svn-36670/src/include/gnunet_fs_service.h	(working copy)
+@@ -1838,6 +1838,20 @@
  
  
  /**
@@ -803,7 +803,7 @@ Index: gnunet-svn-36246/src/include/gnunet_fs_service.h
   * Function that provides data.
   *
   * @param cls closure
-@@ -1855,16 +1869,18 @@
+@@ -1849,20 +1863,21 @@
   *             clean up the reader's state); in this case,
   *            a value of '0' for max should be ignored
   * @param max maximum number of bytes that should be
@@ -820,18 +820,21 @@ Index: gnunet-svn-36246/src/include/gnunet_fs_service.h
 + * @param cont_cls closure to pass to the continuation
 + * @return GNUNET_SYSERR if cont will not be called, GNUNET_OK otherwise
   */
--typedef size_t (*GNUNET_FS_DataReader) (void *cls, uint64_t offset, size_t max,
--                                        void *buf, char **emsg);
-+typedef int (*GNUNET_FS_DataReader) (void *cls, uint64_t offset, size_t max,
-+                                     GNUNET_FS_ReaderContinuation cont,
-+                                     void *cont_cls);
+ typedef size_t
+ (*GNUNET_FS_DataReader) (void *cls,
+                          uint64_t offset,
+                          size_t max,
+-                         void *buf,
+-                         char **emsg);
++			 GNUNET_FS_ReaderContinuation cont,
++			 void *cont_cls);
  
  
  /**
-Index: gnunet-svn-36246/src/nat/Makefile.am
+Index: gnunet-svn-36670/src/nat/Makefile.am
 ===================================================================
---- gnunet-svn-36246/src/nat/Makefile.am	(revision 36246)
-+++ gnunet-svn-36246/src/nat/Makefile.am	(working copy)
+--- gnunet-svn-36670/src/nat/Makefile.am	(revision 36670)
++++ gnunet-svn-36670/src/nat/Makefile.am	(working copy)
 @@ -15,24 +15,6 @@
  dist_pkgcfg_DATA = \
    nat.conf
@@ -841,26 +844,26 @@ Index: gnunet-svn-36246/src/nat/Makefile.am
 -  NATSERVER = gnunet-helper-nat-server.c
 -  NATCLIENT = gnunet-helper-nat-client.c
 -install-exec-hook:
--	$(top_srcdir)/src/nat/install-nat-helper.sh $(libexecdir) $(SUDO_BINARY) || true
+-	$(top_srcdir)/src/nat/install-nat-helper.sh $(DESTDIR)$(libexecdir) $(SUDO_BINARY) || true
 -else
 -if XFREEBSD
 -  NATBIN = gnunet-helper-nat-server gnunet-helper-nat-client
 -  NATSERVER = gnunet-helper-nat-server.c
 -  NATCLIENT = gnunet-helper-nat-client.c
 -install-exec-hook:
--	$(top_srcdir)/src/nat/install-nat-helper.sh $(libexecdir) $(SUDO_BINARY) || true
+-	$(top_srcdir)/src/nat/install-nat-helper.sh $(DESTDIR)$(libexecdir) $(SUDO_BINARY) || true
 -endif
 -else
 -install-exec-hook:
 -endif
 -
  bin_PROGRAMS = \
-  gnunet-nat-server 
- 
-Index: gnunet-svn-36246/src/peerstore/Makefile.am
+  gnunet-nat-server \
+  gnunet-nat
+Index: gnunet-svn-36670/src/peerstore/Makefile.am
 ===================================================================
---- gnunet-svn-36246/src/peerstore/Makefile.am	(revision 36246)
-+++ gnunet-svn-36246/src/peerstore/Makefile.am	(working copy)
+--- gnunet-svn-36670/src/peerstore/Makefile.am	(revision 36670)
++++ gnunet-svn-36670/src/peerstore/Makefile.am	(working copy)
 @@ -52,7 +52,7 @@
    $(GN_LIB_LDFLAGS)
  
@@ -889,10 +892,10 @@ Index: gnunet-svn-36246/src/peerstore/Makefile.am
  check_PROGRAMS = \
   test_peerstore_api_store \
   test_peerstore_api_iterate \
-Index: gnunet-svn-36246/src/set/Makefile.am
+Index: gnunet-svn-36670/src/set/Makefile.am
 ===================================================================
---- gnunet-svn-36246/src/set/Makefile.am	(revision 36246)
-+++ gnunet-svn-36246/src/set/Makefile.am	(working copy)
+--- gnunet-svn-36670/src/set/Makefile.am	(revision 36670)
++++ gnunet-svn-36670/src/set/Makefile.am	(working copy)
 @@ -16,9 +16,6 @@
    AM_CFLAGS = -fprofile-arcs -ftest-coverage
  endif
@@ -903,10 +906,10 @@ Index: gnunet-svn-36246/src/set/Makefile.am
  libexec_PROGRAMS = \
   gnunet-service-set
  
-Index: gnunet-svn-36246/src/transport/Makefile.am
+Index: gnunet-svn-36670/src/transport/Makefile.am
 ===================================================================
---- gnunet-svn-36246/src/transport/Makefile.am	(revision 36246)
-+++ gnunet-svn-36246/src/transport/Makefile.am	(working copy)
+--- gnunet-svn-36670/src/transport/Makefile.am	(revision 36670)
++++ gnunet-svn-36670/src/transport/Makefile.am	(working copy)
 @@ -80,20 +80,6 @@
  endif
  
@@ -926,9 +929,9 @@ Index: gnunet-svn-36246/src/transport/Makefile.am
 -
 -if LINUX
  install-exec-hook:
- 	$(top_srcdir)/src/transport/install-wlan-helper.sh $(libexecdir) $(SUDO_BINARY) || true
+ 	$(top_srcdir)/src/transport/install-wlan-helper.sh $(DESTDIR)$(libexecdir) $(SUDO_BINARY) || true
  if HAVE_LIBBLUETOOTH
-@@ -269,22 +255,8 @@
+@@ -271,22 +257,8 @@
    $(CFLAGS)
  # -DANALYZE
  
@@ -952,7 +955,7 @@ Index: gnunet-svn-36246/src/transport/Makefile.am
  libgnunet_plugin_transport_tcp_la_SOURCES = \
    plugin_transport_tcp.c
  libgnunet_plugin_transport_tcp_la_LIBADD = \
-@@ -358,7 +330,7 @@
+@@ -360,7 +332,7 @@
  
  
  libgnunet_plugin_transport_http_client_la_SOURCES = \
@@ -961,10 +964,10 @@ Index: gnunet-svn-36246/src/transport/Makefile.am
  libgnunet_plugin_transport_http_client_la_LIBADD = \
    $(top_builddir)/src/hello/libgnunethello.la \
    $(top_builddir)/src/statistics/libgnunetstatistics.la \
-Index: gnunet-svn-36246/src/util/Makefile.am
+Index: gnunet-svn-36670/src/util/Makefile.am
 ===================================================================
---- gnunet-svn-36246/src/util/Makefile.am	(revision 36246)
-+++ gnunet-svn-36246/src/util/Makefile.am	(working copy)
+--- gnunet-svn-36670/src/util/Makefile.am	(revision 36670)
++++ gnunet-svn-36670/src/util/Makefile.am	(working copy)
 @@ -59,14 +59,10 @@
  libgnunetutil_la_SOURCES = \
    bandwidth.c \
