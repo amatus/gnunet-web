@@ -1,4 +1,4 @@
-VERSION="1.34.4"
+VERSION="1.35.9"
 DESCRIPTION="Emscripten is an LLVM-to-JavaScript compiler."
 SOURCE_URI="git://github.com/kripken/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
 RDEPENDS="build-utils/emscripten-fastcomp build-utils/node"

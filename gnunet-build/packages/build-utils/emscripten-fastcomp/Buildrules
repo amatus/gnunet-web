@@ -1,4 +1,4 @@
-VERSION="1.34.4"
+VERSION="1.35.9"
 DESCRIPTION="LLVM with the emscripten fastcomp javascript backend."
 SOURCE_URI="
 git://github.com/kripken/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}
