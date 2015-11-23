@@ -321,6 +321,7 @@ pkg_compile() {
 		-o "${S}/src/topology/gnunet-daemon-topology.js" \
 		"${S}/src/topology/gnunet-daemon-topology.o" \
 		"${S}/src/topology/libgnunetfriends.la" \
+		"${S}/src/ats/libgnunetats.la" \
 		"${S}/src/core/libgnunetcore.la" \
 		"${S}/src/peerinfo/libgnunetpeerinfo.la" \
 		"${S}/src/statistics/libgnunetstatistics.la" \
