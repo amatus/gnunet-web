@@ -351,6 +351,7 @@ pkg_compile() {
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/cadet/gnunet-service-cadet.js" \
 		"${S}/src/cadet/gnunet_service_cadet"*.o \
+		"${S}/src/ats/libgnunetats.la" \
 		"${S}/src/block/libgnunetblock.la" \
 		"${S}/src/core/libgnunetcore.la" \
 		"${S}/src/dht/libgnunetdht.la" \
