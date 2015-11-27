@@ -29,7 +29,7 @@
 "_GNUNET_FS_publish_start",
 "_GNUNET_FS_search_start",
 "_GNUNET_FS_search_stop",
-"_GNUNET_FS_start",
+"_GNUNET_FS_start_simple",
 "_GNUNET_FS_uri_chk_get_file_size2",
 "_GNUNET_FS_uri_destroy",
 "_GNUNET_FS_uri_ksk_create",

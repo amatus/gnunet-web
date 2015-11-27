@@ -176,12 +176,8 @@
     (:cctx info)))
 
 (def fs
-  (js/ccallFunc
-    js/_GNUNET_FS_start
-    "number"
-    (array "number" "string" "number" "number" "number" "array")
-    (array 0 "gnunet-web" (+++ (.addFunction js/Runtime progress-callback)) 0 0
-           (array 0))))
+  (js/_GNUNET_FS_start_simple
+    (+++ (.addFunction js/Runtime progress-callback))))
 
 (defn start-search
   [query anonymity]

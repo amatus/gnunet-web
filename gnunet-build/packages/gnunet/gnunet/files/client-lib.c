@@ -28,6 +28,13 @@ int main(int argc, char **argv)
 }
 
 void *
+GNUNET_FS_start_simple(void *cls)
+{
+  return GNUNET_FS_start(NULL, "gnunet-web", cls, NULL, 0,
+      GNUNET_FS_OPTIONS_END);
+}
+
+void *
 GNUNET_FS_ProgressInfo_get_publish_cctx(struct GNUNET_FS_ProgressInfo *pi)
 {
   return pi->value.publish.cctx;
