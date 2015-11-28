@@ -31,18 +31,6 @@
 
 
 /**
- * Context for all functions in this plugin.
- */
-struct Plugin
-{
-  /**
-   * Our execution environment.
-   */
-  struct GNUNET_DATASTORE_PluginEnvironment *env;
-};
-
-
-/**
  * Get an estimate of how much space the database is
  * currently using.
  *
@@ -584,12 +572,8 @@ libgnunet_plugin_datastore_emscripten_init (void *cls)
 {
   struct GNUNET_DATASTORE_PluginEnvironment *env = cls;
   struct GNUNET_DATASTORE_PluginFunctions *api;
-  struct Plugin *plugin;
 
-  plugin = GNUNET_new (struct Plugin);
-  plugin->env = env;
   api = GNUNET_new (struct GNUNET_DATASTORE_PluginFunctions);
-  api->cls = plugin;
   api->estimate_size = &emscripten_plugin_estimate_size;
   api->put = &emscripten_plugin_put;
   api->update = &emscripten_plugin_update;
@@ -614,9 +598,7 @@ void *
 libgnunet_plugin_datastore_emscripten_done (void *cls)
 {
   struct GNUNET_DATASTORE_PluginFunctions *api = cls;
-  struct Plugin *plugin = api->cls;
 
-  GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;
 }
