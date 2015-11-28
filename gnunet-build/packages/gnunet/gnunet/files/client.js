@@ -109,7 +109,7 @@ mergeInto(LibraryManager.library, {
       var stack = Runtime.stackSave();
       var buffer = Runtime.stackAlloc(size);
       var ret = Runtime.dynCall('iiii', notify, [notify_cls, size, buffer]);
-      console.debug('I\'m sending ' + size + ' bytes to service '
+      console.debug('I\'m sending ' + ret + ' bytes to service '
         + client.name);
       var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+ret') }}};
       // See http://code.google.com/p/chromium/issues/detail?id=169705
