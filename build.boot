@@ -1,21 +1,21 @@
 (set-env!
-  :dependencies '[[adzerk/boot-cljs          "0.0-3308-0"]
+  :dependencies '[[adzerk/boot-cljs          "1.7.170-3"]
                   [fence                     "0.2.0"]
+                  [hoplon/boot-hoplon        "0.1.9"]
+                  [hoplon/hoplon             "6.0.0-alpha11"]
                   [net.clojure/monads        "1.0.2"]
                   [org.clojure/clojure       "1.7.0"]
-                  [org.clojure/clojurescript "0.0-3308"]
-                  [org.clojure/core.async    "0.1.346.0-17112a-alpha"]
-                  [pandeiro/boot-http        "0.6.3"]
-                  [tailrecursion/boot-hoplon "0.1.0"]
-                  [tailrecursion/cljson      "1.0.7"]
-                  [tailrecursion/hoplon      "6.0.0-alpha4"]]
+                  [org.clojure/clojurescript "1.7.170"]
+                  [org.clojure/core.async    "0.2.374"]
+                  [pandeiro/boot-http        "0.7.1-SNAPSHOT"]
+                  [tailrecursion/cljson      "1.0.7"]] ; TODO: depricated!
   :source-paths #{"src/cljs" "src/hl" "src/js"}
   :resource-paths #{"assets"})
 
 (require
-  '[adzerk.boot-cljs          :refer [cljs]]
-  '[pandeiro.boot-http        :refer [serve]]
-  '[tailrecursion.boot-hoplon :refer [hoplon prerender]])
+  '[adzerk.boot-cljs   :refer [cljs]]
+  '[hoplon.boot-hoplon :refer [hoplon prerender]]
+  '[pandeiro.boot-http :refer [serve]])
 
 (deftask dev
   "Build gnunet-web for development."
