@@ -1,5 +1,6 @@
 (set-env!
   :dependencies '[[adzerk/boot-cljs           "1.7.170-3"]
+                  [cljsjs/jquery              "1.11.3-0"]
                   [com.cognitect/transit-cljs "0.8.232"]
                   [fence                      "0.2.0"]
                   [hoplon/boot-hoplon         "0.1.9"]

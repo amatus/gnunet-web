@@ -153,9 +153,9 @@
                           attr
                           (div :class "bar"
                                (div :class "progress")))]
-           (with-timeout 0 (+++ (.progress
-                                  (js/$ progress)
-                                  (js-obj "percent" 0))))
+           (with-init! (+++ (.progress
+                              (js/$ progress)
+                              (js-obj "percent" 0))))
            (add-watch state nil
                       (fn [_ _ _ new-state]
                         (+++ (.progress
@@ -165,17 +165,18 @@
 
 (defelem ui-search
          [attr kids]
-         (let [input (input :type "text" :placeholder "Keywords...")]
-           (div
-             (form :class (cell= {:ui true :icon true :input true
-                                  :error (zero? connection-count)})
-                   :submit #(start-search (.-value input) @anonymity)
-                   input
-                   (i :class (cell= {:icon true :search true
-                                     :loading active-search})))
-             (div :class "ui pointing left red label"
-                  :toggle (cell= (zero? connection-count))
-                  "Live results are unavailable when not connected"))))
+         (let [input (input
+                       :type "text"
+                       :placeholder (cell=
+                                      (if (zero? connection-count)
+                                        "Keywords... Offline"
+                                        "Keywords...")))]
+           (form :class (cell= {:ui true :icon true :input true
+                                :error (zero? connection-count)
+                                :loading active-search})
+                 :submit #(start-search (.-value input) @anonymity)
+                 (i :class (cell= {:icon true :search true}))
+                 input)))
 
 (defelem ui-publish
          [attr kids]
@@ -198,13 +199,15 @@
                                      @metadata))
                              (reset! file-chosen true)))]
            (div :class "ui form segment"
-                (div :class "ui labeled input"
-                     (div :class "ui label" "Choose a file to publish")
-                     file)
-                (div :class "ui labeled input"
-                     :toggle file-chosen
-                     (div :class "ui label" "Keywords")
-                     keywords)
+                (div :class "field"
+                  (div :class "ui labeled input"
+                       (div :class "ui label" "Choose a file to publish")
+                       file))
+                (div :class "field"
+                  (div :class "ui labeled input field"
+                       :toggle file-chosen
+                       (div :class "ui label" "Keywords")
+                       keywords))
                 (div :class "ui icon button"
                      :title "Publish"
                      :toggle file-chosen
@@ -242,8 +245,9 @@
 
 (defelem ui-dropdown
          [{:keys [state class] :as attr} kids]
-         (let [attr (assoc (dissoc attr :state) :class (str "ui dropdown "
-                                                            class))
+         (let [attr (assoc (dissoc attr :state) :class (assoc class
+                                                              :ui true
+                                                              :dropdown true))
                dropdown (div
                           attr
                           (input :type "hidden"
@@ -253,13 +257,13 @@
                           (i :class "dropdown icon")
                           (div :class "menu"
                                (map #(div :class "item" %) kids)))]
-           (with-timeout 0 (+++ (.dropdown (js/$ dropdown))))
+           (with-init! (+++ (.dropdown (js/$ dropdown))))
            dropdown))
 
 (defelem ui-popup
          [{:keys [settings] :as attr} kids]
          (let [popup (div (dissoc attr :settings) kids)]
-           (with-timeout 0 (+++ (.popup (js/$ popup) (clj->js settings))))
+           (with-init! (+++ (.popup (js/$ popup) (clj->js settings))))
            popup))
 
 (defelem peer-table
@@ -293,14 +297,12 @@
   (body
     (div :class "ui fixed main menu grid" ; grid somehow fixes things here too
          (div :class "container"
+              (div :class "item"
+                   "gnunet-web"
+                   (span :class "ui red label" "Pre-Alpha")))
               (div :class "right item"
-                   (a :href "https://github.com/amatus/gnunet-web"
-                      :title "Fork me on GitHub"
-                      (i :class "github icon")))
-              (div :class "right item"
-                   "Anonymity"
-                   (div :class "ui label"
-                        (ui-dropdown :state anonymity "0" "1" "2" "3")))
+                   :title (cell= (data->string my-id))
+                   (text "My Peer ID: ~(peer-id-short my-id)\u2026"))
               (ui-popup :class "right item"
                         :settings {:inline true
                                    :position "bottom right"
@@ -313,11 +315,13 @@
               (div :class "ui flowing popup"
                    (peer-table))
               (div :class "right item"
-                   :title (cell= (data->string my-id))
-                   (text "My Peer ID: ~(peer-id-short my-id)\u2026"))
-              (div :class "item"
-                   "gnunet-web"
-                   (span :class "ui red label" "Pre-Alpha"))))
+                   "Anonymity"
+                   (div :class "ui label"
+                        (ui-dropdown :state anonymity "0" "1" "2" "3")))
+              (div :class "right item"
+                   (a :href "https://github.com/amatus/gnunet-web"
+                      :title "Fork me on GitHub"
+                      (i :class "github icon"))))
     (div :class "ui grid") ; This pushes content down so it's not under the menu
     (div :class "ui inverted segment"
          :toggle (cell= (not (nil? browser-support)))
