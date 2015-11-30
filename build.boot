@@ -1,14 +1,14 @@
 (set-env!
-  :dependencies '[[adzerk/boot-cljs          "1.7.170-3"]
-                  [fence                     "0.2.0"]
-                  [hoplon/boot-hoplon        "0.1.9"]
-                  [hoplon/hoplon             "6.0.0-alpha11"]
-                  [net.clojure/monads        "1.0.2"]
-                  [org.clojure/clojure       "1.7.0"]
-                  [org.clojure/clojurescript "1.7.170"]
-                  [org.clojure/core.async    "0.2.374"]
-                  [pandeiro/boot-http        "0.7.1-SNAPSHOT"]
-                  [tailrecursion/cljson      "1.0.7"]] ; TODO: depricated!
+  :dependencies '[[adzerk/boot-cljs           "1.7.170-3"]
+                  [com.cognitect/transit-cljs "0.8.232"]
+                  [fence                      "0.2.0"]
+                  [hoplon/boot-hoplon         "0.1.9"]
+                  [hoplon/hoplon              "6.0.0-alpha11"]
+                  [net.clojure/monads         "1.0.2"]
+                  [org.clojure/clojure        "1.7.0"]
+                  [org.clojure/clojurescript  "1.7.170"]
+                  [org.clojure/core.async     "0.2.374"]
+                  [pandeiro/boot-http         "0.7.1-SNAPSHOT"]]
   :source-paths #{"src/cljs" "src/hl" "src/js"}
   :resource-paths #{"assets"})
 

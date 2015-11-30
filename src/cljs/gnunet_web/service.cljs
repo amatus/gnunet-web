@@ -1,5 +1,5 @@
 ;; service.cljs - service manager for gnunet-web website
-;; Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
+;; Copyright (C) 2013-2015  David Barksdale <amatus@amat.us>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.service
-  (:require [tailrecursion.cljson :refer [clj->cljson cljson->clj]]))
+  (:require [cognitect.transit :as t]))
 
 (def private-key
   ;; XXX This has no synchronization!
@@ -24,9 +24,9 @@
       (let [d (js/Uint8Array. 32)
             _ (js/window.crypto.getRandomValues d)
             d (vec (.apply js/Array (array) d))]
-        (.setItem js/localStorage "private-key" (clj->cljson d))
+        (.setItem js/localStorage "private-key" (t/write (t/writer :json) d))
         d)
-      (cljson->clj d))))
+      (t/read (t/reader :json) d))))
 
 (def services (atom {}))
 
