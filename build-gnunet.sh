@@ -1,5 +1,6 @@
 #!/bin/sh -e
 
+[ -e gnunet-build/scripts/build ] || git submodule update --init
 mkdir -p assets/js
 cd gnunet-build
 export PATH="$PATH":"$(pwd)/scripts"
