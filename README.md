@@ -50,7 +50,7 @@ To debug a shared worker in chrome open chrome://inspect and click the
 "inspect" link next to an entry in the shared workers list.
 
 ### Try out the RTCPeerConnection demo ###
-0. Execute `boot development`
+0. Execute `boot dev`
 1. Open two browsers to http://localhost:8000/webrtc.html (let's call them Alice and Bob).
 2. Alice presses "Create Offer" and waits a bit for ICE candidates to be
    collected.
