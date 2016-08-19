@@ -1,4 +1,4 @@
-REVISION="36969"
+REVISION="37733"
 VERSION="svn-${REVISION}"
 RELEASE="0"
 DESCRIPTION="GNUnet is a framework for secure peer-to-peer networking that does not use any centralized or otherwise trusted services."

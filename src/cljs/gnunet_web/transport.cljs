@@ -45,21 +45,13 @@
   [state]
   (get state-strings state))
 
-(def transport-handle (js/_GNUNET_TRANSPORT_connect
-                        0 ; const struct GNUNET_CONFIGURATION_Handle *cfg
-                        0 ; const struct GNUNET_PeerIdentity *self
-                        0 ; void *cls
-                        0 ; GNUNET_TRANSPORT_ReceiveCallback rec
-                        0 ; GNUNET_TRANSPORT_NotifyConnect nc
-                        0)) ; GNUNET_TRANSPORT_NotifyDisconnect nd
-
 (defn offer-hello
   [hello]
   (js/ccallFunc
     js/_GNUNET_TRANSPORT_offer_hello
     "number"
     (array "number" "array" "number" "number")
-    (array transport-handle
+    (array 0
            (into-array (encode-hello hello))
            0
            0)))
@@ -71,7 +63,7 @@
     (js/_GNUNET_HELLO_get_id hello-pointer peer-id-pointer)
     ((:callback closure) (vec (read-memory peer-id-pointer 32)))
     (js/_free peer-id-pointer)
-    (js/_GNUNET_TRANSPORT_get_hello_cancel @(:handle closure))
+    (js/_GNUNET_TRANSPORT_hello_get_cancel @(:handle closure))
     (unregister-object cls)))
 
 (def get-hello-callback-pointer
@@ -83,8 +75,9 @@
                  :handle (atom nil)}
         closure-key (register-object closure)]
     (reset! (:handle closure)
-            (js/_GNUNET_TRANSPORT_get_hello
-              transport-handle
+            (js/_GNUNET_TRANSPORT_hello_get
+              0
+              0
               get-hello-callback-pointer
               closure-key))))
 

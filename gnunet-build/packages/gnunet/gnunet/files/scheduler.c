@@ -62,6 +62,13 @@ GNUNET_SCHEDULER_add_now (GNUNET_SCHEDULER_TaskCallback task, void *task_cls)
   return GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_ZERO, task, task_cls);
 }
 
+struct GNUNET_SCHEDULER_Task *
+GNUNET_SCHEDULER_add_shutdown (GNUNET_SCHEDULER_TaskCallback task,
+                 void *task_cls)
+{
+  return NULL;
+}
+
 void
 GNUNET_SCHEDULER_add_continuation (GNUNET_SCHEDULER_TaskCallback task,
     void *task_cls,
@@ -70,15 +77,16 @@ GNUNET_SCHEDULER_add_continuation (GNUNET_SCHEDULER_TaskCallback task,
   GNUNET_SCHEDULER_add_now(task, task_cls);
 }
 
-void
-GNUNET_SCHEDULER_run_task (GNUNET_SCHEDULER_TaskCallback task, void *task_cls)
-{
-  struct GNUNET_SCHEDULER_TaskContext tc;
+const struct GNUNET_SCHEDULER_TaskContext tc = {
+  .reason = GNUNET_SCHEDULER_REASON_TIMEOUT,
+  .read_ready = NULL,
+  .write_ready = NULL,
+};
 
-  tc.reason = GNUNET_SCHEDULER_REASON_TIMEOUT;
-  tc.read_ready = NULL;
-  tc.write_ready = NULL;
-  task (task_cls, &tc);
+const struct GNUNET_SCHEDULER_TaskContext *
+GNUNET_SCHEDULER_get_task_context ()
+{
+  return &tc;
 }
 
 /* vim: set expandtab ts=2 sw=2: */

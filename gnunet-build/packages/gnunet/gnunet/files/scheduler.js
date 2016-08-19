@@ -23,7 +23,7 @@ mergeInto(LibraryManager.library, {
     var id;
     id = setTimeout(function() {
       delete SCHEDULER_TASKS[id];
-      _GNUNET_SCHEDULER_run_task(task, task_cls);
+      Runtime.dynCall('vi', task, [task_cls]);
     }, delay);
     SCHEDULER_TASKS[id] = task_cls;
     return id;

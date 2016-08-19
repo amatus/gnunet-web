@@ -207,7 +207,7 @@ GNUNET_TRANSPORT_monitor_peers_simple(
   mpc->cb = peer_callback;
   mpc->cb_cls = peer_callback_cls;
   return GNUNET_TRANSPORT_monitor_peers(NULL, NULL, GNUNET_NO,
-      GNUNET_TIME_UNIT_FOREVER_REL, monitor_peers_callback, mpc);
+      monitor_peers_callback, mpc);
 }
 
 /* vim: set expandtab ts=2 sw=2: */

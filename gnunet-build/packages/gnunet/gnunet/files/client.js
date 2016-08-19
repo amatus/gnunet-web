@@ -62,6 +62,15 @@ mergeInto(LibraryManager.library, {
     }
     return port;
   },
+  GNUNET_CLIENT_connecT__deps: ['GNUNET_CLIENT_connect'],
+  GNUNET_CLIENT_connecT: function(cfg, service_name, handlers, error_handler,
+      error_handler_cls) {
+    c = _GNUNET_CLIENT_connect(service_name, cfg);
+    if (0 == c)
+      return 0;
+    return _GNUNET_MQ_queue_for_connection_client(c, handlers, error_handler,
+        error_handler_cls);
+  },
   GNUNET_CLIENT_disconnect__deps: ['$CLIENT_PORTS'],
   GNUNET_CLIENT_disconnect: function(port) {
     var client = CLIENT_PORTS[port];
