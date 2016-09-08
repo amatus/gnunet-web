@@ -70,41 +70,14 @@ emscripten_plugin_put (void *cls, const struct GNUNET_HashCode *key,
                        struct GNUNET_TIME_Absolute expiration,
                        PluginPutCont cont, void *cont_cls)
 {
+  extern void emscripten_plugin_put_int(const void *key, const void *data,
+      int size, int type, int priority, int anonymity, int replication,
+      double expiration, void *vhash, void *cont, void *cons_cls);
   struct GNUNET_HashCode vhash;
 
   GNUNET_CRYPTO_hash (data, size, &vhash);
-  EM_ASM_ARGS({
-    var key_pointer = $0;
-    var key = Array.prototype.slice.call(HEAP8.subarray($0, $0 + 64));
-    var data = Array.prototype.slice.call(HEAP8.subarray($1, $1 + $2));
-    var size = $2;
-    var type = $3;
-    var priority = $4;
-    var anonymity = $5;
-    var replication = $6;
-    var expiry = $7;
-    var vhash = Array.prototype.slice.call(HEAP8.subarray($8, $8 + 64));
-    var cont = $9;
-    var cont_cls = $10;
-    var request = self.dsdb.transaction(['datastore'], 'readwrite')
-                      .objectStore('datastore')
-                      .put({key: key,
-                            data: data,
-                            type: type,
-                            priority: priority,
-                            anonymity: anonymity,
-                            replication: replication,
-                            expiry: expiry,
-                            vhash: vhash});
-    request.onerror = function(e) {
-      console.error('put request failed');
-      Runtime.dynCall('viiiii', cont, [cont_cls, key_pointer, size, -1, 0]);
-    };
-    request.onsuccess = function(e) {
-      Runtime.dynCall('viiiii', cont, [cont_cls, key_pointer, size, 1, 0]);
-    };
-  }, key, data, size, type, priority, anonymity, replication,
-     (double)expiration.abs_value_us, &vhash, cont, cont_cls);
+  emscripten_plugin_put_int(key, data, size, type, priority, anonymity,
+      replication, expiration.abs_value_us, &vhash, cont, cont_cls);
 }
 
 
@@ -148,92 +121,11 @@ emscripten_plugin_get_key (void *cls, uint64_t offset,
                            enum GNUNET_BLOCK_Type type,
                            PluginDatumProcessor proc, void *proc_cls)
 {
-  EM_ASM_ARGS({
-    var offset = $0;
-    var key_pointer = $1;
-    var key = $1 ? Array.prototype.slice.call(HEAP8.subarray($1, $1 + 64))
-                 : null;
-    var vhash_pointer = $2;
-    var vhash = $2 ? Array.prototype.slice.call(HEAP8.subarray($2, $2 + 64))
-                   : null;
-    var type = $3;
-    var proc = $4;
-    var proc_cls = $5;
-    var datum_processor_wrapper = $6;
-    var emscripten_plugin_get_key = $7;
-    var count = 0;
-    var request = self.dsdb.transaction(['datastore'], 'readwrite')
-                      .objectStore('datastore').index('by_key')
-                      .openCursor(key);
-    request.onerror = function(e) {
-      console.error('cursor request failed');
-      Runtime.dynCall('iiiiiiiiiii', proc,
-        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-    };
-    request.onsuccess = function(e) {
-      var cursor = e.target.result;
-      if (cursor) {
-        // optional filter by type
-        if (type && type != cursor.value.type) {
-          cursor.continue();
-          return;
-        }
-        // optional filter by vhash
-        if (vhash != null) {
-          if (vhash.length != cursor.value.vhash.length
-              || !vhash.every(function(x, i) {
-                                return x == cursor.value.vhash[i]
-                              })) {
-            cursor.continue();
-            return;
-          }
-        }
-        // filter by offset
-        if (offset != 0) {
-          --offset;
-          ++count;
-          cursor.continue();
-          return;
-        }
-        // got a result
-        var stack = Runtime.stackSave();
-        var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize('double'));
-        setValue(expiry, cursor.value.expiry, 'double');
-        var ret = ccallFunc(
-            Runtime.getFuncWrapper(datum_processor_wrapper,
-              'iiiiiiiiiii'),
-            'number',
-            ['number', 'number', 'array', 'number', 'array', 'number', 'number',
-             'number', 'number', 'number'],
-            [proc, proc_cls, cursor.value.key, cursor.value.data.length,
-             cursor.value.data, cursor.value.type, cursor.value.priority,
-             cursor.value.anonymity, expiry, cursor.value.uid]);
-        Runtime.stackRestore(stack);
-        if (!ret) {
-          cursor.delete().onerror = function(e) {
-            console.error('delete request failed');
-          }
-        }
-      } else {
-        // did offset wrap around?
-        if (count != 0) {
-          offset = offset % count;
-          // recurse
-          ccallFunc(Runtime.getFuncWrapper(emscripten_plugin_get_key,
-                'viiiiiiii'),
-              'void',
-              ['number', 'number', 'number', 'number', 'number', 'number',
-               'number', 'number'],
-              [0, offset, 0, key_pointer, vhash_pointer, type, proc, proc_cls]);
-          return;
-        }
-        // not found
-        Runtime.dynCall('iiiiiiiiiii', proc,
-          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-      }
-    };
-  }, (double)offset, key, vhash, type, proc, proc_cls,
-     &datum_processor_wrapper, &emscripten_plugin_get_key);
+  extern void emscripten_plugin_get_key_int(double offset, const void *key,
+      const void *vhash, int type, void *proc, void *proc_cls, void *wrapper);
+
+  emscripten_plugin_get_key_int(offset, key, vhash, type, proc, proc_cls,
+      &datum_processor_wrapper);
 }
 
 
@@ -252,56 +144,11 @@ static void
 emscripten_plugin_get_replication (void *cls, PluginDatumProcessor proc,
                                    void *proc_cls)
 {
-  EM_ASM_ARGS({
-    var proc = $0;
-    var proc_cls = $1;
-    var datum_processor_wrapper = $2;
-    var transaction = self.dsdb.transaction(['datastore'], 'readwrite');
-    var request = transaction.objectStore('datastore').index('by_replication')
-                             .openCursor(null, 'prev');
-    request.onerror = function(e) {
-      console.error('cursor request failed');
-      Runtime.dynCall('iiiiiiiiiii', proc,
-        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-    };
-    request.onsuccess = function(e) {
-      var cursor = e.target.result;
-      if (cursor) {
-        // got a result
-        if (cursor.value.replication > 0) {
-          --cursor.value.replication;
-        }
-        var request = transaction.objectStore('datastore').put(value);
-        request.onerror = function(e) {
-          console.error('put request failed');
-          Runtime.dynCall('iiiiiiiiiii', proc,
-            [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-        };
-        request.onsuccess = function(e) {
-          var stack = Runtime.stackSave();
-          var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize('double'));
-          setValue(expiry, cursor.value.expiry, 'double');
-          var ret = ccallFunc(
-              Runtime.getFuncWrapper(datum_processor_wrapper, 'iiiiiiiiiii'),
-              'number',
-              ['number', 'number', 'array', 'number', 'array', 'number',
-               'number', 'number', 'number', 'number'],
-              [proc, proc_cls, cursor.value.key, cursor.value.data.length,
-               cursor.value.data, cursor.value.type, cursor.value.priority,
-               cursor.value.anonymity, expiry, cursor.value.uid]);
-          Runtime.stackRestore(stack);
-          if (!ret) {
-            cursor.delete().onerror = function(e) {
-              console.error('delete request failed');
-            }
-          }
-        };
-      } else {
-        Runtime.dynCall('iiiiiiiiiii', proc,
-          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-      }
-    };
-  }, proc, proc_cls, &datum_processor_wrapper);
+  extern void emscripten_plugin_get_replication_int(void *proc, void *proc_cls,
+      void *wrapper);
+
+  emscripten_plugin_get_replication_int(proc, proc_cls,
+      &datum_processor_wrapper);
 }
 
 
@@ -317,48 +164,12 @@ static void
 emscripten_plugin_get_expiration (void *cls, PluginDatumProcessor proc,
                                 void *proc_cls)
 {
+  extern void emscripten_plugin_get_expiration_int(void *proc, void *proc_cls,
+      double now, void *wrapper);
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get();
-  EM_ASM_ARGS({
-    var proc = $0;
-    var proc_cls = $1;
-    var now = $2;
-    var datum_processor_wrapper = $3;
-    var request = self.dsdb.transaction(['datastore'], 'readwrite')
-                      .objectStore('datastore').index('by_expiry')
-                      .openCursor(IDBKeyRange.upperBound(now, true));
-    request.onerror = function(e) {
-      console.error('cursor request failed');
-      Runtime.dynCall('iiiiiiiiiii', proc,
-        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-    };
-    request.onsuccess = function(e) {
-      var cursor = e.target.result;
-      if (cursor) {
-        // got a result
-        var stack = Runtime.stackSave();
-        var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize('double'));
-        setValue(expiry, cursor.value.expiry, 'double');
-        var ret = ccallFunc(
-            Runtime.getFuncWrapper(datum_processor_wrapper,
-              'iiiiiiiiiii'),
-            'number',
-            ['number', 'number', 'array', 'number', 'array', 'number', 'number',
-             'number', 'number', 'number'],
-            [proc, proc_cls, cursor.value.key, cursor.value.data.length,
-             cursor.value.data, cursor.value.type, cursor.value.priority,
-             cursor.value.anonymity, expiry, cursor.value.uid]);
-        Runtime.stackRestore(stack);
-        if (!ret) {
-          cursor.delete().onerror = function(e) {
-            console.error('delete request failed');
-          }
-        }
-      } else {
-        Runtime.dynCall('iiiiiiiiiii', proc,
-          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-      }
-    };
-  }, proc, proc_cls, (double)now.abs_value_us, &datum_processor_wrapper);
+
+  emscripten_plugin_get_expiration_int(proc, proc_cls, now.abs_value_us,
+      &datum_processor_wrapper);
 }
 
 
@@ -389,37 +200,10 @@ emscripten_plugin_update (void *cls, uint64_t uid, int delta,
                         struct GNUNET_TIME_Absolute expire,
                         PluginUpdateCont cont, void *cont_cls)
 {
-  EM_ASM_ARGS({
-    var uid = $0;
-    var delta = $1;
-    var expiry = $2;
-    var cont = $3;
-    var cont_cls = $4;
-    var transaction = self.dsdb.transaction(['datastore'], 'readwrite');
-    var request = transaction.objectStore('datastore').get(uid);
-    request.onerror = function(e) {
-      console.warning('get request failed');
-      Runtime.dynCall('viii', cont, [cont_cls, -1, 0]);
-    };
-    request.onsuccess = function(e) {
-      var value = e.target.result;
-      value.priority += delta;
-      if (value.priority < 0) {
-        value.priority = 0;
-      }
-      if (value.expiry < expiry) {
-        value.expiry = expiry;
-      }
-      var request = transaction.objectStore('datastore').put(value);
-      request.onerror = function(e) {
-        console.error('put request failed');
-        Runtime.dynCall('viii', cont, [cont_cls, -1, 0]);
-      };
-      request.onsuccess = function(e) {
-        Runtime.dynCall('viii', cont, [cont_cls, 1, 0]);
-      };
-    };
-  }, (uint32_t)uid, delta, (double)expire.abs_value_us, cont, cont_cls);
+  extern void emscripten_plugin_update_int(int uid, int delta, double expriy,
+      void *cont, void *cont_cls);
+
+  emscripten_plugin_update_int(uid, delta, expire.abs_value_us, cont, cont_cls);
 }
 
 
@@ -440,70 +224,11 @@ emscripten_plugin_get_zero_anonymity (void *cls, uint64_t offset,
                                     enum GNUNET_BLOCK_Type type,
                                     PluginDatumProcessor proc, void *proc_cls)
 {
-  EM_ASM_ARGS({
-    var offset = $0;
-    var type = $1;
-    var proc = $2;
-    var proc_cls = $3;
-    var datum_processor_wrapper = $4;
-    var emscripten_plugin_get_zero_anonymity = $5;
-    var count = 0;
-    var request = self.dsdb.transaction(['datastore'], 'readwrite')
-                      .objectStore('datastore').index('by_anon_type')
-                      .openCursor([0, type]);
-    request.onerror = function(e) {
-      console.error('cursor request failed');
-      Runtime.dynCall('iiiiiiiiiii', proc,
-        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-    };
-    request.onsuccess = function(e) {
-      var cursor = e.target.result;
-      if (cursor) {
-        // filter by offset
-        if (offset != 0) {
-          --offset;
-          ++count;
-          cursor.continue();
-          return;
-        }
-        // got a result
-        var stack = Runtime.stackSave();
-        var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize('double'));
-        setValue(expiry, cursor.value.expiry, 'double');
-        var ret = ccallFunc(
-            Runtime.getFuncWrapper(datum_processor_wrapper,
-              'iiiiiiiiiii'),
-            'number',
-            ['number', 'number', 'array', 'number', 'array', 'number', 'number',
-             'number', 'number', 'number'],
-            [proc, proc_cls, cursor.value.key, cursor.value.data.length,
-             cursor.value.data, cursor.value.type, cursor.value.priority,
-             cursor.value.anonymity, expiry, cursor.value.uid]);
-        Runtime.stackRestore(stack);
-        if (!ret) {
-          cursor.delete().onerror = function(e) {
-            console.error('delete request failed');
-          }
-        }
-      } else {
-        // did offset wrap around?
-        if (count != 0) {
-          offset = offset % count;
-          // recurse
-          ccallFunc(Runtime.getFuncWrapper(emscripten_plugin_get_zero_anonymity,
-                'viiiiii'),
-              'void',
-              ['number', 'number', 'number', 'number', 'number', 'number'],
-              [0, offset, 0, type, proc, proc_cls]);
-          return;
-        }
-        // not found
-        Runtime.dynCall('iiiiiiiiiii', proc,
-          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-      }
-    };
-  }, (double)offset, type, proc, proc_cls, &datum_processor_wrapper,
-     &emscripten_plugin_get_zero_anonymity);
+  extern void emscripten_plugin_get_zero_anonymity_int(int offset, int type,
+      void *proc, void *proc_cls, void *wrapper);
+
+  emscripten_plugin_get_zero_anonymity_int(offset, type, proc, proc_cls,
+      &datum_processor_wrapper);
 }
 
 
@@ -529,35 +254,9 @@ emscripten_plugin_get_keys (void *cls,
 		   PluginKeyProcessor proc,
 		   void *proc_cls)
 {
-  EM_ASM_ARGS({
-    var proc = $0;
-    var proc_cls = $1;
-    var index = self.dsdb.transaction(['datastore'], 'readonly')
-                    .objectStore('datastore').index('by_key');
-    var request = index.openKeyCursor(null, 'nextunique');
-    request.onerror = function(e) {
-      console.error('cursor request failed');
-      Runtime.dynCall('viii', proc, [proc_cls, 0, 0]);
-    };
-    request.onsuccess = function(e) {
-      var cursor = e.target.result;
-      if (cursor) {
-        var request = index.count(cursor.key);
-        request.onerror = function(e) {
-          console.error('count request failed');
-        };
-        request.onsuccess = function(e) {
-          ccallFunc(Runtime.getFuncWrapper(proc, 'viii'),
-            'void',
-            ['number', 'array', 'number'],
-            [proc_cls, cursor.key, e.target.result]);
-        };
-        cursor.continue();
-      } else {
-        Runtime.dynCall('viii', proc, [proc_cls, 0, 0]);
-      }
-    };
-  }, proc, proc_cls);
+  extern void emscripten_plugin_get_keys_int(void *proc, void *proc_cls);
+
+  emscripten_plugin_get_keys_int(proc, proc_cls);
 }
 
 

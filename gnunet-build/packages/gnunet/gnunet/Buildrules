@@ -132,6 +132,7 @@ pkg_compile() {
 		--js-library "${F}/scheduler.js" \
 		--js-library "${F}/server.js" \
 		--js-library "${F}/service.js" \
+		--js-library "${F}/plugin_datastore_emscripten_int.js" \
 		--pre-js "${F}/pre.js" \
 		--pre-js "${F}/datastore-pre.js"
 	cp "${S}/src/datastore/.libs/gnunet-service-datastore.js" \
