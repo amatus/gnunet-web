@@ -139,23 +139,6 @@ mergeInto(LibraryManager.library, {
     clearTimeout(client.th);
     client.th = null;
   },
-  GNUNET_CLIENT_transmit_and_get_response__deps: ['$CLIENT_PORTS',
-                                                  'GNUNET_CLIENT_receive'],
-  GNUNET_CLIENT_transmit_and_get_response: function(port, message, timeout,
-                                               auto_retry, handler,
-                                               handler_cls) {
-    var client = CLIENT_PORTS[port];
-    if (client.th !== null)
-      return -1;
-    var size = getValue(message, 'i8') << 8 | getValue(message + 1, 'i8');
-    var view = {{{ makeHEAPView('U8', 'message', 'message+size') }}};
-    view = new Uint8Array(view);
-    client.th = setTimeout(function() {
-      client.port.postMessage(view);
-      _GNUNET_CLIENT_receive(port, handler, handler_cls, timeout);
-    }, 0);
-    return 1;
-  },
 });
 
 // vim: set expandtab ts=2 sw=2:
