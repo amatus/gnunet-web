@@ -25,7 +25,6 @@
  * @author David Barksdale <amatus@amatus.name>
  */
 
-#include <emscripten.h>
 #include "platform.h"
 #include "gnunet_datastore_plugin.h"
 
@@ -71,8 +70,9 @@ emscripten_plugin_put (void *cls, const struct GNUNET_HashCode *key,
                        PluginPutCont cont, void *cont_cls)
 {
   extern void emscripten_plugin_put_int(const void *key, const void *data,
-      int size, int type, int priority, int anonymity, int replication,
-      double expiration, void *vhash, void *cont, void *cons_cls);
+      double size, double type, double priority, double anonymity,
+      double replication, double expiration, void *vhash, void *cont,
+      void *cons_cls);
   struct GNUNET_HashCode vhash;
 
   GNUNET_CRYPTO_hash (data, size, &vhash);
@@ -122,7 +122,8 @@ emscripten_plugin_get_key (void *cls, uint64_t offset,
                            PluginDatumProcessor proc, void *proc_cls)
 {
   extern void emscripten_plugin_get_key_int(double offset, const void *key,
-      const void *vhash, int type, void *proc, void *proc_cls, void *wrapper);
+      const void *vhash, double type, void *proc, void *proc_cls,
+      void *wrapper);
 
   emscripten_plugin_get_key_int(offset, key, vhash, type, proc, proc_cls,
       &datum_processor_wrapper);
@@ -200,8 +201,8 @@ emscripten_plugin_update (void *cls, uint64_t uid, int delta,
                         struct GNUNET_TIME_Absolute expire,
                         PluginUpdateCont cont, void *cont_cls)
 {
-  extern void emscripten_plugin_update_int(int uid, int delta, double expriy,
-      void *cont, void *cont_cls);
+  extern void emscripten_plugin_update_int(double uid, double delta,
+      double expriy, void *cont, void *cont_cls);
 
   emscripten_plugin_update_int(uid, delta, expire.abs_value_us, cont, cont_cls);
 }
@@ -224,8 +225,8 @@ emscripten_plugin_get_zero_anonymity (void *cls, uint64_t offset,
                                     enum GNUNET_BLOCK_Type type,
                                     PluginDatumProcessor proc, void *proc_cls)
 {
-  extern void emscripten_plugin_get_zero_anonymity_int(int offset, int type,
-      void *proc, void *proc_cls, void *wrapper);
+  extern void emscripten_plugin_get_zero_anonymity_int(double offset,
+      double type, void *proc, void *proc_cls, void *wrapper);
 
   emscripten_plugin_get_zero_anonymity_int(offset, type, proc, proc_cls,
       &datum_processor_wrapper);

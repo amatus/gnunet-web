@@ -1,5 +1,5 @@
-// plugin_datastore_emscripten_int.js - internal functions for datastore plugin
-// Copyright (C) 2016  David Barksdale <amatus@amatus.name>
+// plugin_datastore_emscripten_int.js - js functions for datastore plugin
+// Copyright (C) 2016  David Barksdale <amatus@amat.us>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

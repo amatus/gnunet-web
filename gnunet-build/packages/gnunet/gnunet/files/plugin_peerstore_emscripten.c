@@ -25,7 +25,6 @@
  * @author David Barksdale <amatus@amatus.name>
  */
 
-#include <emscripten.h>
 #include "platform.h"
 #include "gnunet_peerstore_plugin.h"
 #include "gnunet_peerstore_service.h"
@@ -67,34 +66,10 @@ peerstore_emscripten_expire_records(void *cls,
     GNUNET_PEERSTORE_Continuation cont,
     void *cont_cls)
 {
-  EM_ASM_ARGS({
-    var now = $0;
-    var cont = $1;
-    var cont_cls = $2;
-    var count = 0;
-    var store =
-     self.psdb.transaction(['peerstore'], 'readwrite').objectStore('peerstore');
-    var request = store.index('by_expiry').openCursor(
-        IDBKeyRange.upperBound(now, true));
-    request.onsuccess = function(e) {
-      var cursor = e.target.result;
-      if (cursor) {
-        count++;
-        cursor.delete().onerror = function(e) {
-          Module.print('expiry request failed');
-        };
-        cursor.continue();
-      } else {
-        if (cont) {
-          Runtime.dynCall('vii', cont, [cont_cls, count]);
-        }
-      }
-    };
-    request.onerror = function(e) {
-      Module.print('cursor request failed');
-      Runtime.dynCall('vii', cont, [cont_cls, -1]);
-    };
-  }, (double)now.abs_value_us, cont, cont_cls);
+  extern void peerstore_emscripten_expire_records_int(double now, void *cont,
+      void *cont_cls);
+
+  peerstore_emscripten_expire_records_int(now.abs_value_us, cont, cont_cls);
   return GNUNET_OK;
 }
 
@@ -145,60 +120,11 @@ peerstore_emscripten_iterate_records (void *cls,
     const char *key,
     GNUNET_PEERSTORE_Processor iter, void *iter_cls)
 {
-  EM_ASM_ARGS({
-    var sub_system = Pointer_stringify($0);
-    var peer = $1 ? Array.prototype.slice.call(HEAP8.subarray($1, $1 + 32))
-                  : null;
-    var key = $2 ? Pointer_stringify($2) : null;
-    var iter = $3;
-    var iter_cls = $4;
-    var peerstore_emscripten_iter_wrapper = $5;
-    var key_range = [sub_system];
-    if (peer) {
-      key_range.push(peer);
-    }
-    if (key) {
-      key_range.push(key);
-    }
-    var store =
-      self.psdb.transaction(['peerstore'], 'readonly').objectStore('peerstore');
-    var index;
-    if (!peer && !key) {
-      index = store.index('by_subsystem');
-    } else if (!peer) {
-      index = store.index('by_key');
-    } else if (!key) {
-      index = store.index('by_peer');
-    } else {
-      index = store.index('by_all');
-    }
-    var request = index.openCursor(IDBKeyRange.only(key_range));
-    request.onsuccess = function(e) {
-      var cursor = e.target.result;
-      if (cursor) {
-        var stack = Runtime.stackSave();
-        var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize("double"));
-        setValue(expiry, cursor.value.expiry, "double");
-        ccallFunc(
-            Runtime.getFuncWrapper(peerstore_emscripten_iter_wrapper,
-              "viiiiiiii"),
-            "void",
-            ["number", "number", "string", "array", "string", "array", "number",
-             "number"],
-            [iter, iter_cls, cursor.value.subsystem, cursor.value.peer,
-             cursor.value.key, cursor.value.value, cursor.value.value.length,
-             expiry]);
-        Runtime.stackRestore(stack);
-        cursor.continue();
-      } else {
-        Runtime.dynCall('iiii', iter, [iter_cls, 0, 0]);
-      }
-    };
-    request.onerror = function(e) {
-      Module.print('cursor request failed');
-      Runtime.dynCall('iiii', iter, [iter_cls, 0, -1]);
-    };
-  }, sub_system, peer, key, iter, iter_cls, &peerstore_emscripten_iter_wrapper);
+  extern void peerstore_emscripten_iterate_records_int(void *sub_system,
+      void *peer, void *key, void *iter, void *iter_cls, void *wrapper);
+
+  peerstore_emscripten_iterate_records_int(sub_system, peer, key, iter,
+      iter_cls, &peerstore_emscripten_iter_wrapper);
   return GNUNET_OK;
 }
 
@@ -228,55 +154,12 @@ peerstore_emscripten_store_record(void *cls,
     GNUNET_PEERSTORE_Continuation cont,
     void *cont_cls)
 {
-  EM_ASM_ARGS({
-    var sub_system = Pointer_stringify($0);
-    var peer = Array.prototype.slice.call(HEAP8.subarray($1, $1 + 32));
-    var key = Pointer_stringify($2);
-    var value = new Uint8Array(HEAP8.subarray($3, $3 + $4));
-    var expiry = $5;
-    var options = $6;
-    var cont = $7;
-    var cont_cls = $8;
-    var store =
-     self.psdb.transaction(['peerstore'], 'readwrite').objectStore('peerstore');
-    var put = function() {
-      var request = store.put(
-          {sub_system: sub_system,
-           peer: peer,
-           key: key,
-           value: value,
-           expiry: expiry});
-      request.onerror = function(e) {
-        Module.print('put request failed');
-        Runtime.dynCall('vii', cont, [cont_cls, -1]);
-      };
-      request.onsuccess = function(e) {
-        Runtime.dynCall('vii', cont, [cont_cls, 1]);
-      };
-    };
-    if (options == 1) {
-      var request = store.index('by_all').openCursor(
-          IDBKeyRange.only([sub_system, peer, key]));
-      request.onsuccess = function(e) {
-        var cursor = e.target.result;
-        if (cursor) {
-          cursor.delete().onerror = function(e) {
-            Module.print('replace request failed');
-          };
-          cursor.continue();
-        } else {
-          put();
-        }
-      };
-      request.onerror = function(e) {
-        Module.print('cursor request failed');
-        Runtime.dynCall('vii', cont, [cont_cls, -1]);
-      };
-    } else {
-      put();
-    }
-  }, sub_system, peer, key, value, size, (double)expiry.abs_value_us, options,
-     cont, cont_cls);
+  extern void peerstore_emscripten_store_record_int(void *sub_system,
+      void *peer, void *key, void *value, double size, double expiry,
+      double options, void *cont, void *cont_cls);
+
+  peerstore_emscripten_store_record_int(sub_system, peer, key, value, size,
+      expiry.abs_value_us, options, cont, cont_cls);
   return GNUNET_OK;
 }
 

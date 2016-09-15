@@ -404,6 +404,7 @@ pkg_compile() {
 		--js-library "${F}/scheduler.js" \
 		--js-library "${F}/server.js" \
 		--js-library "${F}/service.js" \
+		--js-library "${F}/plugin_peerstore_emscripten_int.js" \
 		--pre-js "${F}/pre.js" \
 		--pre-js "${F}/peerstore-pre.js"
 	cp "${S}/src/peerstore/.libs/gnunet-service-peerstore.js" \
@@ -485,4 +486,4 @@ pkg_compile() {
 	cat "${S}/contrib/hellos/"* > "${D}/var/lib/gnunet/hostlist"
 }
 
-# vim: syntax=sh
+# vim: syntax=sh ts=8 sw=4 noexpandtab
