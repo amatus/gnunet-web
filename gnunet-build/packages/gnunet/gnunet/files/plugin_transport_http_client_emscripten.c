@@ -48,7 +48,6 @@
 #include "gnunet_protocols.h"
 #include "gnunet_transport_plugin.h"
 #include "plugin_transport_http_common.h"
-#include <emscripten.h>
 
 
 #define LOG(kind,...) GNUNET_log_from(kind, PLUGIN_NAME, __VA_ARGS__)
@@ -276,6 +275,7 @@ notify_session_monitor (struct HTTP_Client_Plugin *plugin,
 static void
 client_delete_session (struct GNUNET_ATS_Session *s)
 {
+  extern void abort_xhr(double xhr);
   struct HTTP_Client_Plugin *plugin = s->plugin;
 
   if (NULL != s->timeout_task)
@@ -296,10 +296,7 @@ client_delete_session (struct GNUNET_ATS_Session *s)
          GNUNET_i2s (&s->address->peer));
     GNUNET_assert (plugin->cur_connections > 0);
     plugin->cur_connections--;
-    EM_ASM_INT({
-      Module.print('Aborting xhr: ' + $0);
-      xhrs[$0].abort();
-    }, s->get);
+    abort_xhr(s->get);
     s->get = 0;
   }
   GNUNET_STATISTICS_set (plugin->env->stats,
@@ -370,41 +367,15 @@ http_client_plugin_send (void *cls,
                          GNUNET_TRANSPORT_TransmitContinuation cont,
                          void *cont_cls)
 {
+  extern void http_client_plugin_send_int(void *url, void *data,
+      double data_size, void *cont, void *cont_cls, void *target);
+
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Session %p: Sending message with %u to peer `%s' \n",
        s,
        msgbuf_size, GNUNET_i2s (&s->address->peer));
-
-  EM_ASM_INT({
-    var url = Pointer_stringify($0);
-    var data = HEAP8.subarray($1, $1 + $2);
-    var data_size = $2;
-    var cont = $3;
-    var cont_cls = $4;
-    var target = $5;
-    var xhr = new XMLHttpRequest();
-    xhr.open('PUT', url);
-    xhr.send(data);
-    xhr.onload = function(e) {
-      Module.print('put onload readyState ' + xhr.readyState + ' status ' + xhr.status);
-      if (cont) {
-        Runtime.dynCall('viiiii', cont, [cont_cls, target, 1, data_size, data_size]);
-      }
-    };
-    xhr.onerror = function(e) {
-      Module.print('put onerror readyState ' + xhr.readyState + ' status ' + xhr.status);
-      if (cont) {
-        Runtime.dynCall('viiiii', cont, [cont_cls, target, -1, data_size, data_size]);
-      }
-    };
-  },
-  s->url,             // $0
-  msgbuf,             // $1
-  msgbuf_size,        // $2
-  cont,               // $3
-  cont_cls,           // $4
-  &s->address->peer   // $5
-  );
+  http_client_plugin_send_int(s->url, msgbuf, msgbuf_size, cont, cont_cls,
+      &s->address->peer);
   return msgbuf_size;
 }
 
@@ -669,59 +640,14 @@ int next_xhr = 1;
 static int
 client_connect_get (struct GNUNET_ATS_Session *s)
 {
+  extern void client_connect_get_int(double get, void *s, void *url,
+      void *client_receive, void *session_disconnect, void *plugin);
+
   /* create get connection */
   s->get = next_xhr++;
   s->plugin->cur_connections++;
-  EM_ASM_INT({
-    var s = $1;
-    var url = Pointer_stringify($2);
-    var client_receive = $3;
-    var http_client_plugin_session_disconnect = $4;
-    var plugin  = $5;
-    Module.print('Creating new get xhr: ' + $0);
-    var xhr = new XMLHttpRequest();
-    xhrs[$0] = xhr;
-    xhr.responseType = 'arraybuffer';
-    xhr.resend = function() {
-      xhr.open('GET', url + ',1');
-      xhr.send();
-    };
-    xhr.onreadystatechange = function() {
-      Module.print('xhr' + $0 + ' readyState ' + xhr.readyState +
-          ' status ' +  xhr.status + ':' + xhr.statusText);
-    };
-    xhr.onload = function(e) {
-      var response = new Uint8Array(e.target.response);
-      Module.print('xhr' + $0 + ' got ' + response.length + ' bytes');
-      ccallFunc(Runtime.getFuncWrapper(client_receive, 'iiiii'), 'number',
-        ['array', 'number', 'number', 'number'],
-        [response, response.length, 1, s]);
-      xhr.resend();
-    };
-    xhr.onerror = function(e) {
-      Module.print('xhr' + $0 + ' status:'
-        + xhr.status + ':' + xhr.statusText);
-      ccallFunc(Runtime.getFuncWrapper(http_client_plugin_session_disconnect, 'iii'),
-        'number',
-        ['number', 'number'],
-        [plugin, s]);
-    };
-    xhr.onabort = function() {
-      Module.print('xhr' + $0 + ' aborted');
-    };
-    xhr.ontimeout = function() {
-      Module.print('xhr' + $0 + ' timedout');
-      xhr.resend();
-    };
-    xhr.resend();
-  },
-    s->get,                                 // $0
-    s,                                      // $1
-    s->url,                                 // $2
-    &client_receive,                        // $3
-    &http_client_plugin_session_disconnect, // $4
-    s->plugin                               // $5
-      );
+  client_connect_get_int(s->get, s, s->url, &client_receive,
+      &http_client_plugin_session_disconnect, s->plugin);
   return GNUNET_OK;
 }
 

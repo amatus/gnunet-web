@@ -215,6 +215,7 @@ pkg_compile() {
 		--js-library "${F}/scheduler.js" \
 		--js-library "${F}/server.js" \
 		--js-library "${F}/service.js" \
+	--js-library "${F}/plugin_transport_http_client_emscripten_int.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/transport/.libs/gnunet-service-transport.js" \
 		"${S}/src/transport/.libs/gnunet-service-transport.js.mem" \
