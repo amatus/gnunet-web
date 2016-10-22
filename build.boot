@@ -22,11 +22,11 @@
   "Build gnunet-web for development."
   []
   (comp
-    (serve :dir "target/" :port 8000)
     (watch)
     (speak)
     (hoplon)
-    (cljs :pretty-print true)))
+    (cljs)
+    (serve :port 8000)))
 
 (deftask prod
   "Build gnunet-web for production."
@@ -34,6 +34,7 @@
   (comp
     (hoplon)
     (cljs :optimizations :advanced)
-    (prerender)))
+    (prerender)
+    (target :dir #{"target"})))
 
 ;; vim: set filetype=clojure :
