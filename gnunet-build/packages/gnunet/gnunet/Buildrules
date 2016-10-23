@@ -1,4 +1,4 @@
-REVISION="38026"
+REVISION="38181"
 VERSION="svn-${REVISION}"
 RELEASE="0"
 DESCRIPTION="GNUnet is a framework for secure peer-to-peer networking that does not use any centralized or otherwise trusted services."
@@ -33,6 +33,7 @@ pkg_compile() {
 		ac_cv_lib_idn_stringprep_check_version=yes \
 		ac_cv_func_srandom=no \
 		ac_cv_func_getifaddrs=no \
+		ac_cv_lib_socket_socket=no \
                 CPPFLAGS="-I${SYSROOT}/usr/include" \
                 LDFLAGS="-L${SYSROOT}/usr/lib"
         emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
