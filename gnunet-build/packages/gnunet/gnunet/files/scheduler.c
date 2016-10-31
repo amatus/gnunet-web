@@ -78,9 +78,9 @@ GNUNET_SCHEDULER_add_continuation (GNUNET_SCHEDULER_TaskCallback task,
 }
 
 const struct GNUNET_SCHEDULER_TaskContext tc = {
-  .reason = GNUNET_SCHEDULER_REASON_TIMEOUT,
-  .read_ready = NULL,
-  .write_ready = NULL,
+  .reason = GNUNET_SCHEDULER_REASON_WRITE_READY,
+  .read_ready = (void *)(intptr_t)1,
+  .write_ready = (void *)(intptr_t)2,
 };
 
 const struct GNUNET_SCHEDULER_TaskContext *

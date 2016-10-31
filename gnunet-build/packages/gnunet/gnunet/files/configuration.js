@@ -1,10 +1,10 @@
 // configuration.js - config data handler for gnunet-web services
-// Copyright (C) 2013,2014  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2013-2016  David Barksdale <amatus@amat.us>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,10 +23,12 @@ mergeInto(LibraryManager.library, {
       DISABLE: true,
     },
     transport: {
+      UNIXPATH: 'transport',
       NEIGHBOUR_LIMIT: 50,
       PLUGINS: 'http_client',
     },
     ats: {
+      UNIXPATH: 'ats',
       UNSPECIFIED_QUOTA_OUT: '65536',
       UNSPECIFIED_QUOTA_IN: '65536',
       LOOPBACK_QUOTA_OUT: '65536',
@@ -41,9 +43,11 @@ mergeInto(LibraryManager.library, {
       BLUETOOTH_QUOTA_IN: '65536',
     },
     core: {
+      UNIXPATH: 'core',
       USE_EPHEMERAL_KEYS: true,
     },
     dht: {
+      UNIXPATH: 'dht',
       CACHE_RESULTS: true,
       DISABLE_TRY_CONNECT: false,
     },
@@ -53,23 +57,27 @@ mergeInto(LibraryManager.library, {
       DISABLE_BF: true,
     },
     nse: {
+      UNIXPATH: 'nse',
       PROOFFILE: '/nse/proof.dat',
       WORKDELAY: '5 ms',
       INTERVAL: '1 h',
       WORKBITS: 22,
     },
     cadet: {
+      UNIXPATH: 'cadet',
       MAX_MSGS_QUEUE: 10000,
       MAX_CONNECTIONS: 1000,
       REFRESH_CONNECTION_TIME: '5 min',
       ID_ANNOUNCE_TIME: '1 h',
     },
     datastore: {
+      UNIXPATH: 'datastore',
       DATABASE: 'emscripten',
       QUOTA: '1 GB',
       BLOOMFILTER: '/datastore/bloomfilter',
     },
     fs: {
+      UNIXPATH: 'fs',
       DELAY: true,
       CONTENT_CACHING: true,
       CONTENT_PUSHING: true,
@@ -77,10 +85,15 @@ mergeInto(LibraryManager.library, {
       RESPECT: '/fs/credit',
     },
     peerinfo: {
+      UNIXPATH: 'peerinfo',
       HOSTS: '/peerinfo/hosts',
     },
     peerstore: {
+      UNIXPATH: 'peerstore',
       DATABASE: 'emscripten',
+    },
+    arm: {
+      CONFIG: '',
     },
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
@@ -93,18 +106,18 @@ mergeInto(LibraryManager.library, {
       console.debug(section + ' not in CONFIG');
       return undefined;
     }
-    section = CONFIG[section]
-    if (!(option in section)) {
+    var sec = CONFIG[section]
+    if (!(option in sec)) {
       console.debug(option + ' not in ' + section);
       return undefined;
     }
-    console.debug('found:', section[option]);
-    return section[option];
+    console.debug('found:', sec[option]);
+    return sec[option];
   },
   GNUNET_CONFIGURATION_have_value__deps:
     ['GNUNET_CONFIGURATION_get_value'],
   GNUNET_CONFIGURATION_have_value: function(cfg, section, option) {
-    return undefined === _GNUNET_CONFIGURATION_get_value(cfg, section, option);
+    return undefined !== _GNUNET_CONFIGURATION_get_value(section, option);
   },
   GNUNET_CONFIGURATION_get_value_string__deps:
     ['GNUNET_CONFIGURATION_get_value', 'GNUNET_xstrdup_'],
@@ -191,6 +204,9 @@ mergeInto(LibraryManager.library, {
   GNUNET_CONFIGURATION_create: function() {
     return 1; // opaque non-null pointer
   },
+  GNUNET_CONFIGURATION_load: function(cfg, filename) {
+    return 1;
+  }
 });
 
 // vim: set expandtab ts=2 sw=2:

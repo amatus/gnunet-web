@@ -79,9 +79,8 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
-		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/peerinfo/.libs/gnunet-service-peerinfo.js" \
 		"${S}/src/peerinfo/.libs/gnunet-service-peerinfo.js.mem" \
@@ -129,10 +128,9 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
-		--js-library "${F}/service.js" \
 		--js-library "${F}/plugin_datastore_emscripten_int.js" \
 		--pre-js "${F}/pre.js" \
 		--pre-js "${F}/datastore-pre.js"
@@ -168,12 +166,10 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		"${SYSROOT}/usr/lib/libunistring.la" \
-		--js-library "${F}/client.js" \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
-		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/ats/.libs/gnunet-service-ats.js" \
 		"${S}/src/ats/.libs/gnunet-service-ats.js.mem" \
@@ -210,12 +206,10 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
-		--js-library "${F}/client.js" \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
-		--js-library "${F}/service.js" \
 	--js-library "${F}/plugin_transport_http_client_emscripten_int.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/transport/.libs/gnunet-service-transport.js" \
@@ -240,11 +234,9 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${F}/client.js" \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
-		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/core/.libs/gnunet-service-core.js" \
 		"${S}/src/core/.libs/gnunet-service-core.js.mem" \
@@ -267,11 +259,9 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${F}/client.js" \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
-		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/nse/.libs/gnunet-service-nse.js" \
 		"${S}/src/nse/.libs/gnunet-service-nse.js.mem" \
@@ -302,12 +292,10 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${F}/client.js" \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
-		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/dht/.libs/gnunet-service-dht.js" \
 		"${S}/src/dht/.libs/gnunet-service-dht.js.mem" \
@@ -333,11 +321,9 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
-		--js-library "${F}/client.js" \
 		--js-library "${F}/configuration.js" \
-		--js-library "${F}/program.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/topology/.libs/gnunet-daemon-topology.js" \
 		"${S}/src/topology/.libs/gnunet-daemon-topology.js.mem" \
@@ -366,12 +352,10 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${F}/client.js" \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
-		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/cadet/.libs/gnunet-service-cadet.js" \
 		"${S}/src/cadet/.libs/gnunet-service-cadet.js.mem" \
@@ -402,10 +386,9 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
-		--js-library "${F}/service.js" \
 		--js-library "${F}/plugin_peerstore_emscripten_int.js" \
 		--pre-js "${F}/pre.js" \
 		--pre-js "${F}/peerstore-pre.js"
@@ -439,12 +422,10 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
-		--js-library "${F}/client.js" \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
 		--js-library "${F}/scheduler.js" \
-		--js-library "${F}/server.js" \
-		--js-library "${F}/service.js" \
 		--pre-js "${F}/pre.js"
 	cp "${S}/src/fs/.libs/gnunet-service-fs.js" \
 		"${S}/src/fs/.libs/gnunet-service-fs.js.mem" \
@@ -476,8 +457,8 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libunistring.la" \
 		"${SYSROOT}/usr/lib/libextractor.so" \
 		-lz \
-		--js-library "${F}/client.js" \
 		--js-library "${F}/configuration.js" \
+		--js-library "${F}/network.js" \
 		--js-library "${F}/scheduler.js" \
 		--pre-js "${F}/client-pre.js"
 	cp "${S}/src/.libs/client-lib.js" \

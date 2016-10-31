@@ -4,7 +4,7 @@
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -85,12 +85,12 @@ mergeInto(LibraryManager.library, {
         Runtime.stackRestore(stack);
         cursor.continue();
       } else {
-        Runtime.dynCall('iiii', iter, [iter_cls, 0, 0]);
+        Runtime.dynCall('viii', iter, [iter_cls, 0, 0]);
       }
     };
     request.onerror = function(e) {
       Module.print('cursor request failed');
-      Runtime.dynCall('iiii', iter, [iter_cls, 0, -1]);
+      Runtime.dynCall('viii', iter, [iter_cls, 0, -1]);
     };
   },
   peerstore_emscripten_store_record_int: function(sub_system_pointer,

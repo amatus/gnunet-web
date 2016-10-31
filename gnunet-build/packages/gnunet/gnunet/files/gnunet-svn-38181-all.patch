@@ -968,34 +968,39 @@ Index: gnunet-svn-38181/src/util/Makefile.am
 ===================================================================
 --- gnunet-svn-38181/src/util/Makefile.am	(revision 38181)
 +++ gnunet-svn-38181/src/util/Makefile.am	(working copy)
-@@ -59,14 +59,10 @@
- libgnunetutil_la_SOURCES = \
-   bandwidth.c \
-   bio.c \
--  client.c \
-   client_new.c \
+@@ -64,8 +64,6 @@
    common_allocation.c \
    common_endian.c \
    common_logging.c \
 -  configuration.c \
 -  configuration_loader.c \
--  connection.c \
+   connection.c \
    container_bloomfilter.c \
    container_heap.c \
-   container_meta_data.c \
-@@ -101,15 +97,11 @@
+@@ -95,13 +93,11 @@
+   mst.c \
+   mq.c \
+   nc.c \
+-  network.c \
+   op.c \
+   os_installation.c \
    os_network.c \
    os_priority.c \
    peer.c \
 -  plugin.c \
--  program.c \
+   program.c \
    resolver_api.c resolver.h \
    scheduler.c \
--  server.c \
-   server_mst.c \
-   server_nc.c \
-   server_tc.c \
--  service.c \
-   service_new.c \
-   signal.c \
-   strings.c \
+Index: gnunet-svn-38181/src/util/connection.c
+===================================================================
+--- gnunet-svn-38181/src/util/connection.c	(revision 38181)
++++ gnunet-svn-38181/src/util/connection.c	(working copy)
+@@ -397,7 +397,7 @@
+ 			 &gc.gid))
+       gcp = &gc;
+ #else
+-#ifdef SO_PEERCRED
++#if 0
+     /* largely traditional GNU/Linux */
+     olen = sizeof (uc);
+     if ( (0 ==

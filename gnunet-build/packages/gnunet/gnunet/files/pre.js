@@ -1,10 +1,10 @@
 // pre.js - linked into each gnunet-web service
-// Copyright (C) 2013-2015  David Barksdale <amatus@amatus.name>
+// Copyright (C) 2013-2016  David Barksdale <amatus@amat.us>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -77,6 +77,7 @@ gnunet_prerun = function() {
 }
 if (typeof(Module) === "undefined") Module = { 'preInit': [] };
 Module['preInit'].push(gnunet_prerun);
+Module['arguments'] = ["-L", "DEBUG"];
 
 // a map of window index to port
 var windows = {};
@@ -105,7 +106,17 @@ function get_message(ev) {
       random_offset = 0;
       removeRunDependency('window-init');
     } else if ('connect' == ev.data.type) {
-      SERVER.connect(ev.data.port, ev.data['client-name']);
+      console.debug("got connect: ", ev.data);
+      SOCKETS.incoming.push(ev.data);
+      if ("listening" in SOCKETS) {
+        var socket = SOCKETS[SOCKETS.listening];
+        if ("task" in socket) {
+          delete SCHEDULER_TASKS[socket.task];
+          delete socket["task"];
+          console.debug("calling handler for listening socket");
+          Runtime.dynCall('vi', socket["handler"], [socket["cls"]]);
+        }
+      }
     }
   } catch (e) {
     console.error('Rekt', e);
