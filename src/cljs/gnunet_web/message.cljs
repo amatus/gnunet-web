@@ -16,7 +16,8 @@
 
 (ns gnunet-web.message
   (:require [gnunet-web.encoder :refer [encode-uint16]]
-            [gnunet-web.parser :refer [items parser parse-uint16]])
+            [gnunet-web.parser :refer [items parser parse-uint16]]
+            [monads.core :refer [set-state]])
   (:require-macros [monads.macros :as monadic]))
 
 (def parse-header
@@ -32,11 +33,14 @@
    consume the entire input."
   [parser-set]
   (monadic/do parser
-              [{message-type :message-type} parse-header
+              [{message-type :message-type size :size} parse-header
                :let [p (first (filter #(= message-type (:message-type (meta %)))
                                       parser-set))]
                :when p
-               message p]
+               new-state (items (- size 4))
+               old-state (set-state new-state)
+               message p
+               _ (set-state old-state)]
               {:message-type message-type :message message}))
 
 (defn encode-message
