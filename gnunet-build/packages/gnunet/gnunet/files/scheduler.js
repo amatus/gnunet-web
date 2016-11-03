@@ -39,7 +39,9 @@ mergeInto(LibraryManager.library, {
       var t = SCHEDULER_TASKS[task];
       delete SCHEDULER_TASKS[task];
       if ("socket" in t) {
-        delete SOCKETS[t.socket]["task"];
+        if (t.socket in SOCKETS) {
+          delete SOCKETS[t.socket]["task"];
+        }
       }
       return t.cls;
     }
@@ -62,6 +64,9 @@ mergeInto(LibraryManager.library, {
           return;
         }
       } else if (0 == socket.queue.length) {
+        return;
+      }
+      if (!(id in SCHEDULER_TASKS)) {
         return;
       }
       delete SCHEDULER_TASKS[id];
@@ -94,6 +99,9 @@ mergeInto(LibraryManager.library, {
     }
     // always writable
     var id = setTimeout(function() {
+      if (!(id in SCHEDULER_TASKS)) {
+        return;
+      }
       delete SCHEDULER_TASKS[id];
       Runtime.dynCall('vi', task, [task_cls]);
     }, 0);

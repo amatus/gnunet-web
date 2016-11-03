@@ -20,7 +20,13 @@ mergeInto(LibraryManager.library, {
   GNUNET_NETWORK_socket_create__deps: ['$SOCKETS', '$NEXT_SOCKET'],
   GNUNET_NETWORK_socket_create: function(domain, type, protocol) {
     console.debug("socket_create(", domain, type, protocol, ")");
-    if (domain != 1 || type != 1 || protocol != 0) {
+    if (domain != 1) {
+      ___setErrNo(ERRNO_CODES.EAFNOSUPPORT);
+      return 0;
+
+    }
+    if (type != 1 || protocol != 0) {
+      ___setErrNo(ERRNO_CODES.EPROTONOSUPPORT);
       return 0;
     }
     return NEXT_SOCKET++;
@@ -30,9 +36,12 @@ mergeInto(LibraryManager.library, {
     console.debug("socket_connect(", desc, address, address_len, ")");
     if (desc in SOCKETS) {
       console.error("socket already connected?");
+      ___setErrNo(ERRNO_CODES.EISCONN);
       return -1;
     }
-    if (110 != address_len) {
+    var af = {{{ makeGetValue('address', '0', 'i16') }}};
+    if (1 != af) {
+      ___setErrNo(ERRNO_CODES.EAFNOSUPPORT);
       return -1;
     }
     var path = Pointer_stringify(address + 2);
@@ -42,6 +51,7 @@ mergeInto(LibraryManager.library, {
       channel = new MessageChannel();
     } catch (e) {
       console.error("No MessageChannel in this browser", e);
+      ___setErrNo(ERRNO_CODES.ENETUNREACH);
       return -1;
     }
     var socket = SOCKETS[desc] = {
@@ -66,6 +76,7 @@ mergeInto(LibraryManager.library, {
         gnunet_web.service.client_connect(path, 'client.js', channel.port2);
       } catch(e) {
         console.error('Failed to connect to', path, e);
+        ___setErrNo(ERRNO_CODES.ENETUNREACH);
         return -1;
       }
     }
@@ -76,6 +87,7 @@ mergeInto(LibraryManager.library, {
     console.debug("socket_send(", desc, buffer, length, ")");
     if (!(desc in SOCKETS)) {
       console.error("socket not connected?");
+      ___setErrNo(ERRNO_CODES.ENOTCONN);
       return -1;
     }
     var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+length') }}};
@@ -83,6 +95,7 @@ mergeInto(LibraryManager.library, {
       SOCKETS[desc].port.postMessage(new Uint8Array(view));
     } catch (e) {
       console.error("Failed to send");
+      ___setErrNo(ERRNO_CODES.ECONNRESET);
       return -1;
     }
     return length;
@@ -91,13 +104,15 @@ mergeInto(LibraryManager.library, {
   GNUNET_NETWORK_socket_close: function(desc) {
     console.debug("socket_close(", desc, ")");
     if (!(desc in SOCKETS)) {
-      return 1;
+      ___setErrNo(ERRNO_CODES.EBADF);
+      return -1;
     }
     var socket = SOCKETS[desc];
-    delete SOCKETS[desc];
     if ("port" in socket) {
+      socket.port.postMessage("close");
       socket.port.close();
     }
+    delete SOCKETS[desc];
     return 1;
   },
   GNUNET_NETWORK_socket_bind__deps: ['$SOCKETS'],
@@ -105,9 +120,11 @@ mergeInto(LibraryManager.library, {
     console.debug("socket_bind(", desc, address, address_len, ")");
     if (desc in SOCKETS) {
       console.error("socket already bound?");
+      ___setErrNo(ERRNO_CODES.EINVAL);
       return -1;
     }
     if (110 != address_len) {
+      ___setErrNo(ERRNO_CODES.EINVAL);
       return -1;
     }
     var path = Pointer_stringify(address + 2);
@@ -130,10 +147,12 @@ mergeInto(LibraryManager.library, {
     console.debug("socket_accept(", desc, address, address_len, ")");
     if (desc != SOCKETS.listening) {
       console.error("socket is not listening");
+      ___setErrNo(ERRNO_CODES.EINVAL);
       return 0;
     }
     if (0 == SOCKETS.incoming.length) {
       console.debug("no incoming connections");
+      ___setErrNo(ERRNO_CODES.EWOULDBLOCK);
       return 0;
     }
     var data = SOCKETS.incoming.shift();
@@ -162,14 +181,20 @@ mergeInto(LibraryManager.library, {
     console.debug("socket_recv(", desc, buffer, length, ")");
     if (!(desc in SOCKETS)) {
       console.error("socket not connected?");
+      ___setErrNo(ERRNO_CODES.ENOTCONN);
       return -1;
     }
     var socket = SOCKETS[desc];
     if (0 == socket.queue.length) {
       console.debug("nothing to read");
-      return 0;
+      ___setErrNo(ERRNO_CODES.EWOULDBLOCK);
+      return -1;
     }
     var data = socket.queue[0];
+    if ("close" == data) {
+      console.debug("socket closed");
+      return 0;
+    }
     var sub = data.subarray(0, length);
     HEAP8.set(sub, buffer);
     if (sub.length == data.length) {
