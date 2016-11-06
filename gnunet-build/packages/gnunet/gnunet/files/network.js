@@ -104,8 +104,7 @@ mergeInto(LibraryManager.library, {
   GNUNET_NETWORK_socket_close: function(desc) {
     console.debug("socket_close(", desc, ")");
     if (!(desc in SOCKETS)) {
-      ___setErrNo(ERRNO_CODES.EBADF);
-      return -1;
+      return 1;
     }
     var socket = SOCKETS[desc];
     if ("port" in socket) {
@@ -155,6 +154,11 @@ mergeInto(LibraryManager.library, {
       ___setErrNo(ERRNO_CODES.EWOULDBLOCK);
       return 0;
     }
+    var len = {{{ makeGetValue('address_len', '0', 'i32') }}};
+    if (len < 110) {
+      ___setErrNo(ERRNO_CODES.EINVAL);
+      return 0;
+    }
     var data = SOCKETS.incoming.shift();
     var sd = NEXT_SOCKET++;
     var socket = SOCKETS[sd] = {
@@ -173,6 +177,7 @@ mergeInto(LibraryManager.library, {
       }
     };
     {{{ makeSetValue('address', '0', '1', 'i16') }}};
+    writeStringToMemory(socket.name.slice(0, 107), address + 2);
     {{{ makeSetValue('address_len', '0', '110', 'i32') }}};
     return sd;
   },
