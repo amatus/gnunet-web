@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2002-2015 Christian Grothoff (and other contributing authors)
+     Copyright (C) 2002-2016 GNUnet e.V.
 
      GNUnet is free software; you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published
@@ -19,11 +19,11 @@
 */
 
 /**
- * @file transport/plugin_transport_http_client.c
+ * @file transport/plugin_transport_http_client_emscripten.c
  * @brief HTTP/S client transport plugin
  * @author Matthias Wachs
  * @author Christian Grothoff
- * @author David Barksdale <amatus@amatus.name>
+ * @author David Barksdale <amatus@amat.us>
  */
 
 #if BUILD_HTTPS
@@ -1145,6 +1145,15 @@ LIBGNUNET_PLUGIN_TRANSPORT_INIT (void *cls)
     LIBGNUNET_PLUGIN_TRANSPORT_DONE (api);
     return NULL;
   }
+
+  // fake address for hello expiration
+  struct GNUNET_HELLO_Address *address;
+  address = GNUNET_HELLO_address_allocate (plugin->env->my_identity,
+                                           "hello",
+                                           "world",
+                                           5,
+                                           GNUNET_HELLO_ADDRESS_INFO_NONE);
+  plugin->env->notify_address (plugin->env->cls, GNUNET_YES, address);
   return api;
 }
 
