@@ -1,8 +1,8 @@
-REVISION="38251"
-VERSION="svn-${REVISION}"
+COMMIT="0d9ddfc9205defa2c9dfd80707d134379854233b"
+VERSION="git-${COMMIT}"
 RELEASE="0"
 DESCRIPTION="GNUnet is a framework for secure peer-to-peer networking that does not use any centralized or otherwise trusted services."
-SOURCE_URI="svn://gnunet.org/svn/gnunet@${REVISION}?proto=https&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
+SOURCE_URI="git://gnunet.org/gnunet.git?commit=${COMMIT}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
 PATCHES="all"
 BDEPENDS="${BDEPENDS}
 	libs/fake-extractor
