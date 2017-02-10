@@ -63,6 +63,25 @@ GNUNET_SCHEDULER_add_now (GNUNET_SCHEDULER_TaskCallback task, void *task_cls)
 }
 
 struct GNUNET_SCHEDULER_Task *
+GNUNET_SCHEDULER_add_at_with_priority (struct GNUNET_TIME_Absolute at,
+    enum GNUNET_SCHEDULER_Priority priority,
+    GNUNET_SCHEDULER_TaskCallback task,
+    void *task_cls)
+{
+  return GNUNET_SCHEDULER_add_delayed_with_priority (
+      GNUNET_TIME_absolute_get_remaining (at), priority, task, task_cls);
+}
+
+struct GNUNET_SCHEDULER_Task *
+GNUNET_SCHEDULER_add_at (struct GNUNET_TIME_Absolute at,
+    GNUNET_SCHEDULER_TaskCallback task,
+    void *task_cls)
+{
+  return GNUNET_SCHEDULER_add_at_with_priority (at,
+      GNUNET_SCHEDULER_PRIORITY_DEFAULT, task, task_cls);
+}
+
+struct GNUNET_SCHEDULER_Task *
 GNUNET_SCHEDULER_add_shutdown (GNUNET_SCHEDULER_TaskCallback task,
                  void *task_cls)
 {
