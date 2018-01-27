@@ -90,9 +90,10 @@ mergeInto(LibraryManager.library, {
       ___setErrNo(ERRNO_CODES.ENOTCONN);
       return -1;
     }
-    var view = {{{ makeHEAPView('U8', 'buffer', 'buffer+length') }}};
+    var view =
+      new Uint8Array({{{ makeHEAPView('U8', 'buffer', 'buffer+length') }}});
     try {
-      SOCKETS[desc].port.postMessage(new Uint8Array(view));
+      SOCKETS[desc].port.postMessage(new Uint8Array(view, [view]));
     } catch (e) {
       console.error("Failed to send");
       ___setErrNo(ERRNO_CODES.ECONNRESET);
