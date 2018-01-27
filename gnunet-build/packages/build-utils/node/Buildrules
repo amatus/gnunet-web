@@ -1,4 +1,4 @@
-VERSION="0.10.24"
+VERSION="8.9.4"
 DESCRIPTION="Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications."
 SOURCE_URI="http://nodejs.org/dist/v${VERSION}/${NAME}-v${VERSION}.tar.gz"
 S="${W}/${NAME}-v${VERSION}"

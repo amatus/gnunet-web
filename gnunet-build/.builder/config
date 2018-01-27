@@ -9,4 +9,7 @@ export PATH
 EM_CONFIG="${SYSROOT}/${TOOLDIR}/etc/emscripten"
 export EM_CONFIG
 
+EM_CACHE="${SYSROOT}/${TOOLDIR}/var/cache/emscripten"
+export EM_CACHE
+
 # vim: filetype=sh

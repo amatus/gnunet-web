@@ -1,14 +1,29 @@
-VERSION="1.35.9"
+VERSION="1.37.28"
 DESCRIPTION="LLVM with the emscripten fastcomp javascript backend."
 SOURCE_URI="
 git://github.com/kripken/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}
 git://github.com/kripken/${NAME}-clang.git?${VERSION}&archive=${NAME}-clang-${VERSION}.${ARCHIVE_FORMAT}
 "
-CONFIG_OPTS="--enable-optimized --disable-assertions --enable-targets=host,js"
 
 pkg_prep()
 {
 	mv "${W}/${NAME}-clang-${VERSION}" "${S}/tools/clang"
+}
+
+pkg_compile() {
+  mkdir "${S}/build"
+  cd "${S}/build"
+  cmake -G "Unix Makefiles" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLLVM_TARGETS_TO_BUILD="X86;JSBackend" \
+    -DLLVM_INCLUDE_EXAMPLES=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DCLANG_INCLUDE_TESTS=OFF \
+    -DCMAKE_INSTALL_PREFIX="${SYSROOT}/${TOOLDIR}" \
+    "${S}"
+  make "${MAKE_OPTS}"
+  make DESTDIR="${D}" install
+  toolchain_fixup "${D}"
 }
 
 # vim: syntax=sh

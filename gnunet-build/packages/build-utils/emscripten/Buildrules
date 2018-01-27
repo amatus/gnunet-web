@@ -1,4 +1,4 @@
-VERSION="1.35.9"
+VERSION="1.37.28"
 DESCRIPTION="Emscripten is an LLVM-to-JavaScript compiler."
 SOURCE_URI="git://github.com/kripken/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
 RDEPENDS="build-utils/emscripten-fastcomp build-utils/node"
@@ -8,13 +8,18 @@ pkg_compile() {
 	mkdir -p "$(dirname "${INSTALLDIR}")"
 	cp -a "${S}" "${INSTALLDIR}"
 	mkdir -p "${D}/${TOOLDIR}/etc"
+	mkdir -p "${D}/${TOOLDIR}/var/cache/emscripten"
 	cat > "${D}/${TOOLDIR}/etc/emscripten" << EOF
 import os
 EMSCRIPTEN_ROOT = '${SYSROOT}/${TOOLDIR}/opt/emscripten'
 LLVM_ROOT = '${SYSROOT}/${TOOLDIR}/bin'
+PYTHON = os.path.expanduser(os.getenv('PYTHON') or '/usr/bin/python2')
 NODE_JS = '${SYSROOT}/${TOOLDIR}/bin/node'
+SPIDERMONKEY_ENGINE = [os.path.expanduser(os.getenv('SPIDERMONKEY') or 'js')]
+V8_ENGINE = os.path.expanduser(os.getenv('V8') or 'd8')
 JAVA = 'java'
 TEMP_DIR = os.path.expanduser(os.getenv('TEMP_DIR'))
+CRUNCH = os.path.expanduser(os.getenv('CRUNCH') or 'crunch')
 COMPILER_ENGINE = NODE_JS
 JS_ENGINES = [NODE_JS]
 EOF
