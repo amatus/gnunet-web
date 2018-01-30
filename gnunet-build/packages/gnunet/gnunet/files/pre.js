@@ -75,7 +75,7 @@ gnunet_prerun = function() {
   }
   addRunDependency('window-init');
 }
-if (typeof(Module) === "undefined") Module = { 'preInit': [] };
+if (typeof(Module['preInit']) === "undefined") Module = { 'preInit': [] };
 Module['preInit'].push(gnunet_prerun);
 Module['arguments'] = ["-L", "DEBUG"];
 
@@ -150,12 +150,13 @@ function ccallFunc(func, returnType, argTypes, args) {
       var ret = 0;
       if (str !== null && str !== undefined && str !== 0) { // null string
         // at most 4 bytes per UTF-8 code point, +1 for the trailing '\0'
-        ret = Runtime.stackAlloc((str.length << 2) + 1);
-        writeStringToMemory(str, ret);
+        var len = (str.length << 2) + 1;
+        ret = stackAlloc(len);
+        stringToUTF8(str, ret, len);
       }
       return ret;
     }, 'array' : function(arr) {
-      var ret = Runtime.stackAlloc(arr.length);
+      var ret = stackAlloc(arr.length);
       writeArrayToMemory(arr, ret);
       return ret;
     }};
@@ -165,7 +166,7 @@ function ccallFunc(func, returnType, argTypes, args) {
     for (var i = 0; i < args.length; i++) {
       var converter = toC[argTypes[i]];
       if (converter) {
-        if (stack === 0) stack = Runtime.stackSave();
+        if (stack === 0) stack = stackSave();
         cArgs[i] = converter(args[i]);
       } else {
         cArgs[i] = args[i];
@@ -175,7 +176,7 @@ function ccallFunc(func, returnType, argTypes, args) {
   var ret = func.apply(null, cArgs);
   if (returnType === 'string') ret = Pointer_stringify(ret);
   if (stack !== 0) {
-    Runtime.stackRestore(stack);
+    stackRestore(stack);
   }
   return ret;
 }

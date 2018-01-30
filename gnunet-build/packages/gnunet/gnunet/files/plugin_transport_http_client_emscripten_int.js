@@ -29,13 +29,13 @@ mergeInto(LibraryManager.library, {
     xhr.onload = function(e) {
       Module.print('put onload readyState ' + xhr.readyState + ' status ' + xhr.status);
       if (cont) {
-        Runtime.dynCall('viiiii', cont, [cont_cls, target, 1, data_size, data_size]);
+        dynCall('viiiii', cont, [cont_cls, target, 1, data_size, data_size]);
       }
     };
     xhr.onerror = function(e) {
       Module.print('put onerror readyState ' + xhr.readyState + ' status ' + xhr.status);
       if (cont) {
-        Runtime.dynCall('viiiii', cont, [cont_cls, target, -1, data_size, data_size]);
+        dynCall('viiiii', cont, [cont_cls, target, -1, data_size, data_size]);
       }
     };
   },
@@ -57,7 +57,7 @@ mergeInto(LibraryManager.library, {
     xhr.onload = function(e) {
       var response = new Uint8Array(e.target.response);
       Module.print('xhr' + get + ' got ' + response.length + ' bytes');
-      ccallFunc(Runtime.getFuncWrapper(client_receive, 'iiiii'), 'number',
+      ccallFunc(getFuncWrapper(client_receive, 'iiiii'), 'number',
         ['array', 'number', 'number', 'number'],
         [response, response.length, 1, s]);
       xhr.resend();
@@ -66,7 +66,7 @@ mergeInto(LibraryManager.library, {
       Module.print('xhr' + get + ' status:'
         + xhr.status + ':' + xhr.statusText);
       ccallFunc(
-        Runtime.getFuncWrapper(session_disconnect, 'iii'),
+        getFuncWrapper(session_disconnect, 'iii'),
         'number',
         ['number', 'number'],
         [plugin, s]);

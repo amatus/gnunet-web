@@ -67,7 +67,7 @@
     (unregister-object cls)))
 
 (def get-hello-callback-pointer
-  (+++ (.addFunction js/Runtime get-hello-callback)))
+  (+++ (js/addFunction get-hello-callback)))
 
 (defn get-my-peer-id
   [callback]
@@ -95,7 +95,7 @@
                       (gcrypt/utf8ByteArrayToString
                         (to-array (drop 8 address))))))})))
 
-(def monitor-callback-pointer (+++ (.addFunction js/Runtime monitor-callback)))
+(def monitor-callback-pointer (+++ (js/addFunction monitor-callback)))
 
 (defn monitor-peers
   [callback]

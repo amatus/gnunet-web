@@ -196,7 +196,7 @@ mergeInto(LibraryManager.library, {
     section = CONFIG[section_name];
     for (var option in section) {
       var value = section[option];
-      ccallFunc(Runtime.getFuncWrapper(iter, 'viiii'), 'void',
+      ccallFunc(getFuncWrapper(iter, 'viiii'), 'void',
         ['i32', 'string', 'string', 'string'],
         [iter_cls, section_name, option, value]);
     }

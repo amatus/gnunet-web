@@ -71,7 +71,7 @@
                     (read-memory data data-size))})))
 
 (def metadata-iterator-pointer
-  (+++ (.addFunction js/Runtime metadata-iterator)))
+  (+++ (js/addFunction metadata-iterator)))
 
 (defn parse-progress-publish
   [status info-pointer]
@@ -177,7 +177,7 @@
 
 (def fs
   (js/_GNUNET_FS_start_simple
-    (+++ (.addFunction js/Runtime progress-callback))))
+    (+++ (js/addFunction progress-callback))))
 
 (defn start-search
   [query anonymity]
@@ -237,7 +237,7 @@
       1)))
 
 (def publish-reader-callback-pointer
-  (+++ (.addFunction js/Runtime publish-reader-callback)))
+  (+++ (js/addFunction publish-reader-callback)))
 
 (defn new-block-options
   [{:keys [expiration anonymity priority replication]}]

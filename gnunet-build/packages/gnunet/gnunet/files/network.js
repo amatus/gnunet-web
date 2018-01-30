@@ -178,7 +178,7 @@ mergeInto(LibraryManager.library, {
       }
     };
     {{{ makeSetValue('address', '0', '1', 'i16') }}};
-    writeStringToMemory(socket.name.slice(0, 107), address + 2);
+    stringToUTF8(socket.name, address + 2, 108);
     {{{ makeSetValue('address_len', '0', '110', 'i32') }}};
     return sd;
   },

@@ -31,7 +31,7 @@ mergeInto(LibraryManager.library, {
       _dlclose(handle);
       return 0;
     }
-    var ret = Runtime.dynCall('ii', sym, [arg]);
+    var ret = dynCall('ii', sym, [arg]);
     if (0 == ret) {
       _dlclose(handle);
       return 0;
@@ -56,7 +56,7 @@ mergeInto(LibraryManager.library, {
           ['string', 'number'],
           [entry, arg]);
       if (rc !== 0)
-        ccallFunc(Runtime.getFuncWrapper(cb, 'viii'), 'void',
+        ccallFunc(getFuncWrapper(cb, 'viii'), 'void',
             ['number', 'string', 'number'],
             [cb_cls, entry, rc]);
     });

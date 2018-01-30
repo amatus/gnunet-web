@@ -36,10 +36,10 @@ mergeInto(LibraryManager.library, {
                             vhash: vhash});
     request.onerror = function(e) {
       console.error('put request failed');
-      Runtime.dynCall('viiiii', cont, [cont_cls, key_pointer, size, -1, 0]);
+      dynCall('viiiii', cont, [cont_cls, key_pointer, size, -1, 0]);
     };
     request.onsuccess = function(e) {
-      Runtime.dynCall('viiiii', cont, [cont_cls, key_pointer, size, 1, 0]);
+      dynCall('viiiii', cont, [cont_cls, key_pointer, size, 1, 0]);
     };
   },
   emscripten_plugin_get_key_int: function(offset, key_pointer, vhash_pointer,
@@ -55,7 +55,7 @@ mergeInto(LibraryManager.library, {
                       .openCursor(key);
     request.onerror = function(e) {
       console.error('cursor request failed');
-      Runtime.dynCall('iiiiiiiiiii', proc,
+      dynCall('iiiiiiiiiii', proc,
         [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     };
     request.onsuccess = function(e) {
@@ -84,11 +84,11 @@ mergeInto(LibraryManager.library, {
           return;
         }
         // got a result
-        var stack = Runtime.stackSave();
-        var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize('double'));
+        var stack = stackSave();
+        var expiry = stackAlloc(getNativeTypeSize('double'));
         setValue(expiry, cursor.value.expiry, 'double');
         var ret = ccallFunc(
-            Runtime.getFuncWrapper(datum_processor_wrapper,
+            getFuncWrapper(datum_processor_wrapper,
               'iiiiiiiiiii'),
             'number',
             ['number', 'number', 'array', 'number', 'array', 'number', 'number',
@@ -96,7 +96,7 @@ mergeInto(LibraryManager.library, {
             [proc, proc_cls, cursor.value.key, cursor.value.data.length,
              cursor.value.data, cursor.value.type, cursor.value.priority,
              cursor.value.anonymity, expiry, cursor.value.uid]);
-        Runtime.stackRestore(stack);
+        stackRestore(stack);
         if (!ret) {
           cursor.delete().onerror = function(e) {
             console.error('delete request failed');
@@ -112,7 +112,7 @@ mergeInto(LibraryManager.library, {
           return;
         }
         // not found
-        Runtime.dynCall('iiiiiiiiiii', proc,
+        dynCall('iiiiiiiiiii', proc,
           [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
       }
     };
@@ -123,7 +123,7 @@ mergeInto(LibraryManager.library, {
                              .openCursor(null, 'prev');
     request.onerror = function(e) {
       console.error('cursor request failed');
-      Runtime.dynCall('iiiiiiiiiii', proc,
+      dynCall('iiiiiiiiiii', proc,
         [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     };
     request.onsuccess = function(e) {
@@ -136,22 +136,22 @@ mergeInto(LibraryManager.library, {
         var request = transaction.objectStore('datastore').put(value);
         request.onerror = function(e) {
           console.error('put request failed');
-          Runtime.dynCall('iiiiiiiiiii', proc,
+          dynCall('iiiiiiiiiii', proc,
             [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
         };
         request.onsuccess = function(e) {
-          var stack = Runtime.stackSave();
-          var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize('double'));
+          var stack = stackSave();
+          var expiry = stackAlloc(getNativeTypeSize('double'));
           setValue(expiry, cursor.value.expiry, 'double');
           var ret = ccallFunc(
-              Runtime.getFuncWrapper(datum_processor_wrapper, 'iiiiiiiiiii'),
+              getFuncWrapper(datum_processor_wrapper, 'iiiiiiiiiii'),
               'number',
               ['number', 'number', 'array', 'number', 'array', 'number',
                'number', 'number', 'number', 'number'],
               [proc, proc_cls, cursor.value.key, cursor.value.data.length,
                cursor.value.data, cursor.value.type, cursor.value.priority,
                cursor.value.anonymity, expiry, cursor.value.uid]);
-          Runtime.stackRestore(stack);
+          stackRestore(stack);
           if (!ret) {
             cursor.delete().onerror = function(e) {
               console.error('delete request failed');
@@ -159,7 +159,7 @@ mergeInto(LibraryManager.library, {
           }
         };
       } else {
-        Runtime.dynCall('iiiiiiiiiii', proc,
+        dynCall('iiiiiiiiiii', proc,
           [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
       }
     };
@@ -170,18 +170,18 @@ mergeInto(LibraryManager.library, {
                       .openCursor(IDBKeyRange.upperBound(now, true));
     request.onerror = function(e) {
       console.error('cursor request failed');
-      Runtime.dynCall('iiiiiiiiiii', proc,
+      dynCall('iiiiiiiiiii', proc,
         [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     };
     request.onsuccess = function(e) {
       var cursor = e.target.result;
       if (cursor) {
         // got a result
-        var stack = Runtime.stackSave();
-        var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize('double'));
+        var stack = stackSave();
+        var expiry = stackAlloc(getNativeTypeSize('double'));
         setValue(expiry, cursor.value.expiry, 'double');
         var ret = ccallFunc(
-            Runtime.getFuncWrapper(datum_processor_wrapper,
+            getFuncWrapper(datum_processor_wrapper,
               'iiiiiiiiiii'),
             'number',
             ['number', 'number', 'array', 'number', 'array', 'number', 'number',
@@ -189,14 +189,14 @@ mergeInto(LibraryManager.library, {
             [proc, proc_cls, cursor.value.key, cursor.value.data.length,
              cursor.value.data, cursor.value.type, cursor.value.priority,
              cursor.value.anonymity, expiry, cursor.value.uid]);
-        Runtime.stackRestore(stack);
+        stackRestore(stack);
         if (!ret) {
           cursor.delete().onerror = function(e) {
             console.error('delete request failed');
           }
         }
       } else {
-        Runtime.dynCall('iiiiiiiiiii', proc,
+        dynCall('iiiiiiiiiii', proc,
           [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
       }
     };
@@ -206,7 +206,7 @@ mergeInto(LibraryManager.library, {
     var request = transaction.objectStore('datastore').get(uid);
     request.onerror = function(e) {
       console.warning('get request failed');
-      Runtime.dynCall('viii', cont, [cont_cls, -1, 0]);
+      dynCall('viii', cont, [cont_cls, -1, 0]);
     };
     request.onsuccess = function(e) {
       var value = e.target.result;
@@ -220,10 +220,10 @@ mergeInto(LibraryManager.library, {
       var request = transaction.objectStore('datastore').put(value);
       request.onerror = function(e) {
         console.error('put request failed');
-        Runtime.dynCall('viii', cont, [cont_cls, -1, 0]);
+        dynCall('viii', cont, [cont_cls, -1, 0]);
       };
       request.onsuccess = function(e) {
-        Runtime.dynCall('viii', cont, [cont_cls, 1, 0]);
+        dynCall('viii', cont, [cont_cls, 1, 0]);
       };
     };
   }, emscripten_plugin_get_zero_anonymity_int: function(offset, type, proc,
@@ -234,7 +234,7 @@ mergeInto(LibraryManager.library, {
                       .openCursor([0, type]);
     request.onerror = function(e) {
       console.error('cursor request failed');
-      Runtime.dynCall('iiiiiiiiiii', proc,
+      dynCall('iiiiiiiiiii', proc,
         [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     };
     request.onsuccess = function(e) {
@@ -248,11 +248,11 @@ mergeInto(LibraryManager.library, {
           return;
         }
         // got a result
-        var stack = Runtime.stackSave();
-        var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize('double'));
+        var stack = stackSave();
+        var expiry = stackAlloc(getNativeTypeSize('double'));
         setValue(expiry, cursor.value.expiry, 'double');
         var ret = ccallFunc(
-            Runtime.getFuncWrapper(datum_processor_wrapper,
+            getFuncWrapper(datum_processor_wrapper,
               'iiiiiiiiiii'),
             'number',
             ['number', 'number', 'array', 'number', 'array', 'number', 'number',
@@ -260,7 +260,7 @@ mergeInto(LibraryManager.library, {
             [proc, proc_cls, cursor.value.key, cursor.value.data.length,
              cursor.value.data, cursor.value.type, cursor.value.priority,
              cursor.value.anonymity, expiry, cursor.value.uid]);
-        Runtime.stackRestore(stack);
+        stackRestore(stack);
         if (!ret) {
           cursor.delete().onerror = function(e) {
             console.error('delete request failed');
@@ -276,7 +276,7 @@ mergeInto(LibraryManager.library, {
           return;
         }
         // not found
-        Runtime.dynCall('iiiiiiiiiii', proc,
+        dynCall('iiiiiiiiiii', proc,
           [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
       }
     };
@@ -286,7 +286,7 @@ mergeInto(LibraryManager.library, {
     var request = index.openKeyCursor(null, 'nextunique');
     request.onerror = function(e) {
       console.error('cursor request failed');
-      Runtime.dynCall('viii', proc, [proc_cls, 0, 0]);
+      dynCall('viii', proc, [proc_cls, 0, 0]);
     };
     request.onsuccess = function(e) {
       var cursor = e.target.result;
@@ -296,14 +296,14 @@ mergeInto(LibraryManager.library, {
           console.error('count request failed');
         };
         request.onsuccess = function(e) {
-          ccallFunc(Runtime.getFuncWrapper(proc, 'viii'),
+          ccallFunc(getFuncWrapper(proc, 'viii'),
             'void',
             ['number', 'array', 'number'],
             [proc_cls, cursor.key, e.target.result]);
         };
         cursor.continue();
       } else {
-        Runtime.dynCall('viii', proc, [proc_cls, 0, 0]);
+        dynCall('viii', proc, [proc_cls, 0, 0]);
       }
     };
   }

@@ -31,13 +31,13 @@ mergeInto(LibraryManager.library, {
         cursor.continue();
       } else {
         if (cont) {
-          Runtime.dynCall('vii', cont, [cont_cls, count]);
+          dynCall('vii', cont, [cont_cls, count]);
         }
       }
     };
     request.onerror = function(e) {
       Module.print('cursor request failed');
-      Runtime.dynCall('vii', cont, [cont_cls, -1]);
+      dynCall('vii', cont, [cont_cls, -1]);
     };
   }, 
   peerstore_emscripten_iterate_records_int: function(sub_system_pointer,
@@ -71,26 +71,26 @@ mergeInto(LibraryManager.library, {
     request.onsuccess = function(e) {
       var cursor = e.target.result;
       if (cursor) {
-        var stack = Runtime.stackSave();
-        var expiry = Runtime.stackAlloc(Runtime.getNativeTypeSize("double"));
+        var stack = stackSave();
+        var expiry = stackAlloc(getNativeTypeSize("double"));
         setValue(expiry, cursor.value.expiry, "double");
         ccallFunc(
-            Runtime.getFuncWrapper(wrapper, "viiiiiiii"),
+            getFuncWrapper(wrapper, "viiiiiiii"),
             "void",
             ["number", "number", "string", "array", "string", "array", "number",
              "number"],
             [iter, iter_cls, cursor.value.subsystem, cursor.value.peer,
              cursor.value.key, cursor.value.value, cursor.value.value.length,
              expiry]);
-        Runtime.stackRestore(stack);
+        stackRestore(stack);
         cursor.continue();
       } else {
-        Runtime.dynCall('viii', iter, [iter_cls, 0, 0]);
+        dynCall('viii', iter, [iter_cls, 0, 0]);
       }
     };
     request.onerror = function(e) {
       Module.print('cursor request failed');
-      Runtime.dynCall('viii', iter, [iter_cls, 0, -1]);
+      dynCall('viii', iter, [iter_cls, 0, -1]);
     };
   },
   peerstore_emscripten_store_record_int: function(sub_system_pointer,
@@ -114,10 +114,10 @@ mergeInto(LibraryManager.library, {
            expiry: expiry});
       request.onerror = function(e) {
         Module.print('put request failed');
-        Runtime.dynCall('vii', cont, [cont_cls, -1]);
+        dynCall('vii', cont, [cont_cls, -1]);
       };
       request.onsuccess = function(e) {
-        Runtime.dynCall('vii', cont, [cont_cls, 1]);
+        dynCall('vii', cont, [cont_cls, 1]);
       };
     };
     if (options == 1) {
@@ -136,7 +136,7 @@ mergeInto(LibraryManager.library, {
       };
       request.onerror = function(e) {
         Module.print('cursor request failed');
-        Runtime.dynCall('vii', cont, [cont_cls, -1]);
+        dynCall('vii', cont, [cont_cls, -1]);
       };
     } else {
       put();

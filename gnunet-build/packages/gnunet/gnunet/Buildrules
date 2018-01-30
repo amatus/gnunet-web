@@ -32,7 +32,7 @@ pkg_compile() {
 		--enable-logging=verbose \
 		ac_cv_lib_idn_stringprep_check_version=yes \
 		ac_cv_func_srandom=no \
-		ac_cv_func_getifaddrs=no \
+		ac_cv_func_getifaddrs=yes \
 		ac_cv_lib_socket_socket=no \
                 CPPFLAGS="-I${SYSROOT}/usr/include" \
                 LDFLAGS="-L${SYSROOT}/usr/lib"
@@ -69,6 +69,7 @@ pkg_compile() {
 		${OPT_LEVEL} \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/peerinfo/gnunet-service-peerinfo.js" \
 		"${S}/src/peerinfo/gnunet-service-peerinfo.o" \
@@ -119,6 +120,7 @@ pkg_compile() {
 		-s MAIN_MODULE=1 \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		-s TOTAL_MEMORY=$((80 * 1024 * 1024)) \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/datastore/gnunet-service-datastore.js" \
@@ -157,6 +159,7 @@ pkg_compile() {
 		-s MAIN_MODULE=1 \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/gnunet-service-ats.js" \
 		"${S}/src/ats/gnunet-service-ats"*.o \
@@ -195,6 +198,7 @@ pkg_compile() {
 		-s MAIN_MODULE=1 \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
 "${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
@@ -224,6 +228,7 @@ pkg_compile() {
 		${OPT_LEVEL} \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/core/gnunet-service-core.js" \
 		"${S}/src/core/gnunet-service-core"*.o \
@@ -249,6 +254,7 @@ pkg_compile() {
 		${OPT_LEVEL} \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/nse/gnunet-service-nse.js" \
 		"${S}/src/nse/gnunet-service-nse.o" \
@@ -275,6 +281,7 @@ pkg_compile() {
 		-s MAIN_MODULE=1 \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/dht/gnunet-service-dht.js" \
@@ -308,6 +315,7 @@ pkg_compile() {
 		${OPT_LEVEL} \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/topology/gnunet-daemon-topology.js" \
 		"${S}/src/topology/gnunet-daemon-topology.o" \
@@ -337,6 +345,7 @@ pkg_compile() {
 		-s MAIN_MODULE=1 \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/cadet/gnunet-service-cadet.js" \
 		"${S}/src/cadet/gnunet_service_cadet"*.o \
@@ -379,6 +388,7 @@ pkg_compile() {
 		-s MAIN_MODULE=1 \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/peerstore/gnunet-service-peerstore.js" \
 		"${S}/src/peerstore/gnunet_service_peerstore"*.o \
@@ -405,6 +415,7 @@ pkg_compile() {
 		-s MAIN_MODULE=1 \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
+		--use-preload-plugins \
 		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/fs/gnunet-service-fs.js" \

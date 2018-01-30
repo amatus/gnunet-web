@@ -39,7 +39,7 @@
     (callback {:peer (vec (read-memory peer-id-pointer 32))
                :state state})))
 
-(def monitor-callback-pointer (+++ (.addFunction js/Runtime monitor-callback)))
+(def monitor-callback-pointer (+++ (js/addFunction monitor-callback)))
 
 (defn monitor-peers
   [callback]
