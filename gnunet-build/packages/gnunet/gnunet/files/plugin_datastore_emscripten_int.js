@@ -15,105 +15,125 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 mergeInto(LibraryManager.library, {
-  emscripten_plugin_put_int: function(key_pointer, data_pointer, size, type,
-                                 priority, anonymity, replication, expiry,
-                                 vhash_pointer, cont, cont_cls) {
+  emscripten_plugin_put_int: function(key_pointer, absent, data_pointer, size,
+                                      type, priority, anonymity, replication,
+                                      expiry, cont, cont_cls) {
     var key = Array.prototype.slice.call(HEAP8.subarray(key_pointer,
           key_pointer + 64));
     var data = Array.prototype.slice.call(HEAP8.subarray(data_pointer,
           data_pointer + size));
-    var vhash = Array.prototype.slice.call(HEAP8.subarray(vhash_pointer,
-          vhash_pointer + 64));
-    var request = self.dsdb.transaction(['datastore'], 'readwrite')
-                      .objectStore('datastore')
-                      .put({key: key,
-                            data: data,
-                            type: type,
-                            priority: priority,
-                            anonymity: anonymity,
-                            replication: replication,
-                            expiry: expiry,
-                            vhash: vhash});
-    request.onerror = function(e) {
-      console.error('put request failed');
-      dynCall('viiiii', cont, [cont_cls, key_pointer, size, -1, 0]);
+    var transaction = self.dsdb.transaction(['datastore'], 'readwrite');
+    var do_put = function() {
+      var request = transaction.objectStore('datastore')
+                               .put({key: key,
+                                     data: data,
+                                     type: type,
+                                     priority: priority,
+                                     anonymity: anonymity,
+                                     replication: replication,
+                                     expiry: expiry});
+      request.onerror = function(e) {
+        console.error('put request failed');
+        dynCall('viiiii', cont, [cont_cls, key_pointer, size, -1, 0]);
+      };
+      request.onsuccess = function(e) {
+        dynCall('viiiii', cont, [cont_cls, key_pointer, size, 1, 0]);
+      };
     };
-    request.onsuccess = function(e) {
-      dynCall('viiiii', cont, [cont_cls, key_pointer, size, 1, 0]);
-    };
-  },
-  emscripten_plugin_get_key_int: function(offset, key_pointer, vhash_pointer,
-                                     type, proc, proc_cls,
-                                     datum_processor_wrapper) {
-    var key = key_pointer ? Array.prototype.slice.call(HEAP8.subarray(
-          key_pointer, key_pointer + 64)) : null;
-    var vhash = vhash_pointer ? Array.prototype.slice.call(HEAP8.subarray(
-          vhash_pointer, vhash_pointer + 64)) : null;
-    var count = 0;
-    var request = self.dsdb.transaction(['datastore'], 'readwrite')
-                      .objectStore('datastore').index('by_key')
-                      .openCursor(key);
-    request.onerror = function(e) {
-      console.error('cursor request failed');
-      dynCall('iiiiiiiiiii', proc,
-        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-    };
-    request.onsuccess = function(e) {
-      var cursor = e.target.result;
-      if (cursor) {
-        // optional filter by type
-        if (type && type != cursor.value.type) {
-          cursor.continue();
-          return;
-        }
-        // optional filter by vhash
-        if (vhash != null) {
-          if (vhash.length != cursor.value.vhash.length
-              || !vhash.every(function(x, i) {
-                                return x == cursor.value.vhash[i]
+    if (absent) {
+      do_put();
+    } else {
+      var request = transaction.objectStore('datastore').index('by_key')
+                               .openCursor(IDBKeyRange.bound(
+                                 [key], [key, Number.MAX_VALUE]));
+      request.onsuccess = function(e) {
+        var cursor = e.target.result;
+        if (cursor) {
+          var value = cursor.value;
+          // filter by data
+          if (size != value.data.length
+              || !data.every(function(x, i) {
+                                return x == value.data[i]
                               })) {
             cursor.continue();
             return;
           }
+          value.priority += priority;
+          value.replication += replication;
+          if (value.expiry < expiry) {
+            value.expiry = expiry;
+          }
+          var request = transaction.objectStore('datastore').put(value);
+          request.onerror = function(e) {
+            console.error('put request failed');
+            dynCall('viiiii', cont,
+              [cont_cls, key_pointer, size, -1, 0]);
+          };
+          request.onsuccess = function(e) {
+            dynCall('viiiii', cont,
+              [cont_cls, key_pointer, size, 0, 0]);
+          };
+        } else {
+          do_put();
         }
-        // filter by offset
-        if (offset != 0) {
-          --offset;
-          ++count;
+      };
+    }
+  }, emscripten_plugin_get_key_int: function(next_uid, random, key_pointer,
+                                             type, proc, proc_cls,
+                                             datum_processor_wrapper) {
+    var key = key_pointer ? Array.prototype.slice.call(HEAP8.subarray(
+          key_pointer, key_pointer + 64)) : null;
+    var range = null;
+    var transaction = self.dsdb.transaction(['datastore'], 'readonly');
+    // TODO: random
+    var request;
+    if (key_pointer) {
+      request = transaction.objectStore('datastore').index('by_key')
+                           .openCursor(IDBKeyRange.bound(
+                             [key, next_uid],
+                             [key, Number.MAX_VALUE]));
+    } else {
+      request = transaction.objectStore('datastore').openCursor();
+    }
+    request.onerror = function(e) {
+      console.error('cursor request failed');
+      dynCall('iiiiiiiiiiii', proc,
+        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    };
+    request.onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        var value = cursor.value;
+        // optional filter by type
+        if (type && type != value.type) {
           cursor.continue();
           return;
         }
         // got a result
         var stack = stackSave();
         var expiry = stackAlloc(getNativeTypeSize('double'));
-        setValue(expiry, cursor.value.expiry, 'double');
+        setValue(expiry, value.expiry, 'double');
         var ret = ccallFunc(
             getFuncWrapper(datum_processor_wrapper,
-              'iiiiiiiiiii'),
+              'iiiiiiiiiiii'),
             'number',
             ['number', 'number', 'array', 'number', 'array', 'number', 'number',
-             'number', 'number', 'number'],
-            [proc, proc_cls, cursor.value.key, cursor.value.data.length,
-             cursor.value.data, cursor.value.type, cursor.value.priority,
-             cursor.value.anonymity, expiry, cursor.value.uid]);
+             'number', 'number', 'number', 'number'],
+            [proc, proc_cls, value.key, value.data.length, value.data,
+             value.type, value.priority, value.anonymity, value.replication,
+             expiry, value.uid]);
         stackRestore(stack);
-        if (!ret) {
-          cursor.delete().onerror = function(e) {
-            console.error('delete request failed');
-          }
-        }
       } else {
-        // did offset wrap around?
-        if (count != 0) {
-          offset = offset % count;
+        // do we need to wrap around?
+        if (next_uid != 0) {
           // recurse
-          _emscripten_plugin_get_key_int(offset, key_pointer, vhash_pointer,
-              type, proc, proc_cls, datum_processor_wrapper);
+          _emscripten_plugin_get_key_int(0, false, key_pointer, type, proc,
+            proc_cls, datum_processor_wrapper);
           return;
         }
         // not found
-        dynCall('iiiiiiiiiii', proc,
-          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        dynCall('iiiiiiiiiiii', proc,
+          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
       }
     };
   }, emscripten_plugin_get_replication_int: function(proc, proc_cls,
@@ -123,44 +143,39 @@ mergeInto(LibraryManager.library, {
                              .openCursor(null, 'prev');
     request.onerror = function(e) {
       console.error('cursor request failed');
-      dynCall('iiiiiiiiiii', proc,
-        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+      dynCall('iiiiiiiiiiii', proc,
+        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     };
     request.onsuccess = function(e) {
       var cursor = e.target.result;
       if (cursor) {
-        // got a result
-        if (cursor.value.replication > 0) {
-          --cursor.value.replication;
+        var value = cursor.value
+        if (value.replication > 0) {
+          --value.replication;
         }
-        var request = transaction.objectStore('datastore').put(value);
+        var request = cursor.update(value);
         request.onerror = function(e) {
-          console.error('put request failed');
-          dynCall('iiiiiiiiiii', proc,
-            [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+          console.error('replication update request failed');
+          dynCall('iiiiiiiiiiii', proc,
+            [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
         };
         request.onsuccess = function(e) {
           var stack = stackSave();
           var expiry = stackAlloc(getNativeTypeSize('double'));
           setValue(expiry, cursor.value.expiry, 'double');
           var ret = ccallFunc(
-              getFuncWrapper(datum_processor_wrapper, 'iiiiiiiiiii'),
+              getFuncWrapper(datum_processor_wrapper, 'iiiiiiiiiiii'),
               'number',
               ['number', 'number', 'array', 'number', 'array', 'number',
-               'number', 'number', 'number', 'number'],
-              [proc, proc_cls, cursor.value.key, cursor.value.data.length,
-               cursor.value.data, cursor.value.type, cursor.value.priority,
-               cursor.value.anonymity, expiry, cursor.value.uid]);
+               'number', 'number', 'number', 'number', 'number'],
+              [proc, proc_cls, value.key, value.data.length, value.data,
+               value.type, value.priority, value.anonymity, value.replication,
+               expiry, value.uid]);
           stackRestore(stack);
-          if (!ret) {
-            cursor.delete().onerror = function(e) {
-              console.error('delete request failed');
-            }
-          }
         };
       } else {
-        dynCall('iiiiiiiiiii', proc,
-          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        dynCall('iiiiiiiiiiii', proc,
+          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
       }
     };
   }, emscripten_plugin_get_expiration_int: function(proc, proc_cls, now,
@@ -170,8 +185,8 @@ mergeInto(LibraryManager.library, {
                       .openCursor(IDBKeyRange.upperBound(now, true));
     request.onerror = function(e) {
       console.error('cursor request failed');
-      dynCall('iiiiiiiiiii', proc,
-        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+      dynCall('iiiiiiiiiiii', proc,
+        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     };
     request.onsuccess = function(e) {
       var cursor = e.target.result;
@@ -182,13 +197,14 @@ mergeInto(LibraryManager.library, {
         setValue(expiry, cursor.value.expiry, 'double');
         var ret = ccallFunc(
             getFuncWrapper(datum_processor_wrapper,
-              'iiiiiiiiiii'),
+              'iiiiiiiiiiii'),
             'number',
             ['number', 'number', 'array', 'number', 'array', 'number', 'number',
-             'number', 'number', 'number'],
+             'number', 'number', 'number', 'number'],
             [proc, proc_cls, cursor.value.key, cursor.value.data.length,
              cursor.value.data, cursor.value.type, cursor.value.priority,
-             cursor.value.anonymity, expiry, cursor.value.uid]);
+             cursor.value.anonymity, cursor.value.replication, expiry,
+             cursor.value.uid]);
         stackRestore(stack);
         if (!ret) {
           cursor.delete().onerror = function(e) {
@@ -196,88 +212,49 @@ mergeInto(LibraryManager.library, {
           }
         }
       } else {
-        dynCall('iiiiiiiiiii', proc,
-          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        dynCall('iiiiiiiiiiii', proc,
+          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
       }
     };
-  }, emscripten_plugin_update_int: function(uid, delta, expiry, cont,
-      cont_cls) {
-    var transaction = self.dsdb.transaction(['datastore'], 'readwrite');
-    var request = transaction.objectStore('datastore').get(uid);
-    request.onerror = function(e) {
-      console.warning('get request failed');
-      dynCall('viii', cont, [cont_cls, -1, 0]);
-    };
-    request.onsuccess = function(e) {
-      var value = e.target.result;
-      value.priority += delta;
-      if (value.priority < 0) {
-        value.priority = 0;
-      }
-      if (value.expiry < expiry) {
-        value.expiry = expiry;
-      }
-      var request = transaction.objectStore('datastore').put(value);
-      request.onerror = function(e) {
-        console.error('put request failed');
-        dynCall('viii', cont, [cont_cls, -1, 0]);
-      };
-      request.onsuccess = function(e) {
-        dynCall('viii', cont, [cont_cls, 1, 0]);
-      };
-    };
-  }, emscripten_plugin_get_zero_anonymity_int: function(offset, type, proc,
+  }, emscripten_plugin_get_zero_anonymity_int: function(next_uid, type, proc,
       proc_cls, datum_processor_wrapper) {
-    var count = 0;
-    var request = self.dsdb.transaction(['datastore'], 'readwrite')
+    var request = self.dsdb.transaction(['datastore'], 'readonly')
                       .objectStore('datastore').index('by_anon_type')
-                      .openCursor([0, type]);
+                      .openCursor(IDBKeyRange.bound(
+                        [0, type, next_uid], [0, type, Number.MAX_VALUE]));
     request.onerror = function(e) {
       console.error('cursor request failed');
-      dynCall('iiiiiiiiiii', proc,
-        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+      dynCall('iiiiiiiiiiii', proc,
+        [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     };
     request.onsuccess = function(e) {
       var cursor = e.target.result;
       if (cursor) {
-        // filter by offset
-        if (offset != 0) {
-          --offset;
-          ++count;
-          cursor.continue();
-          return;
-        }
-        // got a result
         var stack = stackSave();
         var expiry = stackAlloc(getNativeTypeSize('double'));
         setValue(expiry, cursor.value.expiry, 'double');
         var ret = ccallFunc(
             getFuncWrapper(datum_processor_wrapper,
-              'iiiiiiiiiii'),
+              'iiiiiiiiiiii'),
             'number',
             ['number', 'number', 'array', 'number', 'array', 'number', 'number',
-             'number', 'number', 'number'],
+             'number', 'number', 'number', 'number'],
             [proc, proc_cls, cursor.value.key, cursor.value.data.length,
              cursor.value.data, cursor.value.type, cursor.value.priority,
-             cursor.value.anonymity, expiry, cursor.value.uid]);
+             cursor.value.anonymity, cursor.value.replication, expiry,
+             cursor.value.uid]);
         stackRestore(stack);
-        if (!ret) {
-          cursor.delete().onerror = function(e) {
-            console.error('delete request failed');
-          }
-        }
       } else {
-        // did offset wrap around?
-        if (count != 0) {
-          offset = offset % count;
+        // do we need to wrap around?
+        if (next_uid != 0) {
           // recurse
-          _emscripten_plugin_get_zero_anonymity_int(offset, type, proc,
-              proc_cls, datum_processor_wrapper);
+          _emscripten_plugin_get_zero_anonymity_int(0, type, proc, proc_cls,
+            datum_processor_wrapper);
           return;
         }
         // not found
-        dynCall('iiiiiiiiiii', proc,
-          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        dynCall('iiiiiiiiiiii', proc,
+          [proc_cls, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
       }
     };
   }, emscripten_plugin_get_keys_int: function(proc, proc_cls) {
@@ -306,6 +283,47 @@ mergeInto(LibraryManager.library, {
         dynCall('viii', proc, [proc_cls, 0, 0]);
       }
     };
+  }, emscripten_plugin_remove_key_int: function(key_pointer, size, data_pointer,
+                                                cont, cont_cls) {
+    var key = Array.prototype.slice.call(HEAP8.subarray(key_pointer,
+      key_pointer + 64));
+    var data = Array.prototype.slice.call(HEAP8.subarray(data_pointer,
+      data_pointer + size));
+    var transaction = self.dsdb.transaction(['datastore'], 'readwrite');
+    var request = transaction.objectStore('datastore').index('by_key')
+                             .openCursor(IDBKeyRange.bound(
+                               [key], [key, Number.MAX_VALUE]));
+    request.onerror = function(e) {
+      console.error('cursor request failed');
+      dynCall('viiiii', cont, [cont_cls, key_pointer, size, -1, 0]);
+    }
+    request.onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        var value = cursor.value;
+        // filter by data
+        if (size != value.data.length
+            || !data.every(function(x, i) {
+                              return x == value.data[i]
+                            })) {
+          cursor.continue();
+          return;
+        }
+        // found
+        request = cursor.delete();
+        request.onerror = function(e) {
+          console.error('delete request failed');
+          dynCall('viiiii', cont, [cont_cls, key_pointer, size, -1, 0]);
+        }
+        request.onsuccess = function(e) {
+          // removed
+          dynCall('viiiii', cont, [cont_cls, key_pointer, size, 1, 0]);
+        }
+      } else {
+        // not found
+        dynCall('viiiii', cont, [cont_cls, key_pointer, size, 0, 0]);
+      }
+    }
   }
 });
 

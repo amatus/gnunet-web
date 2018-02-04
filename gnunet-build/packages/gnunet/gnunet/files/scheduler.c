@@ -63,6 +63,13 @@ GNUNET_SCHEDULER_add_now (GNUNET_SCHEDULER_TaskCallback task, void *task_cls)
 }
 
 struct GNUNET_SCHEDULER_Task *
+GNUNET_SCHEDULER_add_now_with_lifeness (int lifeness,
+    GNUNET_SCHEDULER_TaskCallback task, void *task_cls)
+{
+  return GNUNET_SCHEDULER_add_now (task, task_cls);
+}
+
+struct GNUNET_SCHEDULER_Task *
 GNUNET_SCHEDULER_add_at_with_priority (struct GNUNET_TIME_Absolute at,
     enum GNUNET_SCHEDULER_Priority priority,
     GNUNET_SCHEDULER_TaskCallback task,
@@ -106,6 +113,12 @@ const struct GNUNET_SCHEDULER_TaskContext *
 GNUNET_SCHEDULER_get_task_context ()
 {
   return &tc;
+}
+
+void
+GNUNET_SCHEDULER_shutdown (void)
+{
+  // TODO: do we even need this?
 }
 
 /* vim: set expandtab ts=2 sw=2: */

@@ -51,6 +51,7 @@ emscripten_plugin_estimate_size (void *cls, unsigned long long *estimate)
  *
  * @param cls closure
  * @param key key for the item
+ * @param absent true if the key was not found in the bloom filter
  * @param size number of bytes in data
  * @param data content stored
  * @param type type of the content
@@ -62,37 +63,55 @@ emscripten_plugin_estimate_size (void *cls, unsigned long long *estimate)
  * @param cont_cls continuation closure
  */
 static void
-emscripten_plugin_put (void *cls, const struct GNUNET_HashCode *key,
-                       uint32_t size, const void *data,
-                       enum GNUNET_BLOCK_Type type, uint32_t priority,
-                       uint32_t anonymity, uint32_t replication,
+emscripten_plugin_put (void *cls,
+                       const struct GNUNET_HashCode *key,
+                       bool absent,
+                       uint32_t size,
+                       const void *data,
+                       enum GNUNET_BLOCK_Type type,
+                       uint32_t priority,
+                       uint32_t anonymity,
+                       uint32_t replication,
                        struct GNUNET_TIME_Absolute expiration,
-                       PluginPutCont cont, void *cont_cls)
+                       PluginPutCont cont,
+                       void *cont_cls)
 {
-  extern void emscripten_plugin_put_int(const void *key, const void *data,
-      double size, double type, double priority, double anonymity,
-      double replication, double expiration, void *vhash, void *cont,
-      void *cons_cls);
-  struct GNUNET_HashCode vhash;
+  extern void
+  emscripten_plugin_put_int(const void *key,
+                            double absent,
+                            const void *data,
+                            double size,
+                            double type,
+                            double priority,
+                            double anonymity,
+                            double replication,
+                            double expiration,
+                            void *cont,
+                            void *cons_cls);
 
-  GNUNET_CRYPTO_hash (data, size, &vhash);
-  emscripten_plugin_put_int(key, data, size, type, priority, anonymity,
-      replication, expiration.abs_value_us, &vhash, cont, cont_cls);
+  emscripten_plugin_put_int(key, absent, data, size, type, priority, anonymity,
+      replication, expiration.abs_value_us, cont, cont_cls);
 }
 
 
 static int
-datum_processor_wrapper(PluginDatumProcessor proc, void *proc_cls,
-                        const struct GNUNET_HashCode *key, uint32_t size,
-                        const void *data, enum GNUNET_BLOCK_Type type,
-                        uint32_t priority, uint32_t anonymity,
-                        double *expiration, uint32_t uid)
+datum_processor_wrapper(PluginDatumProcessor proc,
+                        void *proc_cls,
+                        const struct GNUNET_HashCode *key,
+                        uint32_t size,
+                        const void *data,
+                        enum GNUNET_BLOCK_Type type,
+                        uint32_t priority,
+                        uint32_t anonymity,
+                        uint32_t replication,
+                        double *expiration,
+                        uint32_t uid)
 {
   struct GNUNET_TIME_Absolute expiry;
 
   expiry.abs_value_us = *expiration;
-  return proc(proc_cls, key, size, data, type, priority, anonymity, expiry,
-              uid);
+  return proc(proc_cls, key, size, data, type, priority, anonymity, replication,
+      expiry, uid);
 }
 
 
@@ -100,14 +119,9 @@ datum_processor_wrapper(PluginDatumProcessor proc, void *proc_cls,
  * Get one of the results for a particular key in the datastore.
  *
  * @param cls closure
- * @param offset offset of the result (modulo num-results);
- *               specific ordering does not matter for the offset
+ * @param next_uid return the result with lowest uid >= next_uid
+ * @param random if true, return a random result instead of using next_uid
  * @param key maybe NULL (to match all entries)
- * @param vhash hash of the value, maybe NULL (to
- *        match all values that have the right key).
- *        Note that for DBlocks there is no difference
- *        betwen key and vhash, but for other blocks
- *        there may be!
  * @param type entries of which type are relevant?
  *     Use 0 for any type.
  * @param proc function to call on each matching value;
@@ -115,17 +129,18 @@ datum_processor_wrapper(PluginDatumProcessor proc, void *proc_cls,
  * @param proc_cls closure for proc
  */
 static void
-emscripten_plugin_get_key (void *cls, uint64_t offset,
+emscripten_plugin_get_key (void *cls,
+                           uint64_t next_uid,
+                           bool random,
                            const struct GNUNET_HashCode *key,
-                           const struct GNUNET_HashCode *vhash,
                            enum GNUNET_BLOCK_Type type,
-                           PluginDatumProcessor proc, void *proc_cls)
+                           PluginDatumProcessor proc,
+                           void *proc_cls)
 {
-  extern void emscripten_plugin_get_key_int(double offset, const void *key,
-      const void *vhash, double type, void *proc, void *proc_cls,
-      void *wrapper);
+  extern void emscripten_plugin_get_key_int(double next_uid, double random,
+      const void *key, double type, void *proc, void *proc_cls, void *wrapper);
 
-  emscripten_plugin_get_key_int(offset, key, vhash, type, proc, proc_cls,
+  emscripten_plugin_get_key_int(next_uid, random, key, type, proc, proc_cls,
       &datum_processor_wrapper);
 }
 
@@ -175,45 +190,10 @@ emscripten_plugin_get_expiration (void *cls, PluginDatumProcessor proc,
 
 
 /**
- * Update the priority for a particular key in the datastore.  If
- * the expiration time in value is different than the time found in
- * the datastore, the higher value should be kept.  The specified
- * priority should be added to the existing priority, ignoring the
- * priority in value.
- *
- * Note that it is possible for multiple values to match this put.
- * In that case, all of the respective values are updated.
- *
- * @param cls our "struct Plugin*"
- * @param uid unique identifier of the datum
- * @param delta by how much should the priority
- *     change?  If priority + delta < 0 the
- *     priority should be set to 0 (never go
- *     negative).
- * @param expire new expiration time should be the
- *     MAX of any existing expiration time and
- *     this value
- * @param cont continuation called with success or failure status
- * @param cons_cls continuation closure
- */
-static void
-emscripten_plugin_update (void *cls, uint64_t uid, int delta,
-                        struct GNUNET_TIME_Absolute expire,
-                        PluginUpdateCont cont, void *cont_cls)
-{
-  extern void emscripten_plugin_update_int(double uid, double delta,
-      double expriy, void *cont, void *cont_cls);
-
-  emscripten_plugin_update_int(uid, delta, expire.abs_value_us, cont, cont_cls);
-}
-
-
-/**
  * Call the given processor on an item with zero anonymity.
  *
  * @param cls our "struct Plugin*"
- * @param offset offset of the result (modulo num-results);
- *               specific ordering does not matter for the offset
+ * @param next_uid return the result with lowest uid >= next_uid
  * @param type entries of which type should be considered?
  *        Use 0 for any type.
  * @param proc function to call on each matching value;
@@ -221,14 +201,16 @@ emscripten_plugin_update (void *cls, uint64_t uid, int delta,
  * @param proc_cls closure for proc
  */
 static void
-emscripten_plugin_get_zero_anonymity (void *cls, uint64_t offset,
-                                    enum GNUNET_BLOCK_Type type,
-                                    PluginDatumProcessor proc, void *proc_cls)
+emscripten_plugin_get_zero_anonymity (void *cls,
+                                      uint64_t next_uid,
+                                      enum GNUNET_BLOCK_Type type,
+                                      PluginDatumProcessor proc,
+                                      void *proc_cls)
 {
-  extern void emscripten_plugin_get_zero_anonymity_int(double offset,
+  extern void emscripten_plugin_get_zero_anonymity_int(double next_uid,
       double type, void *proc, void *proc_cls, void *wrapper);
 
-  emscripten_plugin_get_zero_anonymity_int(offset, type, proc, proc_cls,
+  emscripten_plugin_get_zero_anonymity_int(next_uid, type, proc, proc_cls,
       &datum_processor_wrapper);
 }
 
@@ -262,6 +244,35 @@ emscripten_plugin_get_keys (void *cls,
 
 
 /**
+ * Remove a particular key in the datastore.
+ *
+ * @param cls closure
+ * @param key key for the content
+ * @param size number of bytes in data
+ * @param data content stored
+ * @param cont continuation called with success or failure status
+ * @param cont_cls continuation closure for @a cont
+ */
+static void
+emscripten_plugin_remove_key (void *cls,
+                              const struct GNUNET_HashCode *key,
+                              uint32_t size,
+                              const void *data,
+                              PluginRemoveCont cont,
+                              void *cont_cls)
+{
+  extern void
+  emscripten_plugin_remove_key_int(void *key,
+                                   double size,
+                                   void *data,
+                                   void *cont,
+                                   void *cont_cls);
+
+  emscripten_plugin_remove_key_int(key, size, data, cont, cont_cls);
+}
+
+
+/**
  * Entry point for the plugin.
  *
  * @param cls the "struct GNUNET_DATASTORE_PluginEnvironment*"
@@ -276,13 +287,13 @@ libgnunet_plugin_datastore_emscripten_init (void *cls)
   api = GNUNET_new (struct GNUNET_DATASTORE_PluginFunctions);
   api->estimate_size = &emscripten_plugin_estimate_size;
   api->put = &emscripten_plugin_put;
-  api->update = &emscripten_plugin_update;
   api->get_key = &emscripten_plugin_get_key;
   api->get_replication = &emscripten_plugin_get_replication;
   api->get_expiration = &emscripten_plugin_get_expiration;
   api->get_zero_anonymity = &emscripten_plugin_get_zero_anonymity;
   api->drop = &emscripten_plugin_drop;
   api->get_keys = &emscripten_plugin_get_keys;
+  api->remove_key = &emscripten_plugin_remove_key;
   GNUNET_log_from (GNUNET_ERROR_TYPE_INFO, "emscripten",
                    _("Emscripten database running\n"));
   return api;

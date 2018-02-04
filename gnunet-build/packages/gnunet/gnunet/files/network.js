@@ -225,6 +225,27 @@ mergeInto(LibraryManager.library, {
     }
     return 0;
   },
+  GNUNET_NETWORK_shorten_unixpath: function(unixpath) {
+    console.error("GNUNET_NETWORK_shorten_unixpath should not be called");
+    return unixpath;
+  },
+  GNUNET_NETWORK_socket_box_native: function(fd) {
+    console.error("GNUNET_NETWORK_socket_box_native should not be called");
+    return 0;
+  },
+  GNUNET_NETWORK_socket_free_memory_only_: function(desc) {
+    console.error("GNUNET_NETWORK_socket_free_memory_only_ should not be called");
+    delete SOCKETS[desc];
+  },
+  GNUNET_NETWORK_socket_getsockopt: function(desc, level, optname, optval,
+                                             optlen) {
+    console.error("GNUNET_NETWORK_socket_getsockopt should not be called");
+    return -1;
+  },
+  GNUNET_NETWORK_socket_select: function(rfds, wfds, efds, timeout) {
+    console.error("GNUNET_NETWORK_socket_select should not be called");
+    return -1;
+  }
 });
 
 // vim: set expandtab ts=2 sw=2:

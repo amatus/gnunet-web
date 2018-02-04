@@ -1,4 +1,4 @@
-COMMIT="a03d29"
+COMMIT="3f9b17"
 VERSION="git-${COMMIT}"
 RELEASE="0"
 DESCRIPTION="GNUnet is a framework for secure peer-to-peer networking that does not use any centralized or otherwise trusted services."
@@ -288,6 +288,7 @@ pkg_compile() {
 		"${S}/src/dht/gnunet-service-dht"*.o \
 		"${S}/src/ats/libgnunetats.la" \
 		"${S}/src/block/libgnunetblock.la" \
+		"${S}/src/block/libgnunetblockgroup.la" \
 		"${S}/src/core/libgnunetcore.la" \
 		"${S}/src/datacache/libgnunetdatacache.la" \
 		"${S}/src/hello/libgnunethello.la" \
@@ -348,7 +349,7 @@ pkg_compile() {
 		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/cadet/gnunet-service-cadet.js" \
-		"${S}/src/cadet/gnunet_service_cadet"*.o \
+		"${S}/src/cadet/gnunet-service-cadet"*.o \
 		"${S}/src/ats/libgnunetats.la" \
 		"${S}/src/block/libgnunetblock.la" \
 		"${S}/src/core/libgnunetcore.la" \
@@ -422,6 +423,7 @@ pkg_compile() {
 		"${S}/src/fs/gnunet-service-fs"*.o \
 		"${S}/src/ats/libgnunetats.la" \
 		"${S}/src/block/libgnunetblock.la" \
+		"${S}/src/block/libgnunetblockgroup.la" \
 		"${S}/src/cadet/libgnunetcadet.la" \
 		"${S}/src/core/libgnunetcore.la" \
 		"${S}/src/datastore/libgnunetdatastore.la" \

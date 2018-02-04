@@ -84,18 +84,16 @@ peerstore_emscripten_iter_wrapper (
     char *key,
     void *value,
     size_t value_size,
-    double *expiry_dbl)
+    double *expiry)
 {
-  struct GNUNET_TIME_Absolute expiry;
   struct GNUNET_PEERSTORE_Record ret;
 
-  expiry.abs_value_us = *expiry_dbl;
   ret.sub_system = sub_system;
-  ret.peer = peer;
+  ret.peer = *peer;
   ret.key = key;
   ret.value = value;
   ret.value_size = value_size;
-  ret.expiry = &expiry;
+  ret.expiry.abs_value_us = expiry;
   iter (iter_cls, &ret, NULL);
 }
 

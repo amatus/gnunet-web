@@ -201,11 +201,23 @@ mergeInto(LibraryManager.library, {
         [iter_cls, section_name, option, value]);
     }
   },
+  GNUNET_CONFIGURATION_set_value_string: function(cfg, section, option, value) {
+    var section_name = Pointer_stringify(section);
+    var option_str = Pointer_stringify(option);
+    var value_str = Pointer_stringify(value);
+    if(!(section_name in CONFIG)) {
+      CONFIG[section_name] = {}
+    }
+    var sec = CONFIG[section_name]
+    sec[option] = value
+  },
   GNUNET_CONFIGURATION_create: function() {
     return 1; // opaque non-null pointer
   },
   GNUNET_CONFIGURATION_load: function(cfg, filename) {
     return 1;
+  },
+  GNUNET_CONFIGURATION_destroy: function(cfg) {
   }
 });
 
