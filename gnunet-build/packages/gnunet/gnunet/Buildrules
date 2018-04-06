@@ -29,6 +29,7 @@ pkg_compile() {
 		--without-libcurl \
 		--disable-testing \
 		--disable-nls \
+		--disable-documentation \
 		--enable-logging=verbose \
 		ac_cv_lib_idn_stringprep_check_version=yes \
 		ac_cv_func_srandom=no \
