@@ -1,4 +1,4 @@
-COMMIT="3f9b17"
+COMMIT="4ac7b3"
 VERSION="git-${COMMIT}"
 RELEASE="0"
 DESCRIPTION="GNUnet is a framework for secure peer-to-peer networking that does not use any centralized or otherwise trusted services."
