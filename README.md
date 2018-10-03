@@ -34,8 +34,7 @@ Roadmap
 What You Can Do Now
 -------------------
 
-You will need to install [boot] to follow these instructions. Currently
-gnunet-web only works in Chromium or Google Chrome.
+You will need to install [boot] to follow these instructions.
 
 ### Try gnunet-web pre-alpha ###
 0. Execute `./build-gnunet.sh`
