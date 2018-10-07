@@ -229,7 +229,7 @@
         (fn [e]
           (let [result (js/Uint8Array. (.-result (.-target e)))]
             (js/ccallFunc
-              (+++ (.getFuncWrapper js/Runtime cont "viiii"))
+              (+++ (js/getFuncWrapper cont "viiii"))
               "void"
               (array "number" "array" "number" "number")
               (array cont-cls result size 0)))))
