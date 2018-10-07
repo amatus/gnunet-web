@@ -24,20 +24,30 @@ mergeInto(LibraryManager.library, {
           data_pointer + size));
     var transaction = self.dsdb.transaction(['datastore'], 'readwrite');
     var do_put = function() {
-      var request = transaction.objectStore('datastore')
-                               .put({key: key,
-                                     data: data,
-                                     type: type,
-                                     priority: priority,
-                                     anonymity: anonymity,
-                                     replication: replication,
-                                     expiry: expiry});
+      // workaround for https://crbug.com/701972
+      var request = transaction.objectStore('datastore').add({})
       request.onerror = function(e) {
-        console.error('put request failed');
+        console.error('add request failed');
         dynCall('viiiii', cont, [cont_cls, key_pointer, size, -1, 0]);
       };
       request.onsuccess = function(e) {
-        dynCall('viiiii', cont, [cont_cls, key_pointer, size, 1, 0]);
+        var request2 = transaction.objectStore('datastore')
+                                  .put({uid: e.target.result,
+                                        key: key,
+                                        data: data,
+                                        type: type,
+                                        priority: priority,
+                                        anonymity: anonymity,
+                                        replication: replication,
+                                        expiry: expiry});
+        request2.onerror = function(e) {
+          console.error('put request failed');
+          transaction.abort();
+          dynCall('viiiii', cont, [cont_cls, key_pointer, size, -1, 0]);
+        };
+        request2.onsuccess = function(e) {
+          dynCall('viiiii', cont, [cont_cls, key_pointer, size, 1, 0]);
+        };
       };
     };
     if (absent) {
