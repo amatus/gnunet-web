@@ -66,7 +66,7 @@ mergeInto(LibraryManager.library, {
         console.debug("calling read handler");
         delete SCHEDULER_TASKS[socket.task];
         delete socket["task"];
-        Runtime.dynCall('vi', socket.handler, [socket.cls]);
+        dynCall('vi', socket.handler, [socket.cls]);
       }
     };
     if (typeof client_connect == 'function') {
@@ -174,7 +174,7 @@ mergeInto(LibraryManager.library, {
         console.debug("calling read handler");
         delete SCHEDULER_TASKS[socket.task];
         delete socket["task"];
-        Runtime.dynCall('vi', socket.handler, [socket.cls]);
+        dynCall('vi', socket.handler, [socket.cls]);
       }
     };
     {{{ makeSetValue('address', '0', '1', 'i16') }}};

@@ -115,7 +115,7 @@ function get_message(ev) {
           delete SCHEDULER_TASKS[socket.task];
           delete socket["task"];
           console.debug("calling handler for listening socket");
-          Runtime.dynCall('vi', socket["handler"], [socket["cls"]]);
+          dynCall('vi', socket["handler"], [socket["cls"]]);
         }
       }
     }

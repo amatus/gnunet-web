@@ -23,7 +23,7 @@ mergeInto(LibraryManager.library, {
     var id;
     id = setTimeout(function() {
       delete SCHEDULER_TASKS[id];
-      Runtime.dynCall('vi', task, [task_cls]);
+      dynCall('vi', task, [task_cls]);
     }, delay);
     SCHEDULER_TASKS[id] = {cls: task_cls};
     return id;
@@ -71,7 +71,7 @@ mergeInto(LibraryManager.library, {
       }
       delete SCHEDULER_TASKS[id];
       delete socket["task"];
-      Runtime.dynCall('vi', task, [task_cls]);
+      dynCall('vi', task, [task_cls]);
     }, 0);
     SCHEDULER_TASKS[id] = {
       cls: task_cls,
@@ -103,13 +103,13 @@ mergeInto(LibraryManager.library, {
         return;
       }
       delete SCHEDULER_TASKS[id];
-      Runtime.dynCall('vi', task, [task_cls]);
+      dynCall('vi', task, [task_cls]);
     }, 0);
     SCHEDULER_TASKS[id] = {cls: task_cls};
     return id;
   },
   GNUNET_SCHEDULER_run: function(task, task_cls) {
-    Runtime.dynCall('vi', task, [task_cls]);
+    dynCall('vi', task, [task_cls]);
     throw 'SimulateInfiniteLoop';
   },
 });
