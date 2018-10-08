@@ -90,6 +90,14 @@
           (swap! search-results conj info))
         (recur)))))
 
+(defn stop-search
+  []
+  (swap! active-search
+         (fn [old-search]
+           (when old-search
+             (filesharing/stop-search old-search))
+           nil)))
+
 (defn start-download
   [uri anonymity state-cell progress-cell object-cell]
   (let [download (filesharing/start-download uri anonymity)
@@ -175,7 +183,11 @@
                                 :error (zero? connection-count)
                                 :loading active-search})
                  :submit #(start-search (.-value input) @anonymity)
-                 (i :class (cell= {:icon true :search true}))
+                 (i :class "search icon")
+                 (div :class "ui negative icon button"
+                         :toggle active-search
+                         :click stop-search
+                         (i :class "cancel icon"))
                  input)))
 
 (defelem ui-publish
