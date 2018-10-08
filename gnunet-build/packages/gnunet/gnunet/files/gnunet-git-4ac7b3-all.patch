@@ -903,7 +903,7 @@ index 3aef05769..beaf6a204 100644
  	$(FLAT_PLUGIN)
  
 diff --git a/src/transport/Makefile.am b/src/transport/Makefile.am
-index d0db6b141..6ac35c1b7 100644
+index d0db6b141..46ac240d8 100644
 --- a/src/transport/Makefile.am
 +++ b/src/transport/Makefile.am
 @@ -80,20 +80,6 @@ endif
@@ -927,7 +927,7 @@ index d0db6b141..6ac35c1b7 100644
  install-exec-hook:
  	$(top_srcdir)/src/transport/install-wlan-helper.sh $(DESTDIR)$(libexecdir) $(SUDO_BINARY) || true
  if HAVE_LIBBLUETOOTH
-@@ -278,27 +264,7 @@ gnunet_service_transport_CFLAGS = \
+@@ -278,27 +264,8 @@ gnunet_service_transport_CFLAGS = \
    $(CFLAGS)
  # -DANALYZE
  
@@ -952,11 +952,12 @@ index d0db6b141..6ac35c1b7 100644
 -# to the plugin_LTLIBRARIES above
 -noinst_LTLIBRARIES = \
 -  libgnunet_plugin_transport_template.la
-+plugin_LTLIBRARIES = libgnunet_plugin_transport_http_client.la
++plugin_LTLIBRARIES = libgnunet_plugin_transport_http_client.la \
++										 libgnunet_plugin_transport_webrtc.la
  
  libgnunet_plugin_transport_tcp_la_SOURCES = \
    plugin_transport_tcp.c
-@@ -398,7 +364,7 @@ libgnunet_plugin_transport_unix_la_LDFLAGS = \
+@@ -398,19 +365,35 @@ libgnunet_plugin_transport_unix_la_LDFLAGS = \
  
  
  libgnunet_plugin_transport_http_client_la_SOURCES = \
@@ -965,6 +966,37 @@ index d0db6b141..6ac35c1b7 100644
  libgnunet_plugin_transport_http_client_la_LIBADD = \
    $(top_builddir)/src/hello/libgnunethello.la \
    $(top_builddir)/src/statistics/libgnunetstatistics.la \
+   $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
+-  $(LIB_GNURL) \
+-  $(top_builddir)/src/util/libgnunetutil.la
++  $(top_builddir)/src/util/libgnunetutil.la \
++  $(LTLIBINTL)
+ libgnunet_plugin_transport_http_client_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
+ libgnunet_plugin_transport_http_client_la_CFLAGS = \
+  $(CFLAGS)
+ libgnunet_plugin_transport_http_client_la_CPPFLAGS = \
+- $(CPP_GNURL) $(AM_CPPFLAGS)
++ $(AM_CPPFLAGS)
++
++
++libgnunet_plugin_transport_webrtc_la_SOURCES = \
++  plugin_transport_webrtc.c
++libgnunet_plugin_transport_webrtc_la_LIBADD = \
++  $(top_builddir)/src/hello/libgnunethello.la \
++  $(top_builddir)/src/statistics/libgnunetstatistics.la \
++  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
++  $(top_builddir)/src/util/libgnunetutil.la \
++  $(LTLIBINTL)
++libgnunet_plugin_transport_webrtc_la_LDFLAGS = \
++ $(GN_PLUGIN_LDFLAGS)
++libgnunet_plugin_transport_webrtc_la_CFLAGS = \
++ $(CFLAGS)
++libgnunet_plugin_transport_webrtc_la_CPPFLAGS = \
++ $(AM_CPPFLAGS)
+ 
+ 
+ libgnunet_plugin_transport_http_server_la_SOURCES = \
 diff --git a/src/transport/tcp_connection_legacy.c b/src/transport/tcp_connection_legacy.c
 index 66902c6a0..02c1cf37e 100644
 --- a/src/transport/tcp_connection_legacy.c

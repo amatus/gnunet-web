@@ -29,6 +29,7 @@ gnunet_prerun = function() {
     'datastore_emscripten',
     'peerstore_emscripten',
     'transport_http_client',
+    'transport_webrtc',
   ].forEach(function(plugin) {
     FS.createPreloadedFile('/', 'libgnunet_plugin_' + plugin + '.js',
         'libgnunet_plugin_' + plugin + '.js', true, false);
