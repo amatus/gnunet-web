@@ -24,22 +24,18 @@
  */
 
 #include "platform.h"
-#include "gnunet_util_lib.h"
+#include "gnunet_cadet_service.h"
 #include "gnunet_protocols.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_transport_service.h"
 #include "gnunet_transport_plugin.h"
-
-#define LOG(kind,...) GNUNET_log_from (kind, PLUGIN_NAME,__VA_ARGS__)
-
-/**
- * After how long do we expire an address that we
- * learned from another peer if it is not reconfirmed
- * by anyone?
- */
-#define LEARNED_ADDRESS_EXPIRATION GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 1)
+#include "gnunet_transport_service.h"
+#include "gnunet_util_lib.h"
 
 #define PLUGIN_NAME "webrtc"
+#define LOG(kind,...) GNUNET_log_from (kind, PLUGIN_NAME,__VA_ARGS__)
+
+#define MESSAGE_TYPE_WEBRTC_OFFER 1
+#define MESSAGE_TYPE_WEBRTC_ANSWER 2
 
 /**
  * Encapsulation of all of the state of the plugin.
@@ -53,20 +49,24 @@ struct Plugin;
 struct GNUNET_ATS_Session
 {
   /**
-   * To whom are we talking to (set to our identity
-   * if we are still waiting for the welcome message)
+   * To whom are we talking.
    */
-  struct GNUNET_PeerIdentity sender;
-
-  /**
-   * Stored in a linked list (or a peer map, or ...)
-   */
-  struct GNUNET_ATS_Session *next;
+  struct GNUNET_PeerIdentity peer;
 
   /**
    * Pointer to the global plugin struct.
    */
   struct Plugin *plugin;
+
+  /**
+   * Cadet channel for SDP exchange.
+   */
+  struct GNUNET_CADET_Channel *channel;
+
+  /**
+   * Handle to RTCPeerConnection
+   */
+  int rtc_peer_connection;
 
   /**
    * The client (used to identify this connection)
@@ -115,9 +115,9 @@ struct Plugin
   struct GNUNET_TRANSPORT_PluginEnvironment *env;
 
   /**
-   * List of open sessions (or peer map, or...)
+   * Open sessions.
    */
-  struct GNUNET_ATS_Session *sessions;
+  struct GNUNET_CONTAINER_MultiPeerMap *sessions;
 
   /**
    * Function to call about session status changes.
@@ -128,10 +128,24 @@ struct Plugin
    * Closure for @e sic.
    */
   void *sic_cls;
+
+  /**
+   * Cadet service handle.
+   */
+  struct GNUNET_CADET_Handle *cadet;
+
+  /**
+   * Cadet port for incoming connections.
+   */
+  struct GNUNET_CADET_Port *in_port;
+
+  /**
+   * Pre-computed port "number".
+   */
+  struct GNUNET_HashCode port;
 };
 
 
-#if 0
 /**
  * If a session monitor is attached, notify it about the new
  * session state.
@@ -161,7 +175,6 @@ notify_session_monitor (struct Plugin *plugin,
                session,
                &info);
 }
-#endif
 
 
 /**
@@ -220,8 +233,9 @@ static void
 webrtc_plugin_disconnect_peer (void *cls,
                                const struct GNUNET_PeerIdentity *target)
 {
-  // struct Plugin *plugin = cls;
-  // FIXME
+  struct Plugin *plugin = cls;
+  
+  GNUNET_break (0);
 }
 
 
@@ -238,8 +252,9 @@ static int
 webrtc_plugin_disconnect_session (void *cls,
                                   struct GNUNET_ATS_Session *session)
 {
-  // struct Plugin *plugin = cls;
-  // FIXME
+  struct Plugin *plugin = cls;
+  
+  GNUNET_break (0);
   return GNUNET_SYSERR;
 }
 
@@ -255,7 +270,7 @@ webrtc_plugin_disconnect_session (void *cls,
 static unsigned int
 webrtc_plugin_query_keepalive_factor (void *cls)
 {
-  return 3;
+  return 5;
 }
 
 
@@ -270,8 +285,7 @@ static enum GNUNET_ATS_Network_Type
 webrtc_plugin_get_network (void *cls,
                            struct GNUNET_ATS_Session *session)
 {
-  GNUNET_assert (NULL != session);
-  return GNUNET_ATS_NET_UNSPECIFIED; /* Change to correct network type */
+  return GNUNET_ATS_NET_WAN;
 }
 
 
@@ -286,7 +300,37 @@ static enum GNUNET_ATS_Network_Type
 webrtc_plugin_get_network_for_address (void *cls,
                                        const struct GNUNET_HELLO_Address *address)
 {
-  return GNUNET_ATS_NET_WAN; /* FOR NOW */
+  return GNUNET_ATS_NET_WAN;
+}
+
+
+/**
+ * Function called for a quick conversion of the binary address to
+ * a numeric address.  Note that the caller must not free the
+ * address and that the next call to this function is allowed
+ * to override the address again.
+ *
+ * @param cls closure
+ * @param addr binary address
+ * @param addrlen length of the address
+ * @return string representing the same address
+ */
+static const char *
+webrtc_plugin_address_to_string (void *cls, const void *addr, size_t addrlen)
+{
+  uint32_t options;
+  static char buf[7 + 10 + 1];
+
+  if (4 != addrlen)
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+        _("Unexpected address length: %u bytes\n"),
+        (unsigned int) addrlen);
+    return NULL;
+  }
+  options = ntohl (*(uint32_t *)addr);
+  GNUNET_snprintf (buf, sizeof(buf), "webrtc.%u", options);
+  return buf;
 }
 
 
@@ -312,7 +356,16 @@ webrtc_plugin_address_pretty_printer (void *cls, const char *type,
                                       GNUNET_TRANSPORT_AddressStringCallback
                                       asc, void *asc_cls)
 {
-  asc (asc_cls, "converted address", GNUNET_OK); /* return address */
+  const char *str = webrtc_plugin_address_to_string (cls, addr, addrlen);
+
+  if (NULL == str)
+  {
+    asc (asc_cls, NULL, GNUNET_SYSERR); /* invalid address */
+  }
+  else
+  {
+    asc (asc_cls, str, GNUNET_OK); /* return address */
+  }
   asc (asc_cls, NULL, GNUNET_OK); /* done */
 }
 
@@ -333,38 +386,7 @@ webrtc_plugin_address_pretty_printer (void *cls, const char *type,
 static int
 webrtc_plugin_address_suggested (void *cls, const void *addr, size_t addrlen)
 {
-  /* struct Plugin *plugin = cls; */
-
-  /* check if the address is belonging to the plugin*/
   return GNUNET_OK;
-}
-
-
-/**
- * Function called for a quick conversion of the binary address to
- * a numeric address.  Note that the caller must not free the
- * address and that the next call to this function is allowed
- * to override the address again.
- *
- * @param cls closure
- * @param addr binary address
- * @param addrlen length of the address
- * @return string representing the same address
- */
-static const char *
-webrtc_plugin_address_to_string (void *cls, const void *addr, size_t addrlen)
-{
-  /*
-   * Print address in format webrtc.options.address
-   */
-
-  if (0 == addrlen)
-  {
-    return TRANSPORT_SESSION_INBOUND_STRING;
-  }
-
-  GNUNET_break (0);
-  return NULL;
 }
 
 
@@ -386,11 +408,118 @@ webrtc_plugin_string_to_address (void *cls,
                                  uint16_t addrlen,
                                  void **buf, size_t *added)
 {
-  /*
-   * Parse string in format webrtc.options.address
-   */
+  uint32_t options;
+  uint32_t *buf2;
+
+  if ((NULL == addr) || (0 == addrlen))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if ('\0' != addr[addrlen - 1])
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (strlen (addr) != addrlen - 1)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  addr = strchr (addr, '.');
+  if (NULL == addr)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  options = atol (addr);
+  buf2 = GNUNET_new (uint32_t);
+  *buf2 = htonl (options);
+  *buf = buf2;
+  *added = sizeof(*buf2);
+  return GNUNET_OK;
+}
+
+
+static void
+create_offer_cb(void *cls,
+                char *offer)
+{
+  struct GNUNET_ATS_Session *s = cls;
   GNUNET_break (0);
-  return GNUNET_SYSERR;
+}
+
+
+/**
+ * Check if payload is sane (size contains payload).
+ *
+ * @param cls should match #ch
+ * @param message The actual message.
+ * @return #GNUNET_OK to keep the channel open,
+ *         #GNUNET_SYSERR to close it (signal serious error).
+ */
+static int
+check_answer (void *cls,
+              const struct GNUNET_MessageHeader *message)
+{
+  return GNUNET_OK;             /* all is well-formed */
+}
+
+
+/**
+ * Functions with this signature are called whenever a complete answer
+ * is received.
+ *
+ * @param cls closure
+ * @param srm the actual message
+ */
+static void
+handle_answer (void *cls,
+               const struct GNUNET_MessageHeader *message)
+{
+  struct GNUNET_ATS_Session *s = cls;
+  GNUNET_break (0);
+}
+
+
+/**
+ * Function called whenever an MQ-channel's transmission window size changes.
+ *
+ * The first callback in an outgoing channel will be with a non-zero value
+ * and will mean the channel is connected to the destination.
+ *
+ * For an incoming channel it will be called immediately after the
+ * #GNUNET_CADET_ConnectEventHandler, also with a non-zero value.
+ *
+ * @param cls Channel closure.
+ * @param channel Connection to the other end (henceforth invalid).
+ * @param window_size New window size. If the is more messages than buffer size
+ *                    this value will be negative..
+ */
+static void
+out_window_change_cb (void *cls,
+                      const struct GNUNET_CADET_Channel *channel,
+                      int window_size)
+{
+  /* FIXME: could do flow control here... */
+}
+
+
+/**
+ * Function called by cadet when a client disconnects.
+ * Cleans up our `struct CadetClient` of that channel.
+ *
+ * @param cls  our `struct CadetClient`
+ * @param channel channel of the disconnecting client
+ * @param channel_ctx
+ */
+static void
+out_disconnect_cb (void *cls,
+                   const struct GNUNET_CADET_Channel *channel)
+{
+  struct GNUNET_ATS_Session *s = cls;
+
+  GNUNET_break (0);
 }
 
 
@@ -407,7 +536,58 @@ static struct GNUNET_ATS_Session *
 webrtc_plugin_get_session (void *cls,
                            const struct GNUNET_HELLO_Address *address)
 {
-  GNUNET_break (0);
+  struct Plugin *plugin = cls;
+  struct GNUNET_ATS_Session *s;
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+      "Trying to get session for peer `%s'\n",
+      GNUNET_i2s (&address->peer));
+  /* find existing session */
+  s = GNUNET_CONTAINER_multipeermap_get (plugin->sessions,
+                                         &address->peer);
+  if (NULL != s)
+    return s;
+  s = GNUNET_new (struct GNUNET_ATS_Session);
+  s->plugin = plugin;
+  s->peer = address->peer;
+  /* add new session */
+  (void) GNUNET_CONTAINER_multipeermap_put (plugin->sessions,
+                                            &s->peer,
+                                            s,
+                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
+  struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_hd_var_size (answer,
+                           MESSAGE_TYPE_WEBRTC_ANSWER,
+                           struct GNUNET_MessageHeader,
+                           plugin),
+    GNUNET_MQ_handler_end ()
+  };
+  s->channel = GNUNET_CADET_channel_create (plugin->cadet,
+                                            s,
+                                            &address->peer,
+                                            &plugin->port,
+                                            GNUNET_CADET_OPTION_RELIABLE,
+                                            out_window_change_cb,
+                                            out_disconnect_cb,
+                                            handlers);
+  GNUNET_assert (s->channel != NULL);
+
+  extern int create_connection(void *, void *);
+
+  s->rtc_peer_connection = create_connection(create_offer_cb, s);
+  /* Create RTCPeerConnection, call createOffer, when the returned promise is fulfilled, send it:
+  struct GNUNET_MessageHeader msg;
+  struct GNUNET_MQ_Envelope *env = GNUNET_MQ_msg (msg, MESSAGE_TYPE_WEBRTC_OFFER);
+
+  GNUNET_MQ_notify_sent (env,
+                         &transmit_pending,
+                         mh);
+  GNUNET_MQ_send (mq,
+                  env);
+  */
+  notify_session_monitor (plugin,
+                          s,
+                          GNUNET_TRANSPORT_SS_INIT);
   return NULL;
 }
 
@@ -482,6 +662,95 @@ webrtc_plugin_setup_monitor (void *cls,
 
 
 /**
+ * Check if payload is sane (size contains payload).
+ *
+ * @param cls should match #ch
+ * @param message The actual message.
+ * @return #GNUNET_OK to keep the channel open,
+ *         #GNUNET_SYSERR to close it (signal serious error).
+ */
+static int
+check_offer (void *cls,
+             const struct GNUNET_MessageHeader *message)
+{
+  return GNUNET_OK;             /* all is well-formed */
+}
+
+
+/**
+ * Functions with this signature are called whenever a complete offer
+ * is received.
+ *
+ * @param cls closure
+ * @param srm the actual message
+ */
+static void
+handle_offer (void *cls,
+              const struct GNUNET_MessageHeader *message)
+{
+  GNUNET_break (0);
+}
+
+
+/**
+ * Functions of this type are called upon new cadet connection from other peers.
+ *
+ * @param cls the closure from GNUNET_CADET_connect
+ * @param channel the channel representing the cadet
+ * @param initiator the identity of the peer who wants to establish a cadet
+ *            with us; NULL on binding error
+ * @return initial channel context (our `struct CadetClient`)
+ */
+static void *
+connect_cb (void *cls,
+            struct GNUNET_CADET_Channel *channel,
+            const struct GNUNET_PeerIdentity *initiator)
+{
+  GNUNET_break (0);
+  return NULL;
+}
+
+
+/**
+ * Function called by cadet when a client disconnects.
+ * Cleans up our `struct CadetClient` of that channel.
+ *
+ * @param cls  our `struct CadetClient`
+ * @param channel channel of the disconnecting client
+ * @param channel_ctx
+ */
+static void
+in_disconnect_cb (void *cls,
+                  const struct GNUNET_CADET_Channel *channel)
+{
+  GNUNET_break (0);
+}
+
+
+/**
+ * Function called whenever an MQ-channel's transmission window size changes.
+ *
+ * The first callback in an outgoing channel will be with a non-zero value
+ * and will mean the channel is connected to the destination.
+ *
+ * For an incoming channel it will be called immediately after the
+ * #GNUNET_CADET_ConnectEventHandler, also with a non-zero value.
+ *
+ * @param cls Channel closure.
+ * @param channel Connection to the other end (henceforth invalid).
+ * @param window_size New window size. If the is more messages than buffer size
+ *                    this value will be negative..
+ */
+static void
+in_window_change_cb (void *cls,
+                     const struct GNUNET_CADET_Channel *channel,
+                     int window_size)
+{
+  /* FIXME: could do flow control here... */
+}
+
+
+/**
  * Entry point for the plugin.
  */
 void *
@@ -490,6 +759,7 @@ libgnunet_plugin_transport_webrtc_init (void *cls)
   struct GNUNET_TRANSPORT_PluginEnvironment *env = cls;
   struct GNUNET_TRANSPORT_PluginFunctions *api;
   struct Plugin *plugin;
+  struct GNUNET_HELLO_Address *address;
 
   if (NULL == env->receive)
   {
@@ -505,6 +775,26 @@ libgnunet_plugin_transport_webrtc_init (void *cls)
 
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
+  plugin->sessions = GNUNET_CONTAINER_multipeermap_create (128,
+                                                           GNUNET_YES);
+  plugin->cadet = GNUNET_CADET_connect(env->cfg);
+  GNUNET_assert (plugin->cadet != NULL);
+  struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_hd_var_size (offer,
+                           MESSAGE_TYPE_WEBRTC_OFFER,
+                           struct GNUNET_MessageHeader,
+                           plugin),
+    GNUNET_MQ_handler_end ()
+  };
+  GNUNET_CRYPTO_hash ("webrtc", 6, &plugin->port);
+  plugin->in_port = GNUNET_CADET_open_port (plugin->cadet,
+                                            &plugin->port,
+                                            &connect_cb,
+                                            plugin,
+                                            &in_window_change_cb,
+                                            &in_disconnect_cb,
+                                            handlers);
+  GNUNET_assert (plugin->in_port != NULL);
   api = GNUNET_new (struct GNUNET_TRANSPORT_PluginFunctions);
   api->cls = plugin;
   api->send = &webrtc_plugin_send;
@@ -520,7 +810,18 @@ libgnunet_plugin_transport_webrtc_init (void *cls)
   api->get_network_for_address = &webrtc_plugin_get_network_for_address;
   api->update_session_timeout = &webrtc_plugin_update_session_timeout;
   api->setup_monitor = &webrtc_plugin_setup_monitor;
-  LOG (GNUNET_ERROR_TYPE_INFO, "Template plugin successfully loaded\n");
+
+  uint32_t options = 0;
+  address = GNUNET_HELLO_address_allocate (plugin->env->my_identity,
+                                           PLUGIN_NAME,
+                                           &options,
+                                           sizeof (options),
+                                           GNUNET_HELLO_ADDRESS_INFO_NONE);
+  plugin->env->notify_address (plugin->env->cls,
+      GNUNET_YES,
+      address);
+  GNUNET_HELLO_address_free (address);
+  LOG (GNUNET_ERROR_TYPE_INFO, "WebRTC plugin successfully loaded\n");
   return api;
 }
 
@@ -534,6 +835,8 @@ libgnunet_plugin_transport_webrtc_done (void *cls)
   struct GNUNET_TRANSPORT_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
 
+  GNUNET_CADET_close_port (plugin->in_port);
+  GNUNET_CADET_disconnect (plugin->cadet);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;

@@ -29,7 +29,8 @@ Roadmap
         * No directory support.
 * Release alpha.
 * Write a WebRTC transport plugin.
-    * Implement [RFC3264] over GNUnet.
+    * This is not currently possible, the Web Worker running the transport
+      service cannot access WebRTC, see [bug 4700].
 
 What You Can Do Now
 -------------------
@@ -67,8 +68,8 @@ To debug a shared worker in chrome open chrome://inspect and click the
   [gnunet]: https://gnunet.org
   [webrtc]: http://www.webrtc.org
   [emscripten]: https://github.com/kripken/emscripten
-  [rfc3264]: http://www.ietf.org/rfc/rfc3264.txt
   [web worker]: http://www.w3.org/TR/workers/
   [indexeddb]: http://www.w3.org/TR/IndexedDB/
   [boot]: https://github.com/boot-clj/boot#install
+  [bug 4700]: https://bugs.chromium.org/p/webrtc/issues/detail?id=4700
 
