@@ -442,8 +442,25 @@ webrtc_plugin_string_to_address (void *cls,
 
 
 static void
-create_offer_cb(void *cls,
-                char *offer)
+offer_cb(void *cls,
+         char *offer)
+{
+  struct GNUNET_ATS_Session *s = cls;
+  struct GNUNET_MQ_Handle *mq = GNUNET_CADET_get_mq (s->channel);
+  size_t offer_len = strlen (offer);
+  struct GNUNET_MessageHeader *msg;
+  struct GNUNET_MQ_Envelope *env = GNUNET_MQ_msg_extra (msg, offer_len, MESSAGE_TYPE_WEBRTC_OFFER);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+      "Sending our offer `%s'\n",
+      offer);
+  memcpy (&msg[1], offer, offer_len);
+  GNUNET_MQ_send (mq, env);
+}
+
+
+static void
+message_cb(void *cls, uint8_t *data, int length)
 {
   struct GNUNET_ATS_Session *s = cls;
   GNUNET_break (0);
@@ -466,6 +483,9 @@ check_answer (void *cls,
 }
 
 
+extern void set_remote_answer(int, void *, int);
+
+
 /**
  * Functions with this signature are called whenever a complete answer
  * is received.
@@ -478,6 +498,8 @@ handle_answer (void *cls,
                const struct GNUNET_MessageHeader *message)
 {
   struct GNUNET_ATS_Session *s = cls;
+  uint16_t size = ntohs(message->size);
+  set_remote_answer(s->rtc_peer_connection, &message[1], size - sizeof(*message));
   GNUNET_break (0);
 }
 
@@ -522,6 +544,7 @@ out_disconnect_cb (void *cls,
   GNUNET_break (0);
 }
 
+extern int peer_connect(void *, void *, void *, void *, int, void *);
 
 /**
  * Create a new session to transmit data to the target
@@ -571,20 +594,7 @@ webrtc_plugin_get_session (void *cls,
                                             out_disconnect_cb,
                                             handlers);
   GNUNET_assert (s->channel != NULL);
-
-  extern int create_connection(void *, void *);
-
-  s->rtc_peer_connection = create_connection(create_offer_cb, s);
-  /* Create RTCPeerConnection, call createOffer, when the returned promise is fulfilled, send it:
-  struct GNUNET_MessageHeader msg;
-  struct GNUNET_MQ_Envelope *env = GNUNET_MQ_msg (msg, MESSAGE_TYPE_WEBRTC_OFFER);
-
-  GNUNET_MQ_notify_sent (env,
-                         &transmit_pending,
-                         mh);
-  GNUNET_MQ_send (mq,
-                  env);
-  */
+  s->rtc_peer_connection = peer_connect(offer_cb, NULL, message_cb, NULL, 0, s);
   notify_session_monitor (plugin,
                           s,
                           GNUNET_TRANSPORT_SS_INIT);
@@ -661,6 +671,23 @@ webrtc_plugin_setup_monitor (void *cls,
 }
 
 
+static void
+answer_cb(void *cls,
+          char *answer)
+{
+  struct GNUNET_ATS_Session *s = cls;
+  struct GNUNET_MQ_Handle *mq = GNUNET_CADET_get_mq (s->channel);
+  size_t answer_len = strlen (answer);
+  struct GNUNET_MessageHeader *msg;
+  struct GNUNET_MQ_Envelope *env = GNUNET_MQ_msg_extra (msg, answer_len, MESSAGE_TYPE_WEBRTC_ANSWER);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+      "Sending our answer `%s'\n",
+      answer);
+  memcpy (&msg[1], answer, answer_len);
+  GNUNET_MQ_send (mq, env);
+}
+
 /**
  * Check if payload is sane (size contains payload).
  *
@@ -688,6 +715,12 @@ static void
 handle_offer (void *cls,
               const struct GNUNET_MessageHeader *message)
 {
+  struct GNUNET_ATS_Session *s = cls; // XXX right?
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+      "handle_offer called with session %p\n",
+      s);
+  uint16_t size = ntohs(message->size);
+  s->rtc_peer_connection = peer_connect(NULL, answer_cb, message_cb, &message[1], size - sizeof(*message), s);
   GNUNET_break (0);
 }
 
@@ -699,15 +732,40 @@ handle_offer (void *cls,
  * @param channel the channel representing the cadet
  * @param initiator the identity of the peer who wants to establish a cadet
  *            with us; NULL on binding error
- * @return initial channel context (our `struct CadetClient`)
+ * @return initial channel context (our `struct GNUNET_ATS_Session`)
  */
 static void *
 connect_cb (void *cls,
             struct GNUNET_CADET_Channel *channel,
             const struct GNUNET_PeerIdentity *initiator)
 {
-  GNUNET_break (0);
-  return NULL;
+  struct Plugin *plugin = cls;
+  struct GNUNET_ATS_Session *s;
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+      "Got CADET connection from peer `%s'\n",
+      GNUNET_i2s (initiator));
+  /* find existing session */
+  s = GNUNET_CONTAINER_multipeermap_get (plugin->sessions,
+                                         initiator);
+  if (NULL == s)
+  {
+    GNUNET_break (0);
+    return s;
+  }
+  s = GNUNET_new (struct GNUNET_ATS_Session);
+  s->plugin = plugin;
+  s->peer = *initiator;
+  s->channel = channel;
+  /* add new session */
+  (void) GNUNET_CONTAINER_multipeermap_put (plugin->sessions,
+                                            &s->peer,
+                                            s,
+                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+      "Returning session %p\n",
+      s);
+  return s;
 }
 
 

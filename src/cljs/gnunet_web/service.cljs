@@ -1,5 +1,5 @@
 ;; service.cljs - service manager for gnunet-web website
-;; Copyright (C) 2013-2015  David Barksdale <amatus@amat.us>
+;; Copyright (C) 2013-2018  David Barksdale <amatus@amat.us>
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -15,7 +15,8 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (ns gnunet-web.service
-  (:require [cognitect.transit :as t]))
+  (:require [cognitect.transit :as t]
+            [gnunet-web.webrtc :refer [peer-connect]]))
 
 (def private-key
   ;; XXX This has no synchronization!
@@ -68,6 +69,7 @@
                   "client_connect" (client-connect (aget data "service_name")
                                                    (aget data "client_name")
                                                    (aget data "message_port"))
+                  "peer_connect" (peer-connect (aget data "message_port") (aget data "offer"))
                   (.warn js/console worker-name data))))
           (catch :default e
             (js/console.error "REKT" e))))

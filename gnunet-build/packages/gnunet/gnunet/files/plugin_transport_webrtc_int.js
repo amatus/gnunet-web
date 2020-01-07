@@ -15,33 +15,55 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 mergeInto(LibraryManager.library, {
-  $RTC_CONFIG: {iceServers: [{url: "stun:stun.l.google.com:19302"}]},
   $CONNECTIONS: [],
   $NEXT_CONNECTION: 1,
-  create_connection__deps: ["$RTC_CONFIG", "$CONNECTIONS", "$NEXT_CONNECTION"],
-  create_connection: function(offer_cb, cls) {
-    var conn = new RTCPeerConnection(RTC_CONFIG);
-    chan = conn.createDataChannel("data", {ordered: false,
-                                           maxRetransmits: 0,
-                                           negotiated: true,
-                                           id: 1});
-    chan.onopen = function(e) {
-      console.warn("channel open");
+  peer_connect__deps: ["$CONNECTIONS", "$NEXT_CONNECTION"],
+  peer_connect: function(offer_cb, answer_cb, message_cb, offer_ptr, offer_size, cls) {
+    var offer;
+    if (0 != offer_ptr) {
+      offer = Pointer_stringify(offer_ptr, offer_size);
+    }
+    var channel = new MessageChannel();
+    var port = channel.port1;
+    port.onmessage = function(e) {
+      if ('offer' == e.data.type && 0 != offer_cb) {
+        ccallFunc(
+          getFuncWrapper(offer_cb, 'vii'),
+          'void',
+          ['number', 'string'],
+          [cls, e.data.sdp]);
+      } else if ('answer' == e.data.type && 0 != answer_cb) {
+        ccallFunc(
+          getFuncWrapper(answer_cb, 'vii'),
+          'void',
+          ['number', 'string'],
+          [cls, e.data.sdp]);
+      } else if ('message' == e.data.type) {
+        console.error('got webrtc message:', e.data);
+      } else {
+        console.error('unhandled message on webrtc message channel', e.data);
+      }
     };
-    chan.onmessage = function(e) {
-      console.warn("channel got message:", e);
-    };
-    offer = conn.createOffer();
-    offer.then(function(e) {
-      console.warn("created offer:", e);
-      ccallFunc(
-        getFuncWrapper(offer_cb, 'vii'),
-        'void',
-        ['number', 'string'],
-        [cls, e.sdp]);
+    do_to_window(function(w) {
+      w.postMessage({
+        type: 'peer_connect',
+        offer: offer,
+        message_port: channel.port2}, [channel.port2]);
     });
-    CONNECTIONS[NEXT_CONNECTION] = {conn: conn, chan: chan};
+    CONNECTIONS[NEXT_CONNECTION] = port;
     return NEXT_CONNECTION++;
+  },
+  set_remote_answer__deps: ["$CONNECTIONS"],
+  set_remote_answer: function(num, answer_ptr, answer_size) {
+    var port = CONNECTIONS[num];
+    port.postMessage({type: 'answer', sdp: Pointer_stringify(answer_ptr, answer_size)});
+  },
+  peer_disconnect__deps: ["$CONNECTIONS"],
+  peer_disconnect: function(num) {
+    var port = CONNECTIONS[num];
+    port.postMessage({type: 'disconnect'});
+    port.close();
+    delete CONNECTIONS[num];
   }
 });
 

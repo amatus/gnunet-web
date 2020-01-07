@@ -25,7 +25,7 @@ mergeInto(LibraryManager.library, {
     transport: {
       UNIXPATH: 'transport',
       NEIGHBOUR_LIMIT: 50,
-      PLUGINS: 'http_client',
+      PLUGINS: 'http_client webrtc',
     },
     ats: {
       UNIXPATH: 'ats',
