@@ -281,11 +281,11 @@ webrtc_plugin_query_keepalive_factor (void *cls)
  * @param session the session
  * @return the network type in HBO or #GNUNET_SYSERR
  */
-static enum GNUNET_ATS_Network_Type
+static enum GNUNET_NetworkType
 webrtc_plugin_get_network (void *cls,
                            struct GNUNET_ATS_Session *session)
 {
-  return GNUNET_ATS_NET_WAN;
+  return GNUNET_NT_WAN;
 }
 
 
@@ -296,11 +296,11 @@ webrtc_plugin_get_network (void *cls,
  * @param address the address
  * @return the network type
  */
-static enum GNUNET_ATS_Network_Type
+static enum GNUNET_NetworkType
 webrtc_plugin_get_network_for_address (void *cls,
                                        const struct GNUNET_HELLO_Address *address)
 {
-  return GNUNET_ATS_NET_WAN;
+  return GNUNET_NT_WAN;
 }
 
 
@@ -589,7 +589,6 @@ webrtc_plugin_get_session (void *cls,
                                             s,
                                             &address->peer,
                                             &plugin->port,
-                                            GNUNET_CADET_OPTION_RELIABLE,
                                             out_window_change_cb,
                                             out_disconnect_cb,
                                             handlers);

@@ -1,29 +1,46 @@
 diff --git a/configure.ac b/configure.ac
-index 804a7dd56..44881b985 100644
+index 3f1450ba2..114254f57 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -811,7 +811,7 @@ AC_ARG_WITH(ltdl,
+@@ -1109,7 +1109,7 @@ AC_ARG_WITH(ltdl,
      AC_CHECK_HEADERS(ltdl.h,
       AC_CHECK_LIB([ltdl], [lt_dlopenext],
        ltdl=1))])
--if test x$ltdl = x1
-+if true
- then
+-AS_IF([test x$ltdl = x1],
++AS_IF([true],
+ [
   AC_MSG_RESULT([libltdl found])
- else
+ ],[
+@@ -2132,7 +2132,7 @@ AS_IF([test "$mysql" = true],
+ AS_IF([test x$mysqlfail = xtrue],
+       [AC_MSG_WARN([MySQL not found (or too old), will not create MySQL database support])
+        mysql_msg="unsupported version"])
+-AS_IF([test "$sqlite" = true],
++AS_IF([true],
+       [features_msg="$features_msg sqlite"
+        sqlite_msg="yes"],
+       [AC_MSG_ERROR([sqlite3 not found, but sqlite3 is required.])
 diff --git a/src/Makefile.am b/src/Makefile.am
-index 39cbaa893..05370e160 100644
+index 1bcc1ae7b..9d12df48b 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -80,7 +80,6 @@ else
- SUBDIRS = \
+@@ -76,7 +76,6 @@ SUBDIRS = \
    include $(INTLEMU_SUBDIRS) \
    util \
+   nt \
 -  gnsrecord \
    hello \
    block \
    statistics \
-@@ -105,30 +104,20 @@ SUBDIRS = \
+@@ -84,7 +83,6 @@ SUBDIRS = \
+   $(TESTING) \
+   $(JSON_DIR) \
+   $(CURL_DIR) \
+-  $(REST_DIR) \
+   peerinfo \
+   $(SQLITE_DIR) \
+   $(MYSQL_DIR) \
+@@ -105,28 +103,18 @@ SUBDIRS = \
    $(ATS_TESTS) \
    nse \
    dht \
@@ -34,7 +51,6 @@ index 39cbaa893..05370e160 100644
    identity \
 -  namecache \
 -  namestore \
-   peerstore \
    cadet \
    set \
    consensus \
@@ -48,18 +64,17 @@ index 39cbaa893..05370e160 100644
 -  exit \
 -  pt \
 -  secretsharing \
- 	$(EXP_DIR) \
-   $(JSON_DIR) \
--  $(REST_DIR) \
--  integration-tests 
-+  $(REST_DIR)
+   $(RECLAIM_DIR) \
+-  $(EXP_DIR) \
+-  integration-tests
++  $(EXP_DIR)
  
  endif
 diff --git a/src/datastore/Makefile.am b/src/datastore/Makefile.am
-index 240abbc67..db784cc44 100644
+index cd1df4e5e..9b7f72687 100644
 --- a/src/datastore/Makefile.am
 +++ b/src/datastore/Makefile.am
-@@ -104,7 +104,8 @@ plugin_LTLIBRARIES = \
+@@ -100,7 +100,8 @@ plugin_LTLIBRARIES = \
    $(SQLITE_PLUGIN) \
    $(MYSQL_PLUGIN) \
    $(POSTGRES_PLUGIN) \
@@ -69,7 +84,7 @@ index 240abbc67..db784cc44 100644
  
  # Real plugins should of course go into
  # plugin_LTLIBRARIES
-@@ -131,6 +132,13 @@ libgnunet_plugin_datastore_heap_la_LIBADD = \
+@@ -127,6 +128,13 @@ libgnunet_plugin_datastore_heap_la_LIBADD = \
  libgnunet_plugin_datastore_heap_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
  
@@ -84,10 +99,10 @@ index 240abbc67..db784cc44 100644
  libgnunet_plugin_datastore_mysql_la_SOURCES = \
    plugin_datastore_mysql.c
 diff --git a/src/dht/Makefile.am b/src/dht/Makefile.am
-index c52ac93c7..d3983ef9e 100644
+index 2182d1c7f..f7442e37e 100644
 --- a/src/dht/Makefile.am
 +++ b/src/dht/Makefile.am
-@@ -50,15 +50,6 @@ libgnunet_plugin_block_dht_la_LDFLAGS = \
+@@ -47,15 +47,6 @@ libgnunet_plugin_block_dht_la_LDFLAGS = \
  libexec_PROGRAMS = \
   gnunet-service-dht
  
@@ -104,29 +119,25 @@ index c52ac93c7..d3983ef9e 100644
  gnunet_service_dht_SOURCES = \
   gnunet-service-dht.c gnunet-service-dht.h \
 diff --git a/src/dns/Makefile.am b/src/dns/Makefile.am
-index ca2685765..07eb794ca 100644
+index 17be841f5..944957c8d 100644
 --- a/src/dns/Makefile.am
 +++ b/src/dns/Makefile.am
-@@ -18,14 +18,6 @@ plugindir = $(libdir)/gnunet
+@@ -14,10 +14,6 @@ plugindir = $(libdir)/gnunet
  pkgcfg_DATA = \
    dns.conf
  
 -if LINUX
 -HIJACKBIN = gnunet-helper-dns
--install-exec-hook:
--	$(top_srcdir)/src/dns/install-dns-helper.sh $(DESTDIR)$(libexecdir) $(GNUNETDNS_GROUP) $(SUDO_BINARY) || true
--else
--install-exec-hook:
 -endif
 -
  lib_LTLIBRARIES = \
    libgnunetdns.la
  
 diff --git a/src/fs/fs_api.c b/src/fs/fs_api.c
-index 9b783ba93..f4aa012b1 100644
+index e04a93f9c..707ed81a8 100644
 --- a/src/fs/fs_api.c
 +++ b/src/fs/fs_api.c
-@@ -454,19 +454,22 @@ struct FileInfo
+@@ -449,19 +449,22 @@ struct FileInfo
   *            to provide less data unless there is an error;
   *            a value of "0" will be used at the end to allow
   *            the reader to clean up its internal state
@@ -155,7 +166,7 @@ index 9b783ba93..f4aa012b1 100644
  
    if (UINT64_MAX == offset)
    {
-@@ -475,7 +478,7 @@ GNUNET_FS_data_reader_file_ (void *cls,
+@@ -470,7 +473,7 @@ GNUNET_FS_data_reader_file_ (void *cls,
        GNUNET_DISK_file_close (fi->fd);
        fi->fd = NULL;
      }
@@ -164,7 +175,7 @@ index 9b783ba93..f4aa012b1 100644
    }
    if (0 == max)
    {
-@@ -483,7 +486,7 @@ GNUNET_FS_data_reader_file_ (void *cls,
+@@ -478,7 +481,7 @@ GNUNET_FS_data_reader_file_ (void *cls,
        GNUNET_DISK_file_close (fi->fd);
      GNUNET_free (fi->filename);
      GNUNET_free (fi);
@@ -173,21 +184,21 @@ index 9b783ba93..f4aa012b1 100644
    }
    if (NULL == fi->fd)
    {
-@@ -497,7 +500,9 @@ GNUNET_FS_data_reader_file_ (void *cls,
-                        _("Could not open file `%s': %s"),
+@@ -491,7 +494,9 @@ GNUNET_FS_data_reader_file_ (void *cls,
+                        _ ("Could not open file `%s': %s"),
                         fi->filename,
-                        STRERROR (errno));
+                        strerror (errno));
 -      return 0;
 +      if (cont)
 +        cont (cont_cls, NULL, max, *emsg);
 +      return GNUNET_OK;
      }
    }
-   if ( (GNUNET_SYSERR ==
-@@ -508,16 +513,22 @@ GNUNET_FS_data_reader_file_ (void *cls,
-                      _("Could not read file `%s': %s"),
+   if ((GNUNET_SYSERR ==
+@@ -502,16 +507,22 @@ GNUNET_FS_data_reader_file_ (void *cls,
+                      _ ("Could not read file `%s': %s"),
                       fi->filename,
-                      STRERROR (errno));
+                      strerror (errno));
 -    return 0;
 +    if (cont)
 +      cont (cont_cls, NULL, max, *emsg);
@@ -196,7 +207,7 @@ index 9b783ba93..f4aa012b1 100644
    if (ret != max)
    {
      GNUNET_asprintf (emsg,
-                      _("Short read reading from file `%s'!"),
+                      _ ("Short read reading from file `%s'!"),
                       fi->filename);
 -    return 0;
 +    if (cont)
@@ -210,7 +221,7 @@ index 9b783ba93..f4aa012b1 100644
  }
  
  
-@@ -559,28 +570,30 @@ GNUNET_FS_make_file_reader_context_ (const char *filename)
+@@ -553,28 +564,30 @@ GNUNET_FS_make_file_reader_context_ (const char *filename)
   *            to provide less data unless there is an error;
   *            a value of "0" will be used at the end to allow
   *            the reader to clean up its internal state
@@ -251,10 +262,11 @@ index 9b783ba93..f4aa012b1 100644
  }
  
  
-@@ -1248,43 +1261,6 @@ make_serialization_file_name_in_dir (struct GNUNET_FS_Handle *h,
+@@ -1265,43 +1278,6 @@ make_serialization_file_name_in_dir (struct GNUNET_FS_Handle *h,
+ }
  
  
- /**
+-/**
 - * Copy all of the data from the reader to the write handle.
 - *
 - * @param wh write handle
@@ -275,9 +287,9 @@ index 9b783ba93..f4aa012b1 100644
 -  off = 0;
 -  while (off < fi->data.file.file_size)
 -  {
--    left = GNUNET_MIN (sizeof (buf), fi->data.file.file_size - off);
+-    left = GNUNET_MIN (sizeof(buf), fi->data.file.file_size - off);
 -    ret =
--        fi->data.file.reader (fi->data.file.reader_cls, off, left, buf, &emsg);
+-      fi->data.file.reader (fi->data.file.reader_cls, off, left, buf, &emsg);
 -    if (0 == ret)
 -    {
 -      GNUNET_free (emsg);
@@ -291,11 +303,10 @@ index 9b783ba93..f4aa012b1 100644
 -}
 -
 -
--/**
+ /**
   * Create a temporary file on disk to store the current
   * state of @a fi in.
-  *
-@@ -1368,7 +1344,6 @@ GNUNET_FS_file_information_sync_ (struct GNUNET_FS_FileInformation *fi)
+@@ -1386,7 +1362,6 @@ GNUNET_FS_file_information_sync_ (struct GNUNET_FS_FileInformation *fi)
        goto cleanup;
      }
      if ((GNUNET_NO == fi->is_published) && (NULL == fi->filename))
@@ -304,10 +315,10 @@ index 9b783ba93..f4aa012b1 100644
          GNUNET_break (0);
          goto cleanup;
 diff --git a/src/fs/fs_api.h b/src/fs/fs_api.h
-index 35a3c6837..ac1332f57 100644
+index 0228e37ce..211dde9d8 100644
 --- a/src/fs/fs_api.h
 +++ b/src/fs/fs_api.h
-@@ -668,16 +668,17 @@ GNUNET_FS_dequeue_ (struct GNUNET_FS_QueueEntry *qe);
+@@ -654,16 +654,17 @@ GNUNET_FS_dequeue_ (struct GNUNET_FS_QueueEntry *qe);
   *            to provide less data unless there is an error;
   *            a value of "0" will be used at the end to allow
   *            the reader to clean up its internal state
@@ -331,7 +342,7 @@ index 35a3c6837..ac1332f57 100644
  
  
  /**
-@@ -703,16 +704,17 @@ GNUNET_FS_make_file_reader_context_ (const char *filename);
+@@ -688,16 +689,17 @@ GNUNET_FS_make_file_reader_context_ (const char *filename);
   *            to provide less data unless there is an error;
   *            a value of "0" will be used at the end to allow
   *            the reader to clean up its internal state
@@ -356,10 +367,10 @@ index 35a3c6837..ac1332f57 100644
  
  /**
 diff --git a/src/fs/fs_download.c b/src/fs/fs_download.c
-index b32e9ddde..631b01986 100644
+index 4d03b6546..0b3c75a4a 100644
 --- a/src/fs/fs_download.c
 +++ b/src/fs/fs_download.c
-@@ -1760,33 +1760,36 @@ reconstruct_cb (void *cls,
+@@ -1769,33 +1769,36 @@ reconstruct_cb (void *cls,
   * @param offset identifies which block to get
   * @param max (maximum) number of bytes to get; returning
   *        fewer will also cause errors
@@ -411,10 +422,10 @@ index b32e9ddde..631b01986 100644
  
  
 diff --git a/src/fs/fs_publish.c b/src/fs/fs_publish.c
-index 2bb7c5750..82039b15c 100644
+index 8bb57b1e2..03271ddca 100644
 --- a/src/fs/fs_publish.c
 +++ b/src/fs/fs_publish.c
-@@ -361,24 +361,24 @@ publish_kblocks_cont (void *cls,
+@@ -363,24 +363,24 @@ publish_kblocks_cont (void *cls,
   * @param emsg location to store an error message (on error)
   * @return number of bytes copied to buf, 0 on error
   */
@@ -445,9 +456,9 @@ index 2bb7c5750..82039b15c 100644
    }
    else
    {
-@@ -389,18 +389,11 @@ block_reader (void *cls,
- 	/* force closing the file to avoid keeping too many files open */
- 	p->data.file.reader (p->data.file.reader_cls, offset, 0, NULL, NULL);
+@@ -391,18 +391,11 @@ block_reader (void *cls,
+         /* force closing the file to avoid keeping too many files open */
+         p->data.file.reader (p->data.file.reader_cls, offset, 0, NULL, NULL);
        }
 -      return 0;
 +      return GNUNET_SYSERR; /* return value ignored in this case */
@@ -468,7 +479,7 @@ index 2bb7c5750..82039b15c 100644
  }
  
  
-@@ -608,7 +601,6 @@ static void
+@@ -615,7 +608,6 @@ static void
  publish_content (struct GNUNET_FS_PublishContext *pc)
  {
    struct GNUNET_FS_FileInformation *p;
@@ -476,7 +487,7 @@ index 2bb7c5750..82039b15c 100644
    struct GNUNET_FS_DirectoryBuilder *db;
    struct GNUNET_FS_FileInformation *dirpos;
    void *raw_data;
-@@ -633,22 +625,6 @@ publish_content (struct GNUNET_FS_PublishContext *pc)
+@@ -640,23 +632,6 @@ publish_content (struct GNUNET_FS_PublishContext *pc)
          else
          {
            raw_data = NULL;
@@ -494,16 +505,17 @@ index 2bb7c5750..82039b15c 100644
 -              GNUNET_free (raw_data);
 -              raw_data = NULL;
 -            }
--	    dirpos->data.file.reader (dirpos->data.file.reader_cls, UINT64_MAX, 0, 0, NULL);
+-            dirpos->data.file.reader (dirpos->data.file.reader_cls, UINT64_MAX,
+-                                      0, 0, NULL);
 -          }
          }
          GNUNET_FS_directory_builder_add (db, dirpos->chk_uri, dirpos->meta,
                                           raw_data);
 diff --git a/src/fs/fs_test_lib.c b/src/fs/fs_test_lib.c
-index f8ed3a22f..2b7678503 100644
+index a0fe336df..12eaf838c 100644
 --- a/src/fs/fs_test_lib.c
 +++ b/src/fs/fs_test_lib.c
-@@ -271,26 +271,23 @@ publish_progress_cb (void *cls, const struct GNUNET_FS_ProgressInfo *info)
+@@ -274,26 +274,23 @@ publish_progress_cb (void *cls, const struct GNUNET_FS_ProgressInfo *info)
   * @param cls pointer to uint32_t with publishing seed
   * @param offset offset to generate data for
   * @param max maximum number of bytes to generate
@@ -518,12 +530,14 @@ index f8ed3a22f..2b7678503 100644
 -static size_t
 +static int
  file_generator (void *cls,
- 		uint64_t offset,
- 		size_t max,
--		void *buf,
--		char **emsg)
-+		GNUNET_FS_ReaderContinuation cont,
-+		void *cont_cls)
+-                uint64_t offset,
+-                size_t max,
+-                void *buf,
+-                char **emsg)
++    uint64_t offset,
++    size_t max,
++    GNUNET_FS_ReaderContinuation cont,
++    void *cont_cls)
  {
    uint32_t *publish_seed = cls;
    uint64_t pos;
@@ -538,7 +552,7 @@ index f8ed3a22f..2b7678503 100644
    for (pos = 0; pos < 8; pos++)
      cbuf[pos] = (uint8_t) (offset >> pos * 8);
    for (pos = 8; pos < max; pos++)
-@@ -300,7 +297,9 @@ file_generator (void *cls,
+@@ -303,7 +300,9 @@ file_generator (void *cls,
        mod = 1;
      cbuf[pos] = (uint8_t) ((offset * (*publish_seed)) % mod);
    }
@@ -549,10 +563,11 @@ index f8ed3a22f..2b7678503 100644
  }
  
  
-@@ -344,6 +343,24 @@ fs_disconnect_adapter (void *cls,
+@@ -346,6 +345,24 @@ fs_disconnect_adapter (void *cls,
+ }
  
  
- /**
++/**
 + * Continuation for GNUNET_FS_DataReader
 + */
 +static void
@@ -570,11 +585,10 @@ index f8ed3a22f..2b7678503 100644
 +}
 +
 +
-+/**
+ /**
   * Callback to be called when testbed has connected to the fs service
   *
-  * @param cls the 'struct TestPublishOperation'
-@@ -361,9 +378,7 @@ publish_fs_connect_complete_cb (void *cls,
+@@ -364,9 +381,7 @@ publish_fs_connect_complete_cb (void *cls,
    struct TestPublishOperation *po = cls;
    struct GNUNET_FS_FileInformation *fi;
    struct GNUNET_DISK_FileHandle *fh;
@@ -584,13 +598,14 @@ index f8ed3a22f..2b7678503 100644
    size_t bsize;
    struct GNUNET_FS_BlockOptions bo;
  
-@@ -395,11 +410,8 @@ publish_fs_connect_complete_cb (void *cls,
+@@ -399,12 +414,8 @@ publish_fs_connect_complete_cb (void *cls,
      off = 0;
      while (off < po->size)
      {
--      bsize = GNUNET_MIN (sizeof (buf), po->size - off);
+-      bsize = GNUNET_MIN (sizeof(buf), po->size - off);
 -      emsg = NULL;
--      GNUNET_assert (bsize == file_generator (&po->publish_seed, off, bsize, buf, &em));
+-      GNUNET_assert (bsize == file_generator (&po->publish_seed, off, bsize,
+-                                              buf, &em));
 -      GNUNET_assert (em == NULL);
 -      GNUNET_assert (bsize == GNUNET_DISK_file_write (fh, buf, bsize));
 +      bsize = GNUNET_MIN (DBLOCK_SIZE, po->size - off);
@@ -599,10 +614,10 @@ index f8ed3a22f..2b7678503 100644
      }
      GNUNET_assert (GNUNET_OK == GNUNET_DISK_file_close (fh));
 diff --git a/src/fs/fs_tree.c b/src/fs/fs_tree.c
-index 1f391da71..c90c6dc93 100644
+index e7f922823..8af3b39c3 100644
 --- a/src/fs/fs_tree.c
 +++ b/src/fs/fs_tree.c
-@@ -320,59 +320,27 @@ compute_chk_offset (unsigned int depth, uint64_t end_offset)
+@@ -321,59 +321,27 @@ compute_chk_offset (unsigned int depth, uint64_t end_offset)
  
  
  /**
@@ -621,7 +636,7 @@ index 1f391da71..c90c6dc93 100644
 +              uint16_t pt_size,
 +              char *emsg)
  {
-+  struct GNUNET_FS_TreeEncoder *te = cls; 
++  struct GNUNET_FS_TreeEncoder *te = cls;
    struct ContentHashKey *mychk;
 -  const void *pt_block;
 -  uint16_t pt_size;
@@ -664,17 +679,18 @@ index 1f391da71..c90c6dc93 100644
 -  else
 -  {
 -    pt_size =
--        GNUNET_FS_tree_compute_iblock_size (te->current_depth,
--                                            te->publish_offset);
+-      GNUNET_FS_tree_compute_iblock_size (te->current_depth,
+-                                          te->publish_offset);
 -    pt_block = &te->chk_tree[(te->current_depth - 1) * CHK_PER_INODE];
 -  }
    off = compute_chk_offset (te->current_depth, te->publish_offset);
    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                "TE is at offset %llu and depth %u with block size %u and target-CHK-offset %u\n",
 @@ -414,6 +382,58 @@ GNUNET_FS_tree_encoder_next (struct GNUNET_FS_TreeEncoder *te)
+ }
  
  
- /**
++/**
 + * Encrypt the next block of the file (and call proc and progress
 + * accordingly; or of course "cont" if we have already completed
 + * encoding of the entire file).
@@ -726,24 +742,23 @@ index 1f391da71..c90c6dc93 100644
 +}
 +
 +
-+/**
+ /**
   * Get the resulting URI from the encoding.
   *
-  * @param te the tree encoder to clean up
-@@ -444,7 +464,7 @@ GNUNET_FS_tree_encoder_finish (struct GNUNET_FS_TreeEncoder *te,
+@@ -445,7 +465,7 @@ GNUNET_FS_tree_encoder_finish (struct GNUNET_FS_TreeEncoder *te,
  {
    if (NULL != te->reader)
    {
 -    (void) te->reader (te->cls, UINT64_MAX, 0, 0, NULL);
 +    (void) te->reader (te->cls, UINT64_MAX, 0, NULL, NULL);
-     te->reader =  NULL;
+     te->reader = NULL;
    }
    GNUNET_assert (GNUNET_NO == te->in_next);
 diff --git a/src/fs/fs_unindex.c b/src/fs/fs_unindex.c
-index 776c868e6..a62668b9a 100644
+index f2315d7d0..09d1c18bd 100644
 --- a/src/fs/fs_unindex.c
 +++ b/src/fs/fs_unindex.c
-@@ -41,32 +41,37 @@
+@@ -43,32 +43,37 @@
   * @param offset identifies which block to get
   * @param max (maximum) number of bytes to get; returning
   *        fewer will also cause errors
@@ -772,20 +787,20 @@ index 776c868e6..a62668b9a 100644
 -  pt_size = GNUNET_MIN (max, uc->file_size - offset);
    if (offset != GNUNET_DISK_file_seek (uc->fh, offset, GNUNET_DISK_SEEK_SET))
    {
--    *emsg = GNUNET_strdup (_("Failed to find given position in file"));
+-    *emsg = GNUNET_strdup (_ ("Failed to find given position in file"));
 -    return 0;
 +    if (cont)
 +      cont (cont_cls, NULL, max,
-+            GNUNET_strdup (_("Failed to find given position in file")));
++            GNUNET_strdup (_ ("Failed to find given position in file")));
 +    return GNUNET_OK;
    }
 -  if (pt_size != GNUNET_DISK_file_read (uc->fh, buf, pt_size))
 +  if (max != GNUNET_DISK_file_read (uc->fh, buf, max))
    {
--    *emsg = GNUNET_strdup (_("Failed to read file"));
+-    *emsg = GNUNET_strdup (_ ("Failed to read file"));
 -    return 0;
 +    if (cont)
-+      cont (cont_cls, NULL, max, GNUNET_strdup (_("Failed to read file")));
++      cont (cont_cls, NULL, max, GNUNET_strdup (_ ("Failed to read file")));
 +    return GNUNET_OK;
    }
 -  return pt_size;
@@ -796,13 +811,14 @@ index 776c868e6..a62668b9a 100644
  
  
 diff --git a/src/include/gnunet_fs_service.h b/src/include/gnunet_fs_service.h
-index 2030c942c..162222c26 100644
+index 01d736e89..2e8648859 100644
 --- a/src/include/gnunet_fs_service.h
 +++ b/src/include/gnunet_fs_service.h
-@@ -1858,6 +1858,20 @@ GNUNET_FS_file_information_create_from_data (struct GNUNET_FS_Handle *h,
+@@ -1802,6 +1802,20 @@ GNUNET_FS_file_information_create_from_data (struct GNUNET_FS_Handle *h,
+                                              GNUNET_FS_BlockOptions *bo);
  
  
- /**
++/**
 + * Continuation for GNUNET_FS_DataReader
 + *
 + * @param cls closure
@@ -816,11 +832,10 @@ index 2030c942c..162222c26 100644
 +                                              char *emsg);
 +
 +
-+/**
+ /**
   * Function that provides data.
   *
-  * @param cls closure
-@@ -1869,20 +1883,21 @@ GNUNET_FS_file_information_create_from_data (struct GNUNET_FS_Handle *h,
+@@ -1814,20 +1828,21 @@ GNUNET_FS_file_information_create_from_data (struct GNUNET_FS_Handle *h,
   *             clean up the reader's state); in this case,
   *            a value of '0' for max should be ignored
   * @param max maximum number of bytes that should be
@@ -848,11 +863,25 @@ index 2030c942c..162222c26 100644
  
  
  /**
+diff --git a/src/include/platform.h b/src/include/platform.h
+index 3b07f47ea..b965bfe37 100644
+--- a/src/include/platform.h
++++ b/src/include/platform.h
+@@ -126,9 +126,7 @@
+ #include <semaphore.h>
+ #include <net/if.h>
+ #endif
+-#if defined(__linux__) || defined(GNU)
+ #include <net/if.h>
+-#endif
+ #ifdef SOLARIS
+ #include <sys/sockio.h>
+ #include <sys/filio.h>
 diff --git a/src/nat/Makefile.am b/src/nat/Makefile.am
-index f0d5639a1..f1fbd0ef2 100644
+index 3eea5e2a4..aa15c51dc 100644
 --- a/src/nat/Makefile.am
 +++ b/src/nat/Makefile.am
-@@ -15,24 +15,6 @@ pkgcfgdir= $(pkgdatadir)/config.d/
+@@ -8,20 +8,6 @@ pkgcfgdir= $(pkgdatadir)/config.d/
  pkgcfg_DATA = \
    nat.conf
  
@@ -860,15 +889,11 @@ index f0d5639a1..f1fbd0ef2 100644
 -  NATBIN = gnunet-helper-nat-server gnunet-helper-nat-client
 -  NATSERVER = gnunet-helper-nat-server.c
 -  NATCLIENT = gnunet-helper-nat-client.c
--install-exec-hook:
--	$(top_srcdir)/src/nat/install-nat-helper.sh $(DESTDIR)$(libexecdir) $(SUDO_BINARY) || true
 -else
 -if XFREEBSD
 -  NATBIN = gnunet-helper-nat-server gnunet-helper-nat-client
 -  NATSERVER = gnunet-helper-nat-server.c
 -  NATCLIENT = gnunet-helper-nat-client.c
--install-exec-hook:
--	$(top_srcdir)/src/nat/install-nat-helper.sh $(DESTDIR)$(libexecdir) $(SUDO_BINARY) || true
 -endif
 -else
 -install-exec-hook:
@@ -878,10 +903,10 @@ index f0d5639a1..f1fbd0ef2 100644
   gnunet-nat
  
 diff --git a/src/peerstore/Makefile.am b/src/peerstore/Makefile.am
-index 3aef05769..beaf6a204 100644
+index babf40654..17f3bc015 100644
 --- a/src/peerstore/Makefile.am
 +++ b/src/peerstore/Makefile.am
-@@ -81,7 +81,20 @@ libgnunet_plugin_peerstore_sqlite_la_LDFLAGS = \
+@@ -78,7 +78,20 @@ libgnunet_plugin_peerstore_sqlite_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
  endif
  
@@ -903,13 +928,14 @@ index 3aef05769..beaf6a204 100644
  	$(FLAT_PLUGIN)
  
 diff --git a/src/transport/Makefile.am b/src/transport/Makefile.am
-index d0db6b141..46ac240d8 100644
+index c37a34ab7..caac6128c 100644
 --- a/src/transport/Makefile.am
 +++ b/src/transport/Makefile.am
-@@ -80,20 +80,6 @@ endif
+@@ -83,20 +83,6 @@ if USE_COVERAGE
+ endif
  
  if HAVE_EXPERIMENTAL
- if LINUX
+-if LINUX
 - WLAN_BIN = gnunet-helper-transport-wlan
 - WLAN_BIN_DUMMY = gnunet-helper-transport-wlan-dummy
 - WLAN_BIN_SENDER = gnunet-transport-wlan-sender
@@ -923,17 +949,15 @@ index d0db6b141..46ac240d8 100644
 -		test_quota_compliance_wlan_asymmetric
 -endif
 -
--if LINUX
- install-exec-hook:
- 	$(top_srcdir)/src/transport/install-wlan-helper.sh $(DESTDIR)$(libexecdir) $(SUDO_BINARY) || true
+ if LINUX
  if HAVE_LIBBLUETOOTH
-@@ -278,27 +264,8 @@ gnunet_service_transport_CFLAGS = \
-   $(CFLAGS)
- # -DANALYZE
+  BT_BIN = gnunet-helper-transport-bluetooth
+@@ -367,24 +353,8 @@ gnunet_service_tng_LDADD = \
+   $(LIBGCRYPT_LIBS) \
+   $(GN_LIBINTL)
  
 -plugin_LTLIBRARIES = \
 -  libgnunet_plugin_transport_tcp.la \
--  libgnunet_plugin_transport_udp.la \
 -  $(UNIX_PLUGIN_LA) \
 -  $(HTTP_CLIENT_PLUGIN_LA) \
 -  $(HTTPS_CLIENT_PLUGIN_LA) \
@@ -943,9 +967,7 @@ index d0db6b141..46ac240d8 100644
 -  $(BT_PLUGIN_LA)
 -
 -if HAVE_EXPERIMENTAL
--plugin_LTLIBRARIES += \
--  libgnunet_plugin_transport_xt.la \
--  libgnunet_plugin_transport_xu.la
+-plugin_LTLIBRARIES += libgnunet_plugin_transport_udp.la
 -endif
 -
 -# Note: real plugins of course need to be added
@@ -957,7 +979,7 @@ index d0db6b141..46ac240d8 100644
  
  libgnunet_plugin_transport_tcp_la_SOURCES = \
    plugin_transport_tcp.c
-@@ -398,19 +365,35 @@ libgnunet_plugin_transport_unix_la_LDFLAGS = \
+@@ -461,18 +431,30 @@ libgnunet_plugin_transport_unix_la_LDFLAGS = \
  
  
  libgnunet_plugin_transport_http_client_la_SOURCES = \
@@ -972,12 +994,11 @@ index d0db6b141..46ac240d8 100644
 +  $(top_builddir)/src/util/libgnunetutil.la \
 +  $(LTLIBINTL)
  libgnunet_plugin_transport_http_client_la_LDFLAGS = \
-  $(GN_PLUGIN_LDFLAGS)
+   $(GN_LIBINTL) \
+   $(GN_PLUGIN_LDFLAGS)
  libgnunet_plugin_transport_http_client_la_CFLAGS = \
-  $(CFLAGS)
- libgnunet_plugin_transport_http_client_la_CPPFLAGS = \
-- $(CPP_GNURL) $(AM_CPPFLAGS)
-+ $(AM_CPPFLAGS)
+- $(CPP_GNURL) $(AM_CFLAGS)
++ $(AM_CFLAGS)
 +
 +
 +libgnunet_plugin_transport_webrtc_la_SOURCES = \
@@ -990,31 +1011,27 @@ index d0db6b141..46ac240d8 100644
 +  $(LTLIBINTL)
 +libgnunet_plugin_transport_webrtc_la_LDFLAGS = \
 + $(GN_PLUGIN_LDFLAGS)
-+libgnunet_plugin_transport_webrtc_la_CFLAGS = \
-+ $(CFLAGS)
-+libgnunet_plugin_transport_webrtc_la_CPPFLAGS = \
-+ $(AM_CPPFLAGS)
  
  
  libgnunet_plugin_transport_http_server_la_SOURCES = \
 diff --git a/src/transport/tcp_connection_legacy.c b/src/transport/tcp_connection_legacy.c
-index 66902c6a0..02c1cf37e 100644
+index 4e8c8140d..7f75b2852 100644
 --- a/src/transport/tcp_connection_legacy.c
 +++ b/src/transport/tcp_connection_legacy.c
-@@ -406,7 +406,7 @@ GNUNET_CONNECTION_create_from_accept (GNUNET_CONNECTION_AccessCheck access_cb,
- 			 &gc.gid))
+@@ -400,7 +400,7 @@ GNUNET_CONNECTION_create_from_accept (GNUNET_CONNECTION_AccessCheck access_cb,
+     if (0 == getpeereid (GNUNET_NETWORK_get_fd (sock), &gc.uid, &gc.gid))
        gcp = &gc;
  #else
 -#ifdef SO_PEERCRED
 +#if 0
      /* largely traditional GNU/Linux */
-     olen = sizeof (uc);
-     if ( (0 ==
+     olen = sizeof(uc);
+     if ((0 == getsockopt (GNUNET_NETWORK_get_fd (sock),
 diff --git a/src/util/Makefile.am b/src/util/Makefile.am
-index b0f45b1da..4742eab03 100644
+index 387f22a9f..ae1ebd988 100644
 --- a/src/util/Makefile.am
 +++ b/src/util/Makefile.am
-@@ -71,8 +71,6 @@ libgnunetutil_la_SOURCES = \
+@@ -43,8 +43,6 @@ libgnunetutil_la_SOURCES = \
    common_allocation.c \
    common_endian.c \
    common_logging.c \
@@ -1023,7 +1040,7 @@ index b0f45b1da..4742eab03 100644
    container_bloomfilter.c \
    container_heap.c \
    container_meta_data.c \
-@@ -104,13 +102,11 @@ libgnunetutil_la_SOURCES = \
+@@ -78,13 +76,11 @@ libgnunetutil_la_SOURCES = \
    mst.c \
    mq.c \
    nc.c \
