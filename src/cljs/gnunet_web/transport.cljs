@@ -89,11 +89,11 @@
       {:state state
        :peer peer
        :address (when-not (zero? transport-pointer)
-                  (let [transport (js/Pointer_stringify transport-pointer)]
+                  (let [transport (js/UTF8ToString transport-pointer)]
                     (when (and (= "http_client" transport)
                                (<= 9 address-length))
-                      (js/Pointer_stringify (+ 8 address-pointer)
-                                            (- address-length 9)))))})))
+                      (js/UTF8ToString (+ 8 address-pointer)
+                                       (- address-length 9)))))})))
 
 (def monitor-callback-pointer (+++ (js/addFunction monitor-callback)))
 

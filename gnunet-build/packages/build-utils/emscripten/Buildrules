@@ -1,6 +1,6 @@
-VERSION="1.37.28"
+VERSION="1.39.6"
 DESCRIPTION="Emscripten is an LLVM-to-JavaScript compiler."
-SOURCE_URI="git://github.com/kripken/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
+SOURCE_URI="git://github.com/emscripten-core/${NAME}.git?${VERSION}&archive=${NAME}-${VERSION}.${ARCHIVE_FORMAT}"
 RDEPENDS="build-utils/emscripten-fastcomp build-utils/node"
 
 pkg_compile() {
@@ -22,6 +22,7 @@ TEMP_DIR = os.path.expanduser(os.getenv('TEMP_DIR'))
 CRUNCH = os.path.expanduser(os.getenv('CRUNCH') or 'crunch')
 COMPILER_ENGINE = NODE_JS
 JS_ENGINES = [NODE_JS]
+BINARYEN_ROOT = '/no_binaryen'
 EOF
 }
 

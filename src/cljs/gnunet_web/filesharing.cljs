@@ -36,7 +36,7 @@
 (defn uri-pointer-to-string
   [uri-pointer]
   (let [uri-string-pointer (js/_GNUNET_FS_uri_to_string uri-pointer)
-        uri-string (js/Pointer_stringify uri-string-pointer)]
+        uri-string (js/UTF8ToString uri-string-pointer)]
     (js/_free uri-string-pointer)
     uri-string))
 
@@ -52,7 +52,7 @@
   [metadata]
   (let [uri-pointer (js/_GNUNET_FS_uri_ksk_create_from_meta_data metadata)
         keywords-pointer (js/_GNUNET_FS_uri_ksk_to_string_fancy uri-pointer)
-        keywords (js/Pointer_stringify keywords-pointer)]
+        keywords (js/UTF8ToString keywords-pointer)]
     (js/_free keywords-pointer)
     (js/_GNUNET_FS_uri_destroy uri-pointer)
     keywords))
@@ -61,13 +61,13 @@
   [cls plugin-name type format mime-type data data-size]
   (let [metadata (get-object cls)]
     (swap! metadata conj
-           {:plugin-name (js/Pointer_stringify plugin-name)
+           {:plugin-name (js/UTF8ToString plugin-name)
             :type type
             :format format
-            :mime-type (js/Pointer_stringify mime-type)
+            :mime-type (js/UTF8ToString mime-type)
             :data (if (or (= format e/format-utf8)
                           (= format e/format-string))
-                    (js/Pointer_stringify data)
+                    (js/UTF8ToString data)
                     (read-memory data data-size))})))
 
 (def metadata-iterator-pointer

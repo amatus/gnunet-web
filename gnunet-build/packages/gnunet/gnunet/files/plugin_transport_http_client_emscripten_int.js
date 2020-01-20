@@ -16,24 +16,24 @@
 
 mergeInto(LibraryManager.library, {
   abort_xhr: function(xhr) {
-    Module.print('Aborting xhr: ' + xhr);
+    //console.debug('Aborting xhr: ' + xhr);
     xhrs[xhr].abort();
   },
   http_client_plugin_send_int: function(url_pointer, data_pointer, data_size,
                                    cont, cont_cls, target) {
-    var url = Pointer_stringify(url_pointer);
+    var url = UTF8ToString(url_pointer);
     var data = HEAP8.subarray(data_pointer, data_pointer + data_size);
     var xhr = new XMLHttpRequest();
     xhr.open('PUT', url);
     xhr.send(data);
     xhr.onload = function(e) {
-      Module.print('put onload readyState ' + xhr.readyState + ' status ' + xhr.status);
+      //console.debug('put onload readyState ' + xhr.readyState + ' status ' + xhr.status);
       if (cont) {
         dynCall('viiiii', cont, [cont_cls, target, 1, data_size, data_size]);
       }
     };
     xhr.onerror = function(e) {
-      Module.print('put onerror readyState ' + xhr.readyState + ' status ' + xhr.status);
+      //console.debug('put onerror readyState ' + xhr.readyState + ' status ' + xhr.status);
       if (cont) {
         dynCall('viiiii', cont, [cont_cls, target, -1, data_size, data_size]);
       }
@@ -41,8 +41,8 @@ mergeInto(LibraryManager.library, {
   },
   client_connect_get_int: function(get, s, url_pointer, client_receive,
                               session_disconnect, plugin) {
-    var url = Pointer_stringify(url_pointer);
-    Module.print('Creating new get xhr: ' + get);
+    var url = UTF8ToString(url_pointer);
+    //console.debug('Creating new get xhr: ' + get);
     var xhr = new XMLHttpRequest();
     xhrs[get] = xhr;
     xhr.responseType = 'arraybuffer';
@@ -51,20 +51,20 @@ mergeInto(LibraryManager.library, {
       xhr.send();
     };
     xhr.onreadystatechange = function() {
-      Module.print('xhr' + get + ' readyState ' + xhr.readyState +
-          ' status ' +  xhr.status + ':' + xhr.statusText);
+      //console.debug('xhr' + get + ' readyState ' + xhr.readyState +
+      //    ' status ' +  xhr.status + ':' + xhr.statusText);
     };
     xhr.onload = function(e) {
       var response = new Uint8Array(e.target.response);
-      Module.print('xhr' + get + ' got ' + response.length + ' bytes');
+      //console.debug('xhr' + get + ' got ' + response.length + ' bytes');
       ccallFunc(getFuncWrapper(client_receive, 'iiiii'), 'number',
         ['array', 'number', 'number', 'number'],
         [response, response.length, 1, s]);
       xhr.resend();
     };
     xhr.onerror = function(e) {
-      Module.print('xhr' + get + ' status:'
-        + xhr.status + ':' + xhr.statusText);
+      //console.debug('xhr' + get + ' status:'
+      //  + xhr.status + ':' + xhr.statusText);
       ccallFunc(
         getFuncWrapper(session_disconnect, 'iii'),
         'number',
@@ -72,10 +72,10 @@ mergeInto(LibraryManager.library, {
         [plugin, s]);
     };
     xhr.onabort = function() {
-      Module.print('xhr' + get + ' aborted');
+      //console.debug('xhr' + get + ' aborted');
     };
     xhr.ontimeout = function() {
-      Module.print('xhr' + get + ' timedout');
+      //console.debug('xhr' + get + ' timedout');
       xhr.resend();
     };
     xhr.resend();

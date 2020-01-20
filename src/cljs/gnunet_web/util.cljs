@@ -66,6 +66,6 @@
       "number"
       (array "array" "number" "number" "number")
       (array data-array data-len string-pointer strlen))
-    (let [string (js/Pointer_stringify string-pointer strlen)]
+    (let [string (js/UTF8ToString string-pointer strlen)]
       (js/_free string-pointer)
       string)))

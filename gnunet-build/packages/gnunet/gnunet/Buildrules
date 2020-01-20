@@ -13,7 +13,8 @@ BDEPENDS="${BDEPENDS}
 "
 
 pkg_compile() {
-	cp "${F}/scheduler.c" "${S}/src/util/"
+	cp "${F}/scheduler_em.c" \
+		"${S}/src/util/"
 	cp "${F}/plugin_transport_http_client_emscripten.c" \
 		"${S}/src/transport/"
 	cp "${F}/plugin_transport_webrtc.c" \
@@ -23,12 +24,14 @@ pkg_compile() {
 	cp "${F}/plugin_datastore_emscripten.c" \
 		"${S}/src/datastore/"
         export TEMP_DIR="${T}"
+	export LDFLAGS="${LDFLAGS} -s NO_WASM -L${SYSROOT}/usr/lib"
 	./bootstrap
         EMCONFIGURE_JS=1 emconfigure ./configure \
 		--prefix=/usr \
                 --sysconfdir=/etc \
 		--with-libgcrypt-prefix="${SYSROOT}/usr" \
 		--without-libcurl \
+		--without-ltdl \
 		--disable-testing \
 		--disable-nls \
 		--disable-documentation \
@@ -37,9 +40,11 @@ pkg_compile() {
 		ac_cv_func_srandom=no \
 		ac_cv_func_getifaddrs=yes \
 		ac_cv_lib_socket_socket=no \
+		ac_cv_search___atomic_load_8=no \
+		ac_cv_search_memset_s=no \
                 CPPFLAGS="-I${SYSROOT}/usr/include" \
-                LDFLAGS="-L${SYSROOT}/usr/lib"
-        emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking"
+                LDFLAGS="${LDFLAGS}"
+        emmake make LDFLAGS="${LDFLAGS} -Wc,--ignore-dynamic-linking" V=1
 	mkdir -p "${D}/var/lib/gnunet/js"
 	OPT_LEVEL="-O2"
 	#
@@ -48,7 +53,8 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s SIDE_MODULE=1 \
+		${LDFLAGS} \
+		-s SIDE_MODULE \
 		-s EXPORTED_FUNCTIONS='["_libgnunet_plugin_block_dht_init"]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/dht/libgnunet_plugin_block_dht.js" \
@@ -56,7 +62,8 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s SIDE_MODULE=1 \
+		${LDFLAGS} \
+		-s SIDE_MODULE \
 		-s EXPORTED_FUNCTIONS='["_libgnunet_plugin_block_fs_init"]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/fs/libgnunet_plugin_block_fs.js" \
@@ -70,6 +77,8 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
+		${LDFLAGS} \
+		-s ALLOW_MEMORY_GROWTH \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
 		--use-preload-plugins \
@@ -82,6 +91,7 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
+		-lidbfs.js \
 		--js-library "${F}/configuration.js" \
 		--js-library "${F}/network.js" \
 		--js-library "${F}/scheduler.js" \
@@ -95,7 +105,8 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s SIDE_MODULE=1 \
+		${LDFLAGS} \
+		-s SIDE_MODULE \
 		-s EXPORTED_FUNCTIONS='[
 			"_libgnunet_plugin_datacache_heap_init"
 		]' \
@@ -110,9 +121,10 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s SIDE_MODULE=1 \
+		${LDFLAGS} \
+		-s SIDE_MODULE \
 		-s EXPORTED_FUNCTIONS='[
-			"_libgnunet_plugin_datastore_emscripten_init",
+			"_libgnunet_plugin_datastore_emscripten_init"
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/datastore/libgnunet_plugin_datastore_emscripten.js" \
@@ -120,11 +132,12 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		${LDFLAGS} \
+		-s MAIN_MODULE \
+		-s EXPORT_ALL \
+		-s TOTAL_MEMORY=$((80 * 1024 * 1024)) \
 		--memory-init-file 1 \
 		--use-preload-plugins \
-		-s TOTAL_MEMORY=$((80 * 1024 * 1024)) \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/datastore/gnunet-service-datastore.js" \
 		"${S}/src/datastore/gnunet-service-datastore.o" \
@@ -132,6 +145,7 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
+		-lidbfs.js \
 		--js-library "${F}/configuration.js" \
 		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
@@ -149,7 +163,8 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s SIDE_MODULE=1 \
+		${LDFLAGS} \
+		-s SIDE_MODULE \
 		-s EXPORTED_FUNCTIONS='[
 			"_libgnunet_plugin_ats_proportional_init"
 		]' \
@@ -159,14 +174,16 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		${LDFLAGS} \
+		-s MAIN_MODULE \
+		-s EXPORT_ALL \
 		--memory-init-file 1 \
 		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/ats/gnunet-service-ats.js" \
 		"${S}/src/ats/gnunet-service-ats"*.o \
 		"${S}/src/ats/libgnunetats.la" \
+		"${S}/src/nt/libgnunetnt.la" \
 		"${S}/src/statistics/libgnunetstatistics.la" \
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
@@ -187,9 +204,10 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s SIDE_MODULE=1 \
+		${LDFLAGS} \
+		-s SIDE_MODULE \
 		-s EXPORTED_FUNCTIONS='[
-			"_libgnunet_plugin_transport_http_client_init",
+			"_libgnunet_plugin_transport_http_client_init"
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/libgnunet_plugin_transport_http_client.js" \
@@ -198,26 +216,31 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s SIDE_MODULE=1 \
+		${LDFLAGS} \
+		-s SIDE_MODULE \
 		-s EXPORTED_FUNCTIONS='[
-			"_libgnunet_plugin_transport_webrtc_init",
+			"_libgnunet_plugin_transport_webrtc_init"
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/libgnunet_plugin_transport_webrtc.js" \
-		"${S}/src/transport/libgnunet_plugin_transport_webrtc_la-plugin_transport_webrtc.lo"
+		"${S}/src/transport/plugin_transport_webrtc.lo"
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		${LDFLAGS} \
+		-s MAIN_MODULE \
+		-s EXPORT_ALL \
+		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
 		--memory-init-file 1 \
 		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/transport/gnunet-service-transport.js" \
 "${S}/src/transport/gnunet_service_transport-gnunet-service-transport"*.o \
 		"${S}/src/transport/libgnunettransport.la" \
+		"${S}/src/cadet/libgnunetcadet.la" \
 		"${S}/src/ats/libgnunetats.la" \
 		"${S}/src/hello/libgnunethello.la" \
+		"${S}/src/nt/libgnunetnt.la" \
 		"${S}/src/peerinfo/libgnunetpeerinfo.la" \
 		"${S}/src/statistics/libgnunetstatistics.la" \
 		"${S}/src/util/libgnunetutil.la" \
@@ -241,6 +264,8 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
+		${LDFLAGS} \
+		-s ALLOW_MEMORY_GROWTH \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
 		--use-preload-plugins \
@@ -267,6 +292,8 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
+		${LDFLAGS} \
+		-s ALLOW_MEMORY_GROWTH \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
 		--use-preload-plugins \
@@ -280,6 +307,7 @@ pkg_compile() {
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
 		-lz \
+		-lidbfs.js \
 		--js-library "${F}/configuration.js" \
 		--js-library "${F}/network.js" \
 		--js-library "${F}/scheduler.js" \
@@ -293,11 +321,12 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		${LDFLAGS} \
+		-s MAIN_MODULE \
+		-s EXPORT_ALL \
+		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
 		--memory-init-file 1 \
 		--use-preload-plugins \
-		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/dht/gnunet-service-dht.js" \
 		"${S}/src/dht/gnunet-service-dht"*.o \
@@ -314,7 +343,6 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
-		-lz \
 		--js-library "${F}/configuration.js" \
 		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
@@ -329,6 +357,8 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
+		${LDFLAGS} \
+		-s ALLOW_MEMORY_GROWTH \
 		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
 		--memory-init-file 1 \
 		--use-preload-plugins \
@@ -358,8 +388,9 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		${LDFLAGS} \
+		-s MAIN_MODULE \
+		-s EXPORT_ALL \
 		--memory-init-file 1 \
 		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
@@ -376,7 +407,6 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
-		-lz \
 		--js-library "${F}/configuration.js" \
 		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
@@ -391,9 +421,10 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s SIDE_MODULE=1 \
+		${LDFLAGS} \
+		-s SIDE_MODULE \
 		-s EXPORTED_FUNCTIONS='[
-			"_libgnunet_plugin_peerstore_emscripten_init",
+			"_libgnunet_plugin_peerstore_emscripten_init"
 		]' \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/peerstore/libgnunet_plugin_peerstore_emscripten.js" \
@@ -401,8 +432,9 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		${LDFLAGS} \
+		-s MAIN_MODULE \
+		-s EXPORT_ALL \
 		--memory-init-file 1 \
 		--use-preload-plugins \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
@@ -428,11 +460,12 @@ pkg_compile() {
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
 		${OPT_LEVEL} \
-		-s MAIN_MODULE=1 \
-		-s EXPORTED_FUNCTIONS=@"${F}/imports" \
+		${LDFLAGS} \
+		-s MAIN_MODULE \
+		-s EXPORT_ALL \
+		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
 		--memory-init-file 1 \
 		--use-preload-plugins \
-		-s TOTAL_MEMORY=$((32 * 1024 * 1024)) \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \
 		-o "${S}/src/fs/gnunet-service-fs.js" \
 		"${S}/src/fs/gnunet-service-fs"*.o \
@@ -449,7 +482,7 @@ pkg_compile() {
 		"${S}/src/util/libgnunetutil.la" \
 		"${SYSROOT}/usr/lib/libgcrypt.la" \
 		"${SYSROOT}/usr/lib/libgpg-error.la" \
-		-lz \
+		-lidbfs.js \
 		--js-library "${F}/configuration.js" \
 		--js-library "${F}/network.js" \
 		--js-library "${F}/plugin.js" \
@@ -468,6 +501,8 @@ pkg_compile() {
 		"${F}/client-lib.c"
 	./libtool --tag=CC --mode=link \
 		emcc -fno-strict-aliasing -Wall \
+		${LDFLAGS} \
+		-s ALLOW_MEMORY_GROWTH \
 		-s EXPORTED_FUNCTIONS=@${F}/client-lib.exports \
 		-s RESERVED_FUNCTION_POINTERS=100 \
 		"-I${SYSROOT}/usr/include" "-L${SYSROOT}/usr/lib" \

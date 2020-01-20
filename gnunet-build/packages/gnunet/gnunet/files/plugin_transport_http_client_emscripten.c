@@ -737,8 +737,7 @@ http_client_plugin_get_network_for_address (void *cls,
  * @param tc scheduler context
  */
 static void
-client_session_timeout (void *cls,
-                        const struct GNUNET_SCHEDULER_TaskContext *tc)
+client_session_timeout (void *cls)
 {
   struct GNUNET_ATS_Session *s = cls;
   struct GNUNET_TIME_Relative left;

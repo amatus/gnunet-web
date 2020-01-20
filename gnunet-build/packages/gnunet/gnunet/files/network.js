@@ -19,7 +19,7 @@ mergeInto(LibraryManager.library, {
   $NEXT_SOCKET: 1,
   GNUNET_NETWORK_socket_create__deps: ['$SOCKETS', '$NEXT_SOCKET'],
   GNUNET_NETWORK_socket_create: function(domain, type, protocol) {
-    console.debug("socket_create(", domain, type, protocol, ")");
+    //console.debug("socket_create(", domain, type, protocol, ")");
     if (domain != 1) {
       ___setErrNo(ERRNO_CODES.EAFNOSUPPORT);
       return 0;
@@ -33,7 +33,7 @@ mergeInto(LibraryManager.library, {
   },
   GNUNET_NETWORK_socket_connect__deps: ['$SOCKETS'],
   GNUNET_NETWORK_socket_connect: function(desc, address, address_len) {
-    console.debug("socket_connect(", desc, address, address_len, ")");
+    //console.debug("socket_connect(", desc, address, address_len, ")");
     if (desc in SOCKETS) {
       console.error("socket already connected?");
       ___setErrNo(ERRNO_CODES.EISCONN);
@@ -44,8 +44,8 @@ mergeInto(LibraryManager.library, {
       ___setErrNo(ERRNO_CODES.EAFNOSUPPORT);
       return -1;
     }
-    var path = Pointer_stringify(address + 2);
-    console.debug("connecting to", path);
+    var path = UTF8ToString(address + 2);
+    //console.debug("connecting to", path);
     var channel;
     try {
       channel = new MessageChannel();
@@ -60,10 +60,10 @@ mergeInto(LibraryManager.library, {
       queue: [],
     };
     channel.port1.onmessage = function(ev) {
-      console.debug("got message on socket", desc, ev);
+      //console.debug("got message on socket", desc, ev);
       socket.queue.push(ev.data);
       if ("task" in socket) {
-        console.debug("calling read handler");
+        //console.debug("calling read handler");
         delete SCHEDULER_TASKS[socket.task];
         delete socket["task"];
         dynCall('vi', socket.handler, [socket.cls]);
@@ -84,7 +84,7 @@ mergeInto(LibraryManager.library, {
   },
   GNUNET_NETWORK_socket_send__deps: ['$SOCKETS'],
   GNUNET_NETWORK_socket_send: function(desc, buffer, length) {
-    console.debug("socket_send(", desc, buffer, length, ")");
+    //console.debug("socket_send(", desc, buffer, length, ")");
     if (!(desc in SOCKETS)) {
       console.error("socket not connected?");
       ___setErrNo(ERRNO_CODES.ENOTCONN);
@@ -103,7 +103,7 @@ mergeInto(LibraryManager.library, {
   },
   GNUNET_NETWORK_socket_close__deps: ['$SOCKETS'],
   GNUNET_NETWORK_socket_close: function(desc) {
-    console.debug("socket_close(", desc, ")");
+    //console.debug("socket_close(", desc, ")");
     if (!(desc in SOCKETS)) {
       return 1;
     }
@@ -117,7 +117,7 @@ mergeInto(LibraryManager.library, {
   },
   GNUNET_NETWORK_socket_bind__deps: ['$SOCKETS'],
   GNUNET_NETWORK_socket_bind: function(desc, address, address_len) {
-    console.debug("socket_bind(", desc, address, address_len, ")");
+    //console.debug("socket_bind(", desc, address, address_len, ")");
     if (desc in SOCKETS) {
       console.error("socket already bound?");
       ___setErrNo(ERRNO_CODES.EINVAL);
@@ -127,14 +127,14 @@ mergeInto(LibraryManager.library, {
       ___setErrNo(ERRNO_CODES.EINVAL);
       return -1;
     }
-    var path = Pointer_stringify(address + 2);
-    console.debug("binding to", path);
+    var path = UTF8ToString(address + 2);
+    //console.debug("binding to", path);
     SOCKETS[desc] = {};
     return 1;
   },
   GNUNET_NETWORK_socket_listen__deps: ['$SOCKETS'],
   GNUNET_NETWORK_socket_listen: function(desc, backlog) {
-    console.debug("socket_listen(", desc, backlog, ")");
+    //console.debug("socket_listen(", desc, backlog, ")");
     if ("listening" in SOCKETS) {
       console.error("only one listening socket is supported");
       return -1;
@@ -144,14 +144,14 @@ mergeInto(LibraryManager.library, {
   },
   GNUNET_NETWORK_socket_accept__deps: ['$SOCKETS', '$NEXT_SOCKET'],
   GNUNET_NETWORK_socket_accept: function(desc, address, address_len) {
-    console.debug("socket_accept(", desc, address, address_len, ")");
+    //console.debug("socket_accept(", desc, address, address_len, ")");
     if (desc != SOCKETS.listening) {
       console.error("socket is not listening");
       ___setErrNo(ERRNO_CODES.EINVAL);
       return 0;
     }
     if (0 == SOCKETS.incoming.length) {
-      console.debug("no incoming connections");
+      //console.debug("no incoming connections");
       ___setErrNo(ERRNO_CODES.EWOULDBLOCK);
       return 0;
     }
@@ -168,10 +168,10 @@ mergeInto(LibraryManager.library, {
       queue: [],
     };
     data.port.onmessage = function(ev) {
-      console.debug("got message on socket", sd, ev);
+      //console.debug("got message on socket", sd, ev);
       socket.queue.push(ev.data);
       if ("task" in socket) {
-        console.debug("calling read handler");
+        //console.debug("calling read handler");
         delete SCHEDULER_TASKS[socket.task];
         delete socket["task"];
         dynCall('vi', socket.handler, [socket.cls]);
@@ -184,7 +184,7 @@ mergeInto(LibraryManager.library, {
   },
   GNUNET_NETWORK_socket_recv__deps: ['$SOCKETS'],
   GNUNET_NETWORK_socket_recv: function(desc, buffer, length) {
-    console.debug("socket_recv(", desc, buffer, length, ")");
+    //console.debug("socket_recv(", desc, buffer, length, ")");
     if (!(desc in SOCKETS)) {
       console.error("socket not connected?");
       ___setErrNo(ERRNO_CODES.ENOTCONN);
@@ -192,13 +192,13 @@ mergeInto(LibraryManager.library, {
     }
     var socket = SOCKETS[desc];
     if (0 == socket.queue.length) {
-      console.debug("nothing to read");
+      //console.debug("nothing to read");
       ___setErrNo(ERRNO_CODES.EWOULDBLOCK);
       return -1;
     }
     var data = socket.queue[0];
     if ("close" == data) {
-      console.debug("socket closed");
+      //console.debug("socket closed");
       return 0;
     }
     var sub = data.subarray(0, length);
@@ -208,7 +208,7 @@ mergeInto(LibraryManager.library, {
     } else {
       socket.queue[0] = data.subarray(sub.length);
     }
-    console.debug("read", sub.length, "bytes");
+    //console.debug("read", sub.length, "bytes");
     return sub.length;
   },
   GNUNET_NETWORK_fdset_isset__deps: ['$SOCKETS'],
@@ -245,6 +245,12 @@ mergeInto(LibraryManager.library, {
   GNUNET_NETWORK_socket_select: function(rfds, wfds, efds, timeout) {
     console.error("GNUNET_NETWORK_socket_select should not be called");
     return -1;
+  },
+  GNUNET_NETWORK_test_pf: function(pf) {
+    if (1 == pf) {
+      return 1;
+    }
+    return 0;
   }
 });
 

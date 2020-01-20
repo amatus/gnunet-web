@@ -75,7 +75,7 @@
             (js/console.error "REKT" e))))
     (.start port)
     (.postMessage port (js-obj "type" "init"
-                               "private-key" (to-array private-key)
+                               "private-key" (js/Uint8Array.from private-key)
                                "random-bytes" random-bytes))
     worker))
 

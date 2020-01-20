@@ -98,8 +98,8 @@ mergeInto(LibraryManager.library, {
   },
   GNUNET_CONFIGURATION_get_value__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_get_value: function(section, option) {
-    var section = Pointer_stringify(section).toLowerCase();
-    var option = Pointer_stringify(option).toUpperCase();
+    var section = UTF8ToString(section).toLowerCase();
+    var option = UTF8ToString(option).toUpperCase();
     console.debug('GNUNET_CONFIGURATION_get_value(' + section + ',' + option
           + ')');
     if (!(section in CONFIG)) {
@@ -186,11 +186,11 @@ mergeInto(LibraryManager.library, {
   GNUNET_CONFIGURATION_iterate_section_values__deps: ['$CONFIG'],
   GNUNET_CONFIGURATION_iterate_section_values:
   function(cfg, section, iter, iter_cls) {
-    var section_name = Pointer_stringify(section);
+    var section_name = UTF8ToString(section);
     console.debug('GNUNET_CONFIGURATION_iterate_section_values(' + section_name
           + ')');
     if (!(section_name in CONFIG)) {
-      Module.print(section_name + ' not in CONFIG');
+      console.log(section_name + ' not in CONFIG');
       return;
     }
     section = CONFIG[section_name];
@@ -202,9 +202,9 @@ mergeInto(LibraryManager.library, {
     }
   },
   GNUNET_CONFIGURATION_set_value_string: function(cfg, section, option, value) {
-    var section_name = Pointer_stringify(section);
-    var option_str = Pointer_stringify(option);
-    var value_str = Pointer_stringify(value);
+    var section_name = UTF8ToString(section);
+    var option_str = UTF8ToString(option);
+    var value_str = UTF8ToString(value);
     if(!(section_name in CONFIG)) {
       CONFIG[section_name] = {}
     }

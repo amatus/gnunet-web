@@ -1028,7 +1028,7 @@ index 4e8c8140d..7f75b2852 100644
      olen = sizeof(uc);
      if ((0 == getsockopt (GNUNET_NETWORK_get_fd (sock),
 diff --git a/src/util/Makefile.am b/src/util/Makefile.am
-index 387f22a9f..ae1ebd988 100644
+index 387f22a9f..a5622755b 100644
 --- a/src/util/Makefile.am
 +++ b/src/util/Makefile.am
 @@ -43,8 +43,6 @@ libgnunetutil_la_SOURCES = \
@@ -1040,7 +1040,7 @@ index 387f22a9f..ae1ebd988 100644
    container_bloomfilter.c \
    container_heap.c \
    container_meta_data.c \
-@@ -78,13 +76,11 @@ libgnunetutil_la_SOURCES = \
+@@ -78,17 +76,15 @@ libgnunetutil_la_SOURCES = \
    mst.c \
    mq.c \
    nc.c \
@@ -1054,3 +1054,16 @@ index 387f22a9f..ae1ebd988 100644
    program.c \
    regex.c \
    resolver_api.c resolver.h \
+-  scheduler.c \
++  scheduler_em.c \
+   service.c \
+   signal.c \
+   strings.c \
+@@ -127,7 +123,6 @@ libgnunetutil_la_LIBADD = \
+   $(LIBGCRYPT_LIBS) \
+   $(LTLIBICONV) \
+   $(LTLIBINTL) \
+-  -lltdl \
+   $(LIBIDN) $(LIBIDN2) \
+   $(Z_LIBS) \
+   -lunistring \

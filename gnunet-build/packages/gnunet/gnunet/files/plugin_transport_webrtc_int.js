@@ -21,7 +21,7 @@ mergeInto(LibraryManager.library, {
   peer_connect: function(offer_cb, answer_cb, message_cb, offer_ptr, offer_size, cls) {
     var offer;
     if (0 != offer_ptr) {
-      offer = Pointer_stringify(offer_ptr, offer_size);
+      offer = UTF8ToString(offer_ptr, offer_size);
     }
     var channel = new MessageChannel();
     var port = channel.port1;
@@ -56,7 +56,7 @@ mergeInto(LibraryManager.library, {
   set_remote_answer__deps: ["$CONNECTIONS"],
   set_remote_answer: function(num, answer_ptr, answer_size) {
     var port = CONNECTIONS[num];
-    port.postMessage({type: 'answer', sdp: Pointer_stringify(answer_ptr, answer_size)});
+    port.postMessage({type: 'answer', sdp: UTF8ToString(answer_ptr, answer_size)});
   },
   peer_disconnect__deps: ["$CONNECTIONS"],
   peer_disconnect: function(num) {

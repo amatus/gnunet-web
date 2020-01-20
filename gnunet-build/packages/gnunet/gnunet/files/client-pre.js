@@ -44,7 +44,7 @@ function ccallFunc(func, returnType, argTypes, args) {
     }
   }
   var ret = func.apply(null, cArgs);
-  if (returnType === 'string') ret = Pointer_stringify(ret);
+  if (returnType === 'string') ret = UTF8ToString(ret);
   if (stack !== 0) {
     stackRestore(stack);
   }

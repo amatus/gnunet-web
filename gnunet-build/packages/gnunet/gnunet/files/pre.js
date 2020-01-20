@@ -46,7 +46,7 @@ gnunet_prerun = function() {
         random_bytes[random_offset++] = 0;
       }
       if (i < length)
-        Module.printErr('Random bytes exausted!');
+        console.error('Random bytes exausted!');
       return i;
     },
   });
@@ -78,7 +78,7 @@ gnunet_prerun = function() {
 }
 if (typeof(Module['preInit']) === "undefined") Module = { 'preInit': [] };
 Module['preInit'].push(gnunet_prerun);
-Module['arguments'] = ["-L", "DEBUG"];
+Module['arguments'] = ["-L", "ERROR"];
 
 // a map of window index to port
 var windows = {};
@@ -175,7 +175,7 @@ function ccallFunc(func, returnType, argTypes, args) {
     }
   }
   var ret = func.apply(null, cArgs);
-  if (returnType === 'string') ret = Pointer_stringify(ret);
+  if (returnType === 'string') ret = UTF8ToString(ret);
   if (stack !== 0) {
     stackRestore(stack);
   }

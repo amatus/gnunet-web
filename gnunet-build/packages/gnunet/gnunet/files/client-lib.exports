@@ -38,8 +38,6 @@
 "_GNUNET_FS_uri_parse",
 "_GNUNET_FS_uri_to_string",
 "_GNUNET_HELLO_get_id",
-"_GNUNET_MQ_queue_for_connection_client",
-"_GNUNET_SCHEDULER_run_task",
 "_GNUNET_STRINGS_data_to_string",
 "_GNUNET_TRANSPORT_hello_get",
 "_GNUNET_TRANSPORT_hello_get_cancel",

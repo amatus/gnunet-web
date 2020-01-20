@@ -26,7 +26,7 @@ mergeInto(LibraryManager.library, {
       if (cursor) {
         count++;
         cursor.delete().onerror = function(e) {
-          Module.print('expiry request failed');
+          console.error('expiry request failed');
         };
         cursor.continue();
       } else {
@@ -36,18 +36,18 @@ mergeInto(LibraryManager.library, {
       }
     };
     request.onerror = function(e) {
-      Module.print('cursor request failed');
+      console.error('cursor request failed');
       dynCall('vii', cont, [cont_cls, -1]);
     };
   }, 
   peerstore_emscripten_iterate_records_int: function(sub_system_pointer,
                                                 peer_pointer, key_pointer,
                                                 iter, iter_cls, wrapper) {
-    var sub_system = Pointer_stringify(sub_system_pointer);
+    var sub_system = UTF8ToString(sub_system_pointer);
     var peer = peer_pointer ? Array.prototype.slice.call(
         HEAP8.subarray(peer_pointer, peer_pointer + 32))
       : null;
-    var key = key_pointer ? Pointer_stringify(key_pointer) : null;
+    var key = key_pointer ? UTF8ToString(key_pointer) : null;
     var key_range = [sub_system];
     if (peer) {
       key_range.push(peer);
@@ -89,7 +89,7 @@ mergeInto(LibraryManager.library, {
       }
     };
     request.onerror = function(e) {
-      Module.print('cursor request failed');
+      console.error('cursor request failed');
       dynCall('viii', iter, [iter_cls, 0, -1]);
     };
   },
@@ -97,10 +97,10 @@ mergeInto(LibraryManager.library, {
                                              peer_pointer, key_pointer,
                                              value_pointer, size, expiry,
                                              options, cont, cont_cls) {
-    var sub_system = Pointer_stringify(sub_system_pointer);
+    var sub_system = UTF8ToString(sub_system_pointer);
     var peer = Array.prototype.slice.call(HEAP8.subarray(peer_pointer,
           peer_pointer + 32));
-    var key = Pointer_stringify(key_pointer);
+    var key = UTF8ToString(key_pointer);
     var value = new Uint8Array(HEAP8.subarray(value_pointer,
           value_pointer + size));
     var store =
@@ -113,7 +113,7 @@ mergeInto(LibraryManager.library, {
            value: value,
            expiry: expiry});
       request.onerror = function(e) {
-        Module.print('put request failed');
+        console.error('put request failed');
         dynCall('vii', cont, [cont_cls, -1]);
       };
       request.onsuccess = function(e) {
@@ -127,7 +127,7 @@ mergeInto(LibraryManager.library, {
         var cursor = e.target.result;
         if (cursor) {
           cursor.delete().onerror = function(e) {
-            Module.print('replace request failed');
+            console.error('replace request failed');
           };
           cursor.continue();
         } else {
@@ -135,7 +135,7 @@ mergeInto(LibraryManager.library, {
         }
       };
       request.onerror = function(e) {
-        Module.print('cursor request failed');
+        console.error('cursor request failed');
         dynCall('vii', cont, [cont_cls, -1]);
       };
     } else {

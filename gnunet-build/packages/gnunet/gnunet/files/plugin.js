@@ -17,7 +17,7 @@
 mergeInto(LibraryManager.library, {
   GNUNET_PLUGIN_load__deps: ['dlclose', 'dlsym', 'dlopen'],
   GNUNET_PLUGIN_load: function(library_name, arg) {
-    var lib = Pointer_stringify(library_name);
+    var lib = UTF8ToString(library_name);
     var handle = ccallFunc(_dlopen, 'number',
       ['string', 'number'],
       [lib + '.js', 0]);
@@ -40,7 +40,7 @@ mergeInto(LibraryManager.library, {
   },
   GNUNET_PLUGIN_load_all__deps: ['$FS', 'GNUNET_PLUGIN_load'],
   GNUNET_PLUGIN_load_all: function(basename, arg, cb, cb_cls) {
-    var prefix = Pointer_stringify(basename);
+    var prefix = UTF8ToString(basename);
     var entries = [];
     try {
       entries = FS.readdir('.');

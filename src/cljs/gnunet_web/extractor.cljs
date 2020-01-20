@@ -29,12 +29,12 @@
 
 (defn metatype-to-string
   [type]
-  (js/Pointer_stringify
+  (js/UTF8ToString
     (js/_EXTRACTOR_metatype_to_string type)))
 
 (defn metatype-to-description
   [type]
-  (js/Pointer_stringify
+  (js/UTF8ToString
     (js/_EXTRACTOR_metatype_to_description type)))
 
 (defn metadata-destroy
