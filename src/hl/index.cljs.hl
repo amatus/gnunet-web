@@ -32,6 +32,8 @@
 
 (defc browser-support
       (cond
+        (not= -1 (.indexOf js/window.navigator.userAgent "PhantomJS"))
+        nil
         (not (exists? js/MessageChannel))
         "This website requires MessageChannel support. Try Chromium or Google Chrome."
         (not (exists? js/SharedWorker))
